@@ -62,6 +62,10 @@ calendars:
     section: qofai
     google_id: owner@example.com
 
+# Events after today, up to lookahead_days, are rated for lead time (M5).
+calendar:
+  lookahead_days: 14
+
 news:
   sections: [technology, business, home]
   cap: 5
@@ -70,8 +74,13 @@ ai_daily_brief:
   feed_url: https://aidailybrief.ai/agent.json
   cap: 5
 
+# Pressing actions: model ranks personal candidates (never QofAI) and rates
+# upcoming events for lead time, using the last feedback_limit feedback entries.
 actions:
   cap: 7
+  model: claude-opus-5-5
+  effort: high
+  feedback_limit: 60
 
 agent_reports_dir: agent-reports
 # A report older than this shows as an error (the chore exporter runs daily at 05:45).

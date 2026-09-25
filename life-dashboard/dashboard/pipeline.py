@@ -1,5 +1,8 @@
 """Run every connector, normalize, pick Pressing actions, save the brief.
 
+Pressing actions and Coming up come from dashboard/actions.py (LLM ranking and
+lead times, with rule fallbacks).
+
 One failing connector produces an error result instead of stopping the run.
 Each connector's last good result is cached in data/cache/, so a failure
 shows the previous data (marked stale) rather than a blank card.
@@ -14,13 +17,13 @@ from typing import Any, Callable
 from zoneinfo import ZoneInfo
 
 from connectors import REGISTRY
+from dashboard import actions
 from dashboard.config import ROOT
 from dashboard.schema import ConnectorResult, Item
 
 Fetch = Callable[[dict], list[Item]]
 
 DATA_DIR = ROOT / "data"
-URGENCY_ORDER = {"overdue": 0, "due_today": 1, "reply_needed": 2, "deadline": 3}
 
 
 def _now(config: dict) -> datetime:
@@ -66,35 +69,24 @@ def run_connectors(
     return results
 
 
-def pressing_actions(results: dict[str, ConnectorResult], cap: int) -> list[Item]:
-    """M0 placeholder ranking: personal items with urgency hints, most urgent first.
-
-    Replaced by the LLM ranking in M5. QofAI items are always excluded.
-    """
-    candidates = [
-        item
-        for r in results.values()
-        for item in r.items
-        if item.section == "personal" and item.urgency_hints
-    ]
-
-    def key(item: Item) -> tuple[int, str]:
-        rank = min(URGENCY_ORDER.get(h, 9) for h in item.urgency_hints)
-        return rank, item.due or "9999"
-
-    return sorted(candidates, key=key)[:cap]
-
-
 def build_brief(
     config: dict,
     registry: dict[str, Fetch] | None = None,
     cache_dir: Path | None = None,
+    data_dir: Path | None = None,
+    client: Any = None,
 ) -> dict[str, Any]:
-    results = run_connectors(config, registry, cache_dir)
+    """data_dir holds check-offs and feedback; client is the Claude client (a fake in tests)."""
+    data_dir = data_dir or DATA_DIR
+    results = run_connectors(config, registry, cache_dir or data_dir / "cache")
+    now = _now(config)
+    picked = actions.select(results, config, now, data_dir, client)
     return {
-        "generated_at": _now(config).isoformat(timespec="seconds"),
+        "generated_at": now.isoformat(timespec="seconds"),
         "results": results,
-        "actions": pressing_actions(results, config["actions"]["cap"]),
+        "actions": picked["actions"],
+        "upcoming": picked["upcoming"],
+        "actions_note": picked["note"],
     }
 
 
@@ -104,7 +96,9 @@ def save_brief(brief: dict[str, Any], path: Path | None = None) -> Path:
     data = {
         "generated_at": brief["generated_at"],
         "results": {k: v.to_dict() for k, v in brief["results"].items()},
-        "actions": [i.to_dict() for i in brief["actions"]],
+        "actions": [a.to_dict() for a in brief["actions"]],
+        "upcoming": [u.to_dict() for u in brief["upcoming"]],
+        "actions_note": brief["actions_note"],
     }
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
     return path

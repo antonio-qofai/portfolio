@@ -57,13 +57,63 @@
   details summary { cursor: pointer; font-size: .9rem; color: var(--muted); padding-top: 8px; }
   .split { display: grid; gap: 14px; }
   @media (min-width: 640px) { .split { grid-template-columns: 1fr 1fr; } }
+  .surfaced.done .title { text-decoration: line-through; color: var(--muted); }
+  .feedback { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 0 26px; }
+  #today-calendar .feedback { margin-left: 0; }
+  .feedback button { font: inherit; font-size: .72rem; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; cursor: pointer; }
+  .feedback button.picked { color: var(--card); background: var(--accent); border-color: var(--accent); }
   footer { text-align: center; font-size: .75rem; color: var(--muted); padding: 8px 0 24px; }
 </style>
 </head>
 <body>
 <main>
 $body
-<footer>Brief generated $generated_at · stub data (M0)</footer>
+<footer>Brief generated $generated_at</footer>
 </main>
+<script>
+// Check-offs and feedback go to the local server (run.py), which stores them
+// under data/ for the next build's ranking and lead-time prompts.
+(function () {
+  var status = document.getElementById("save-status");
+  function say(text) { if (status) status.textContent = text; }
+  function post(path, body) {
+    return fetch(path, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(body)
+    }).then(function (r) { if (!r.ok) throw new Error(r.status); });
+  }
+  function rows() { return document.querySelectorAll(".surfaced"); }
+  function pick(row, kind) {
+    row.querySelectorAll("[data-feedback]").forEach(function (b) {
+      b.classList.toggle("picked", b.dataset.feedback === kind);
+    });
+  }
+  rows().forEach(function (row) {
+    var key = row.dataset.key;
+    var box = row.querySelector(".check");
+    if (box) box.addEventListener("change", function () {
+      row.classList.toggle("done", box.checked);
+      post("/api/check", {key: key, done: box.checked}).then(function () { say(""); })
+        .catch(function () { box.checked = !box.checked; row.classList.toggle("done", box.checked); say("Couldn't save the check-off."); });
+    });
+    row.querySelectorAll("[data-feedback]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        post("/api/feedback", {key: key, feedback: b.dataset.feedback})
+          .then(function () { pick(row, b.dataset.feedback); say("Thanks, noted for tomorrow's ranking."); })
+          .catch(function () { say("Couldn't save the feedback."); });
+      });
+    });
+  });
+  fetch("/api/state").then(function (r) { return r.ok ? r.json() : null; }).then(function (state) {
+    if (!state) return;
+    rows().forEach(function (row) {
+      var box = row.querySelector(".check");
+      if (box && state.checked.indexOf(row.dataset.key) >= 0) { box.checked = true; row.classList.add("done"); }
+      if (state.feedback[row.dataset.key]) pick(row, state.feedback[row.dataset.key]);
+    });
+  }).catch(function () {});
+})();
+</script>
 </body>
 </html>

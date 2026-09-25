@@ -12,8 +12,10 @@ from pathlib import Path
 from string import Template
 from typing import Any
 
+from dashboard.actions import split_events
 from dashboard.config import ROOT
 from dashboard.schema import ConnectorResult, Item
+from dashboard.store import FEEDBACK_KINDS
 
 TEMPLATE = ROOT / "web" / "template.html"
 
@@ -46,10 +48,7 @@ def _safe_link(url: str) -> str:
 
 
 def _item(item: Item, meta: str = "") -> str:
-    title = escape(item.title)
-    link = _safe_link(item.link)
-    if link:
-        title = f'<a href="{link}" target="_blank" rel="noopener">{title}</a>'
+    title = _title(item)
     meta_html = f'<span class="meta">{escape(meta)}</span>' if meta else ""
     summary = f'<p class="summary">{escape(item.summary)}</p>' if item.summary else ""
     return f"<li>{meta_html}<span class=\"title\">{title}</span>{summary}</li>"
@@ -74,6 +73,14 @@ def _status(results: list[ConnectorResult]) -> str:
     return "".join(parts)
 
 
+def _stamp_day(iso: str | None) -> str:
+    """'Tue Sep 29' or 'Tue Sep 29, 2:00 PM' for upcoming events."""
+    if not iso:
+        return ""
+    t = datetime.fromisoformat(iso)
+    return t.strftime("%a %b %-d") if _all_day(iso) else t.strftime("%a %b %-d, %-I:%M %p")
+
+
 def _stamp(iso: str | None) -> str:
     """'Wed Sep 24, 6:00 AM' for stale data, which may be from another day."""
     if not iso:
@@ -87,6 +94,29 @@ def _card(card_id: str, title: str, body: str, results: list[ConnectorResult], e
         f'<section class="{cls}" id="{card_id}">'
         f"<h2>{escape(title)}</h2>{body}{_status(results)}</section>"
     )
+
+
+def _title(item: Item) -> str:
+    title = escape(item.title)
+    link = _safe_link(item.link)
+    return f'<a href="{link}" target="_blank" rel="noopener">{title}</a>' if link else title
+
+
+def _feedback_buttons() -> str:
+    buttons = "".join(
+        f'<button type="button" data-feedback="{k}">{escape(k.replace("_", " ").capitalize())}</button>'
+        for k in FEEDBACK_KINDS
+    )
+    return f'<span class="feedback">{buttons}</span>'
+
+
+def _surfaced(entry: Any, meta: str, checkbox: bool) -> str:
+    """A Pressing action or Coming up event, with feedback buttons (and a check-off box for actions)."""
+    title = f'<span class="title">{_title(entry.item)}</span>'
+    if checkbox:
+        title = f'<label><input type="checkbox" class="check"> {title}</label>'
+    why = f'<span class="why">{escape(" · ".join(filter(None, [entry.why, meta])))}</span>'
+    return f'<li class="surfaced" data-key="{escape(entry.key)}">{title}{why}{_feedback_buttons()}</li>'
 
 
 def _hints(item: Item) -> str:
@@ -107,9 +137,9 @@ def render(brief: dict[str, Any], config: dict) -> str:
     weather, cal, email, chores = get("weather"), get("calendar"), get("email"), get("chores")
     jobs, nyt, aib = get("job_search"), get("nyt"), get("ai_daily_brief")
 
-    events = sorted(cal.items, key=lambda i: i.timestamp or "")
-    personal_events = [e for e in events if e.section == "personal"]
     now = datetime.fromisoformat(brief["generated_at"])
+    events = split_events(sorted(cal.items, key=lambda i: i.timestamp or ""), now)[0]
+    personal_events = [e for e in events if e.section == "personal"]
 
     # 1. Header
     w = weather.items[0] if weather.items else None
@@ -127,22 +157,26 @@ def render(brief: dict[str, Any], config: dict) -> str:
 
     # 2. Pressing actions
     actions = [
-        f'<li><label><input type="checkbox" disabled> <span class="title">{escape(a.title)}</span></label>'
-        f'<span class="why">{escape(_label(a))} · {escape(_hints(a))}</span></li>'
+        _surfaced(a, " · ".join(filter(None, [_label(a.item), _due(a.item.due)])), checkbox=True)
         for a in brief["actions"]
     ]
+    note = brief.get("actions_note")
     actions_body = (
-        '<p class="note">Placeholder ranking. LLM ranking arrives in M5.</p>'
+        (f'<p class="error">{escape(note)}</p>' if note else "")
         + (f'<ol class="actions">{"".join(actions)}</ol>' if actions else '<p class="empty">Nothing pressing.</p>')
+        + '<p class="note" id="save-status"></p>'
     )
     actions_card = _card("actions", "Pressing actions", actions_body, list(r.values()))
 
     # 3. Today: calendar + chores side by side
-    cal_card = _card(
-        "today-calendar", "Calendar",
-        _list([_item(e, f"{_time(e.timestamp)} · {_label(e)}") for e in personal_events], "No events."),
-        [cal], "sub",
-    )
+    upcoming = [
+        _surfaced(u, f"{_stamp_day(u.item.timestamp)} · {_label(u.item)}", checkbox=False)
+        for u in brief.get("upcoming", [])
+    ]
+    cal_body = _list([_item(e, f"{_time(e.timestamp)} · {_label(e)}") for e in personal_events], "No events.")
+    if upcoming:
+        cal_body += f'<h3>Coming up</h3><ul>{"".join(upcoming)}</ul>'
+    cal_card = _card("today-calendar", "Calendar", cal_body, [cal], "sub")
     chore_items = [c for c in chores.items if c.section == "personal"]
     chore_card = _card(
         "today-chores", "Chores",

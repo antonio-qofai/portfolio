@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+M5 Pressing actions (built; one-week check pending).
+
+### Added
+
+- LLM Pressing actions (`dashboard/actions.py`, `prompts/rank_actions.md`): Claude (`actions.model`, Opus 5.5, `actions.effort` high) ranks today's personal calendar events, pressing email, chores and surfaced upcoming events into at most `actions.cap` actions, each with a one-line why. QofAI items are never candidates. Structured JSON output; candidates and feedback are wrapped in tags and marked as data.
+- Importance-based lead time (`prompts/lead_time.md`): Claude rates each personal event in the next `calendar.lookahead_days` (14) by title, calendar and start time, and picks how many days ahead it should surface. Events inside their lead time appear under Coming up on the Calendar card and become ranking candidates.
+- Check-off and "too early / too late / not needed" buttons. The serve job gained `GET /api/state`, `POST /api/check` and `POST /api/feedback` (`dashboard/api.py`, stdlib only). They accept JSON from the page's own origin and host only, and only keys in the current brief; item details are copied from the brief, not the request. Stored in `data/checked.json` and `data/feedback.jsonl` (`dashboard/store.py`).
+- Feedback loop: the last `actions.feedback_limit` (60) feedback entries go into both prompts. Checked-off and not-needed items stay out of Pressing actions until the item changes (its key covers source, title, due date and timestamp).
+- Rule fallback when either call fails (no key, API error, cut-off output): items with urgency hints, most urgent first, and deadlines within 3 days under Coming up. The card says which step fell back.
+- `calendar.lookahead_days` and `actions.model`, `actions.effort`, `actions.feedback_limit` in config.yaml.
+- Tests for lead times, candidate selection, ranking validation, fallbacks, prompt wrapping, the store, the API, the page's buttons, and the server's origin checks. An autouse fixture keeps every test off the Claude API.
+
+### Changed
+
+- The calendar connector fetches today plus `calendar.lookahead_days`; the page still lists only today's events, and the header and QofAI card use today only. Canvas deadlines after today are marked `deadline` rather than `due_today`.
+- The placeholder ranking in `dashboard/pipeline.py` is gone. `build_brief` takes a `data_dir` (check-offs, feedback, cache) and a Claude `client`, so tests use a tmp dir and a fake.
+- Job search stays out of Pressing actions until M7; its stub items had ranked as real actions.
+- Pipeline test fixtures use dates relative to today.
+
 M4 Agent reports (code complete; waiting on the chore exporter's read-only Airtable token).
 
 ### Added

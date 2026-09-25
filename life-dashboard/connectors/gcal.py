@@ -1,4 +1,7 @@
-"""Google Calendar: today's events from the calendars listed in config.yaml.
+"""Google Calendar: events from today through `calendar.lookahead_days`.
+
+Upcoming events feed the lead-time step (dashboard/actions.py); the page shows
+today's events plus the upcoming ones it surfaces.
 
 Named gcal to avoid shadowing the stdlib `calendar` module. Read-only scope
 (calendar.readonly) through one Google account; UChicago, QofAI and Canvas
@@ -8,7 +11,7 @@ link are fetched, never descriptions.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from dashboard.google_auth import CALENDAR_READONLY, session
@@ -22,19 +25,23 @@ FIELDS = (
 SKIP_EVENT_TYPES = {"workingLocation", "outOfOffice", "focusTime"}
 
 
-def day_window(config: dict, now: datetime | None = None) -> tuple[str, str]:
+def day_window(config: dict, now: datetime | None = None, days: int = 1) -> tuple[str, str]:
+    """Local midnight today to local midnight `days` later."""
     tz = ZoneInfo(config.get("timezone", "America/Chicago"))
     now = now or datetime.now(tz)
     start = now.astimezone(tz).replace(hour=0, minute=0, second=0, microsecond=0)
-    return start.isoformat(), (start + timedelta(days=1)).isoformat()
+    return start.isoformat(), (start + timedelta(days=days)).isoformat()
 
 
 def _declined(event: dict) -> bool:
     return any(a.get("self") and a.get("responseStatus") == "declined" for a in event.get("attendees", []))
 
 
-def parse_events(events: list[dict], cal: dict) -> list[Item]:
-    """Convert raw Calendar API events for one configured calendar into Items."""
+def parse_events(events: list[dict], cal: dict, today: date | None = None) -> list[Item]:
+    """Convert raw Calendar API events for one configured calendar into Items.
+
+    Deadline events are due_today on `today` and plain deadlines after it.
+    """
     items = []
     for ev in events:
         if ev.get("status") == "cancelled" or _declined(ev) or ev.get("eventType") in SKIP_EVENT_TYPES:
@@ -44,6 +51,7 @@ def parse_events(events: list[dict], cal: dict) -> list[Item]:
         if not when:
             continue
         is_deadline = cal.get("kind") == "deadlines"
+        hint = "due_today" if today is None or when[:10] <= today.isoformat() else "deadline"
         items.append(
             Item(
                 source=f"calendar.{cal['id']}",
@@ -52,7 +60,7 @@ def parse_events(events: list[dict], cal: dict) -> list[Item]:
                 link=ev.get("htmlLink", ""),
                 timestamp=when,
                 due=when if is_deadline else None,
-                urgency_hints=["due_today"] if is_deadline else [],
+                urgency_hints=[hint] if is_deadline else [],
                 section=cal["section"],
             )
         )
@@ -61,7 +69,9 @@ def parse_events(events: list[dict], cal: dict) -> list[Item]:
 
 def fetch(config: dict) -> list[Item]:
     http = session(config["google_account"], CALENDAR_READONLY)
-    time_min, time_max = day_window(config)
+    tz = ZoneInfo(config.get("timezone", "America/Chicago"))
+    today = datetime.now(tz).date()
+    time_min, time_max = day_window(config, days=1 + config["calendar"]["lookahead_days"])
     items = []
     for cal in config["calendars"]:
         if not cal.get("google_id"):
@@ -84,5 +94,5 @@ def fetch(config: dict) -> list[Item]:
             if not data.get("nextPageToken"):
                 break
             params["pageToken"] = data["nextPageToken"]
-        items.extend(parse_events(events, cal))
+        items.extend(parse_events(events, cal, today))
     return items

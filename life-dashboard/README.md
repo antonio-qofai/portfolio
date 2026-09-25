@@ -40,6 +40,14 @@ The connector reads Primary-tab inbox threads from the last `email.lookback_days
 
 Every thread where you didn't send the last message (and that didn't come from one of your own addresses, like your agents' reports) goes to Claude, in batches of 10, (`email.model`, prompt in `prompts/email_triage.md`), which keeps only pressing school, work and internship email and says why, with any deadline. It needs `ANTHROPIC_API_KEY` in `.env`. If the call fails, rules stand in (last message from a real person, no mailing-list or auto-reply headers, no no-reply sender) and those items are marked "(AI filter unavailable)".
 
+## Pressing actions
+
+Each build makes two Claude calls (`actions.model`, Opus 5.5, at `actions.effort`). First, every personal calendar event in the next `calendar.lookahead_days` (title, calendar and start time only) is rated for importance and lead time (`prompts/lead_time.md`); events inside their lead time show under Coming up on the Calendar card. Then today's personal events, pressing email, chores and those upcoming events are ranked into at most `actions.cap` Pressing actions, each with a one-line why (`prompts/rank_actions.md`). QofAI items never enter either call. Job search joins in M7.
+
+Each action has a check-off box, and each action and Coming up event has "too early / too late / not needed" buttons. The serve job stores clicks in `data/checked.json` and `data/feedback.jsonl`; the last `actions.feedback_limit` feedback entries go into both prompts on the next build. A checked-off or not-needed item stays out of Pressing actions until it changes (new due date, new message in the thread). If a call fails, rules stand in (items with urgency hints, deadlines within 3 days) and the card says so.
+
+The buttons only work on the live page, since they post to the local server. It accepts JSON from its own origin only.
+
 ## Scheduling
 
 Two launchd jobs keep the brief fresh and the page up.
@@ -47,7 +55,7 @@ Two launchd jobs keep the brief fresh and the page up.
 | Job | What it does |
 | --- | --- |
 | `...life-dashboard.build` | `run.py --catch-up` at 6:00 AM, at login, on wake after a missed 6:00, and every 30 min. Skips if today's brief already exists. |
-| `...life-dashboard.serve` | `run.py --serve --no-build`, always on, localhost only. |
+| `...life-dashboard.serve` | `run.py --serve --no-build`, always on, localhost only. Serves `web/` and the check-off and feedback endpoints. Reinstall after changing server code. |
 
 ```sh
 uv sync                                  # creates .venv, which launchd uses
@@ -79,14 +87,18 @@ dashboard/
   schema.py         shared Item shape + agent report contract
   config.py         config and .env loader
   google_auth.py    read-only Google OAuth tokens
-  pipeline.py       run connectors, isolate failures, cache last good results,
-                    pick Pressing actions
+  pipeline.py       run connectors, isolate failures, cache last good results
+  actions.py        lead times and Pressing actions ranking (Claude, rule fallback)
+  store.py          check-offs and feedback in data/
+  api.py            the page's check-off and feedback endpoints
+  triage.py         LLM email triage
   render.py         HTML page in PRD layout order
 connectors/         one module per source, each `fetch(config) -> list[Item]`
 agent-reports/      report files written by my other agents (real ones gitignored)
-prompts/            LLM prompts (placeholders until M5)
+prompts/            LLM prompts: email triage, lead time, action ranking
 web/                page template; generated index.html is gitignored
-data/               local store, gitignored: brief.json, cache/, logs/, runs.log, tokens/
+data/               local store, gitignored: brief.json, cache/, checked.json, feedback.jsonl,
+                    logs/, runs.log, tokens/
 tests/
 ```
 
@@ -109,7 +121,7 @@ From PRD.md, one milestone at a time.
 | M2 Calendar | Google Calendar, read-only; UChicago, QofAI, Canvas feeds (in progress) |
 | M3 Email | Personal Gmail and UChicago, then QofAI after policy check |
 | M4 Agent reports | Chore agent writes the report file |
-| M5 Pressing actions | LLM ranking, lead times, check-off and feedback buttons |
+| M5 Pressing actions | LLM ranking, lead times, check-off and feedback buttons (built; week check pending) |
 | M6 Phone | 7:00 AM email digest, then Tailscale |
 | M7 Job search | Parse the internship agent's report email |
 | M8 Reading | NYT (cap 5) and AI Daily Brief cards |

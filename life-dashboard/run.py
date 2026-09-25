@@ -12,9 +12,11 @@ from __future__ import annotations
 import argparse
 import functools
 import http.server
+import json
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from dashboard import api
 from dashboard.config import ROOT, load_config
 from dashboard.pipeline import DATA_DIR, build_brief, last_generated_at, save_brief
 from dashboard.render import render, write_page
@@ -51,10 +53,54 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 
+class DashboardHandler(NoCacheHandler):
+    """Static files from web/, plus the check-off and feedback endpoints (dashboard/api.py)."""
+
+    allowed_hosts: set[str] = set()
+    timezone = "America/Chicago"
+
+    def _same_origin(self) -> bool:
+        # Host check blocks DNS rebinding; Origin check blocks other sites posting here.
+        host = self.headers.get("Host", "")
+        origin = self.headers.get("Origin")
+        return host in self.allowed_hosts and (origin is None or origin == f"http://{host}")
+
+    def _api(self, method: str) -> None:
+        if not self._same_origin():
+            status, payload = 403, {"error": "forbidden"}
+        elif method == "POST" and self.headers.get("Content-Type", "").split(";")[0] != "application/json":
+            status, payload = 415, {"error": "expected application/json"}
+        else:
+            length = int(self.headers.get("Content-Length") or 0)
+            if length > api.MAX_BODY:
+                status, payload = 413, {"error": "too large"}
+            else:
+                body = self.rfile.read(length) if length else b""
+                now = datetime.now(ZoneInfo(self.timezone))
+                status, payload = api.handle(method, self.path, body, DATA_DIR, now)
+        data = json.dumps(payload).encode()
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self) -> None:
+        if self.path.startswith("/api/"):
+            self._api("GET")
+        else:
+            super().do_GET()
+
+    def do_POST(self) -> None:
+        self._api("POST")
+
+
 def serve(config: dict) -> None:
     host, port = config["server"]["host"], config["server"]["port"]
+    DashboardHandler.allowed_hosts = {f"{host}:{port}", f"localhost:{port}"}
+    DashboardHandler.timezone = config.get("timezone", "America/Chicago")
     # Serve only web/, never the repo root (which holds .env and data/).
-    handler = functools.partial(NoCacheHandler, directory=str(ROOT / "web"))
+    handler = functools.partial(DashboardHandler, directory=str(ROOT / "web"))
     with http.server.ThreadingHTTPServer((host, port), handler) as httpd:
         print(f"Serving at http://{host}:{port}  (Ctrl+C to stop)", flush=True)
         try:
