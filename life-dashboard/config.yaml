@@ -1,0 +1,86 @@
+# Life Dashboard config. No secrets here; those go in .env.
+# `section` is "personal" or "qofai". QofAI items stay in their own card
+# and never enter Pressing actions.
+
+owner_name: Alex
+timezone: America/Chicago
+
+location:
+  name: Chicago
+  latitude: 41.8781
+  longitude: -87.6298
+
+# An inbox is fetched only when it names a google_account (token in data/tokens/).
+# UChicago waits on the university policy check. QofAI is not read: its
+# communication happens in Slack.
+inboxes:
+  - id: personal
+    label: Personal
+    provider: gmail
+    section: personal
+    google_account: personal
+  - id: uchicago
+    label: UChicago
+    provider: gmail
+    section: personal
+
+# Primary-tab threads in the last lookback_days, at most max_threads per inbox.
+# model triages them (sender, subject, snippet only) down to pressing school,
+# work and internship email.
+email:
+  lookback_days: 3
+  max_threads: 60
+  model: claude-haiku-4-5
+
+# Google account used for Calendar and personal Gmail. Token lives in
+# data/tokens/google-<account>.json. UChicago, QofAI and Canvas are calendars
+# subscribed into this account, so only the personal account is authorized.
+google_account: personal
+
+# google_id: "primary" or the ID from `uv run scripts/google_auth.py calendars`.
+# Calendars with no google_id are skipped. kind: deadlines marks each event as due.
+calendars:
+  - id: personal
+    label: Personal
+    section: personal
+    google_id: primary
+  - id: uchicago
+    label: UChicago
+    section: personal
+    google_id: owner@example.edu
+  - id: family
+    label: Family
+    section: personal
+    google_id: family-calendar-id@example.com
+  - id: canvas
+    label: Canvas due dates
+    section: personal
+    kind: deadlines
+    google_id: null
+  - id: qofai
+    label: QofAI
+    section: qofai
+    google_id: owner@example.com
+
+news:
+  sections: [technology, business, home]
+  cap: 5
+
+ai_daily_brief:
+  feed_url: https://aidailybrief.ai/agent.json
+  cap: 5
+
+actions:
+  cap: 7
+
+agent_reports_dir: agent-reports
+
+# Daily build time (local). launchd also re-runs on wake/login if this was missed.
+# Keep the pmset wake a few minutes earlier (see README, Scheduling).
+schedule:
+  hour: 6
+  minute: 0
+
+server:
+  host: 127.0.0.1   # localhost only; phone access comes via Tailscale in M6
+  port: 8000

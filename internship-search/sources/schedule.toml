@@ -1,0 +1,233 @@
+# When the agent runs, described as data.
+#
+# Nothing here belongs in Python. `agent/schedule.py` reads this file to build
+# the launchd property lists and `tools/scheduled_run.py` reads it to know what
+# a run consists of. Changing an hour, a label, a log path or the order of the
+# steps is an edit here plus one command:
+#
+#     .venv/bin/python -m tools.schedule --install
+#
+# Why launchd and not cron, and why four runs a day, is PRD section 4. The short
+# version: cron fires on the clock and forgets, so a run scheduled while the
+# laptop is asleep is silently lost. launchd runs a missed job once on wake,
+# which turns a lost run into a late one. Four attempts a day is about a run
+# landing while the machine is awake, not about speed.
+
+[schedule]
+
+# The launchd label every job is prefixed with. This is also the plist filename,
+# so `com.user.internship-search.poll` becomes
+# `~/Library/LaunchAgents/com.user.internship-search.poll.plist`.
+label_prefix = "com.user.internship-search"
+
+# Where launchd looks for per-user agents. `~` is expanded.
+launch_agents_dir = "~/Library/LaunchAgents"
+
+# The interpreter, relative to the repo root. launchd starts with an empty
+# environment and no shell, so the plist needs a real path, not `python`.
+python = ".venv/bin/python"
+
+# Logs. Relative to the repo root, and gitignored.
+#
+# run_log is the wrapper's own timestamped log and is the one worth reading.
+# launchd_log catches anything printed before the wrapper gets far enough to
+# open its log, which in practice means a broken plist or a missing interpreter.
+# It should stay empty; if it has content, something failed early.
+log_dir = "logs"
+run_log = "run.log"
+launchd_log = "launchd.log"
+
+# Rotate run_log once it passes this size, keeping exactly one previous copy as
+# run.log.1. Two files, bounded, no cleanup ever needed. Five megabytes is
+# roughly two months of runs at the current output volume.
+max_log_bytes = 5_000_000
+
+
+# --------------------------------------------------------------------------
+# Telling the owner when the agent is not running. Milestone 8, PRD success
+# criterion 4.
+#
+# Written after 2026-08-17, when four runs in a row crashed and nothing said so
+# for 42 hours. The problem was never that it broke; it was that every signal
+# this system produces travels down one channel, so a dead agent sends no email
+# and no email is exactly what a quiet day looks like.
+#
+# These thresholds are here rather than in email.toml on purpose. This is a
+# property of the schedule, not of the digest, and it has to keep working when
+# email.toml or rubric.md is the thing that is broken. `agent/health.py` reads
+# them and deliberately depends on almost nothing.
+
+[health]
+
+# Set false to stop sending failure alerts. The heartbeat is still recorded, so
+# `tools.health` keeps working and turning this back on loses no history.
+enabled = true
+
+# Silence longer than this means something is wrong.
+#
+# The runs are at 08:10, 12:10, 18:10 and 22:10, so the largest healthy gap is
+# the overnight one, 22:10 to 08:10, which is 10 hours. 14 leaves room for
+# launchd running a missed job late after a closed lid without crying wolf.
+# Changing the hours above without changing this is how this gets it wrong.
+silent_after_hours = 14
+
+# While a fault persists, do not re-send more often than this. Four runs a day
+# against a fault that takes days to diagnose would otherwise mean an inbox full
+# of one alert, which trains him to ignore the only email that is never routine.
+# The first failure of an incident always sends immediately.
+repeat_after_hours = 12
+
+# How much of the board list a run has to reach before it counts as a run at
+# all, as a fraction of the sources it tried. Below this, the run is recorded as
+# a fault rather than a success, even though every step exited zero.
+#
+# Added 2026-09-07, for the hole the fortnight before it fell through. Between
+# 08-21 and 09-07, 22 of 57 runs asked all 176 sources, had all 176 fail on DNS
+# because the laptop had no network, stored nothing, and finished perfectly.
+# `tools.health` called every one of them healthy, because until now it only
+# asked whether a run finished. PRD success criterion 4 is scored on that
+# answer, so a fortnight's soak would have certified an agent that spent 40
+# percent of its runs doing nothing.
+#
+# Why a quarter, and why a fraction. A fraction because the board list grows:
+# 174 became 176 in one afternoon on 2026-08-19, and a hardcoded count would
+# have been quietly wrong from then on. A quarter because the number has to sit
+# below the worst run that is genuinely fine. Two sources failing is the
+# ordinary weather. Zero of 176 is the offline laptop. The case that fixed the
+# number is 2026-08-21, when 87 of 176 failed because the network came back part
+# way through the run: real, already recovering, and covered by the next run
+# three hours later. Alerting on that teaches him to ignore these, which is the
+# failure mode the whole [health] block is written against.
+#
+# Set to 0 to switch the check off and go back to judging a run by whether it
+# finished.
+min_sources_ok_fraction = 0.25
+
+# The heartbeat file, inside log_dir. JSON, not the agent_state table, because a
+# monitor that shares a dependency with the thing it monitors goes down with it,
+# and the crash this was built for was a database error.
+state_file = "health.json"
+
+# How many lines of the failing step's output the alert carries. Enough for a
+# Python traceback to arrive whole, which is what makes the email actionable
+# rather than merely alarming.
+log_tail_lines = 25
+
+
+# --------------------------------------------------------------------------
+# The jobs. One plist per job.
+#
+# Three quiet runs and one that sends the digest. Only one job sends, so email
+# volume (PRD success criterion 5) is decoupled from how often the watcher
+# polls. Empty digests already never send, so a quiet day sends nothing at all.
+#
+# The hours are chosen for a laptop that is open during the day and closed at
+# night, not spread evenly around the clock. Neither launchd nor cron can wake a
+# sleeping machine, so an hour when the lid is shut buys nothing.
+
+[[jobs]]
+key = "poll"
+hours = [8, 12, 22]
+minute = 10
+digest = false
+description = "Poll every source quietly. Finds and files postings, sends no email."
+
+[[jobs]]
+key = "digest"
+hours = [18]
+minute = 10
+digest = true
+description = "Poll, then send the digest covering everything found since the last one."
+
+
+# --------------------------------------------------------------------------
+# What one run does, in order.
+#
+# The watcher is the spine (PRD section 4). If it fails the run stops, because
+# everything after it operates on what it stored. The two syncs are not the
+# spine: a failure in either is logged and stepped over, so an expired Google
+# token or an Airtable outage cannot cost a day of polling.
+#
+# timeout_seconds is a hard ceiling per step. A hung HTTP read would otherwise
+# leave launchd believing the job is still running and skip the next fire.
+
+[[steps]]
+name = "watcher"
+module = "agent.run"
+args = ["--quiet"]
+# Added only on a job with digest = false. Polls and files exactly as usual and
+# prints the digest into the log instead of sending it.
+#
+# Changed from --no-email to --no-digest on 2026-08-16, with Milestone 7. The
+# difference is the urgent email: PRD section 3 says it fires the moment a
+# trigger does, and three of the four runs a day are quiet ones, so under
+# --no-email "immediately" really meant "at 18:10". --no-digest keeps the daily
+# digest on the evening run alone, exactly as before, and lets an urgent alert
+# out of any run. --no-email still means send nothing and is what a manual run
+# should use.
+#
+# Volume is unaffected. Each urgent trigger is stamped per posting, so a posting
+# raises each one once for its whole life, and one run sends at most one urgent
+# email however many postings triggered it.
+args_when_quiet = ["--no-digest"]
+# Added only on the digest job. Postings found by the three quiet runs are no
+# longer "new" by the time the digest runs, so without this they would be filed
+# and never emailed, which is the coverage miss this system exists to prevent.
+# The window is a day and a half: comfortably longer than the gap between
+# digests, and shorter than the age of the seeded backlog, which is the owner's to
+# release with tools.backlog_report --mark-alerted, not the digest's to dump.
+#
+# That second bound is the one to respect when changing this number. Anything
+# surfaced, open and never alerted on inside the window is emailed, and on
+# 2026-08-09 the unreleased backlog was about 50 hours old: 36 caught the 35
+# postings found that day, 72 would have emailed all 1,133. Once the backlog is
+# stamped by tools.backlog_report the bound stops mattering, because a stamped
+# posting is never carried twice.
+args_when_digest = ["--carryover-hours", "36"]
+required = true
+timeout_seconds = 1800
+
+[[steps]]
+name = "airtable"
+module = "tools.sync_airtable"
+args = []
+required = false
+timeout_seconds = 600
+# Once a day, on the digest run only. Added 2026-08-15 after Airtable's free
+# plan hit its monthly API call limit and opened a 30 day grace period.
+#
+# Airtable meters by API call per month, not by wall time, so this step is the
+# one thing in the run whose cost does not scale with how much work there is to
+# do. Four syncs a day cost four times the quota to mirror the same base.
+#
+# The watcher still polls four times a day and SQLite still records everything
+# on schedule; only the mirror lags. What this delays is the owner's labels
+# reaching the ranker, by up to a day instead of up to six hours, which is worth
+# far less than staying inside the quota. Delete this line to go back to four.
+digest_only = true
+
+[[steps]]
+name = "calendar"
+module = "tools.sync_calendar"
+args = []
+required = false
+timeout_seconds = 300
+
+[[steps]]
+name = "dashboard"
+module = "tools.dashboard"
+args = []
+required = false
+timeout_seconds = 120
+# Runs on every job, not just the digest, and that is the point of it existing.
+# Added 2026-09-20 with `tools/dashboard.py`.
+#
+# It is the opposite case to the airtable step above. That one is metered by
+# someone else's monthly quota, so it runs once a day; this one writes a local
+# file from a database that is already open, costs nothing, reaches no network
+# and touches no quota. The page is worth keeping current at the cadence the
+# data actually changes, which is every poll.
+#
+# Not required, on the spine rule in PRD section 4: a page that failed to render
+# must never stop the watcher that fills it. The consequence of a failure here
+# is a stale page, and a stale page still says when it was built.

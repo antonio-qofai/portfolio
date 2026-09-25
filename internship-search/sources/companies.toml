@@ -1,0 +1,1236 @@
+# Company token map. This file is data, never code.
+#
+# Every token below was verified against the live API on 2026-08-06, not guessed.
+# To add a company: find its careers page, look at the network requests or the job
+# board iframe, and read off the ATS platform and token. Then run
+#   python -m tools.verify_tokens
+# which proves every token in this file actually returns postings. If you are
+# hunting for a token, python -m tools.probe_tokens <guess> <guess> ... tries all
+# three platforms at once.
+#
+# ats must be one of: greenhouse, lever, ashby, workday
+# token is the board identifier, not the company name.
+#
+# A workday token is written host/site, exactly as the careers page address
+# reads, because Workday needs a tenant and a site where the others need one
+# word. All three of these mean the same board and any of them can be pasted in:
+#
+#   nvidia.wd5/NVIDIAExternalCareerSite
+#   nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite
+#   https://nvidia.wd5.myworkdayjobs.com/en-US/NVIDIAExternalCareerSite
+#
+# python -m tools.probe_workday <url or token> proves one before it is added.
+#
+# Companies that do not expose one of these three APIs are listed in
+# sources/needs-other-approach.md. They are NOT covered by the watcher.
+
+# The [digest] title keyword list that used to sit here was removed on
+# 2026-08-07 when Milestone 4 landed. It was a stopgap that narrowed the email
+# by title; sources/prefilter.toml now does that properly, under
+# [student_role].title_include, alongside the rest of the exclusion rules.
+# Two copies of the same list would have drifted apart.
+
+# ---------------------------------------------------------------- frontier labs
+
+[[company]]
+name = "Anthropic"
+ats = "greenhouse"
+token = "anthropic"
+category = "frontier-labs"
+
+[[company]]
+name = "OpenAI"
+ats = "ashby"
+token = "openai"
+category = "frontier-labs"
+
+[[company]]
+name = "Google DeepMind"
+ats = "greenhouse"
+token = "deepmind"
+category = "frontier-labs"
+
+[[company]]
+name = "xAI"
+ats = "greenhouse"
+token = "xai"
+category = "frontier-labs"
+
+[[company]]
+name = "Scale AI"
+ats = "greenhouse"
+token = "scaleai"
+category = "frontier-labs"
+
+[[company]]
+name = "Cohere"
+ats = "ashby"
+token = "cohere"
+category = "frontier-labs"
+
+[[company]]
+name = "Thinking Machines Lab"
+ats = "ashby"
+token = "thinkingmachines"
+category = "frontier-labs"
+
+[[company]]
+name = "Reflection AI"
+ats = "ashby"
+token = "reflectionai"
+category = "frontier-labs"
+
+[[company]]
+name = "Mistral AI"
+ats = "ashby"
+token = "mistral.ai"
+category = "frontier-labs"
+notes = "Moved off Lever to Ashby. The old lever:mistral token still resolves and still returns 0, which is why it looked healthy. Corrected 2026-08-07; 164 postings."
+
+# ------------------------------------------------------- agent and AI startups
+
+[[company]]
+name = "Anysphere (Cursor)"
+ats = "ashby"
+token = "cursor"
+category = "agent-startups"
+
+[[company]]
+name = "Sierra"
+ats = "ashby"
+token = "sierra"
+category = "agent-startups"
+
+[[company]]
+name = "Harvey"
+ats = "ashby"
+token = "harvey"
+category = "agent-startups"
+
+[[company]]
+name = "Decagon"
+ats = "ashby"
+token = "decagon"
+category = "agent-startups"
+
+[[company]]
+name = "LangChain"
+ats = "ashby"
+token = "langchain"
+category = "agent-startups"
+
+[[company]]
+name = "Cognition"
+ats = "ashby"
+token = "cognition"
+category = "agent-startups"
+
+[[company]]
+name = "Perplexity"
+ats = "ashby"
+token = "perplexity"
+category = "agent-startups"
+
+[[company]]
+name = "Glean"
+ats = "greenhouse"
+token = "gleanwork"
+category = "agent-startups"
+
+[[company]]
+name = "Writer"
+ats = "ashby"
+token = "writer"
+category = "agent-startups"
+
+[[company]]
+name = "Imbue"
+ats = "greenhouse"
+token = "imbue"
+category = "agent-startups"
+
+[[company]]
+name = "Together AI"
+ats = "greenhouse"
+token = "togetherai"
+category = "agent-startups"
+
+[[company]]
+name = "Modal"
+ats = "ashby"
+token = "modal"
+category = "agent-startups"
+
+[[company]]
+name = "Baseten"
+ats = "ashby"
+token = "baseten"
+category = "agent-startups"
+
+[[company]]
+name = "Braintrust"
+ats = "ashby"
+token = "braintrust"
+category = "agent-startups"
+
+[[company]]
+name = "Replit"
+ats = "ashby"
+token = "replit"
+category = "agent-startups"
+
+[[company]]
+name = "Vercel"
+ats = "greenhouse"
+token = "vercel"
+category = "agent-startups"
+
+[[company]]
+name = "Linear"
+ats = "ashby"
+token = "linear"
+category = "agent-startups"
+
+[[company]]
+name = "Notion"
+ats = "ashby"
+token = "notion"
+category = "agent-startups"
+
+[[company]]
+name = "Ramp"
+ats = "ashby"
+token = "ramp"
+category = "agent-startups"
+
+[[company]]
+name = "Mercor"
+ats = "ashby"
+token = "mercor"
+category = "agent-startups"
+
+[[company]]
+name = "ElevenLabs"
+ats = "ashby"
+token = "elevenlabs"
+category = "agent-startups"
+
+[[company]]
+name = "Suno"
+ats = "ashby"
+token = "suno"
+category = "agent-startups"
+
+[[company]]
+name = "Runway"
+ats = "ashby"
+token = "runway"
+category = "agent-startups"
+
+[[company]]
+name = "Sesame"
+ats = "ashby"
+token = "sesame"
+category = "agent-startups"
+
+# ------------------------------------------------------------ big tech AI / ML
+
+[[company]]
+name = "Databricks"
+ats = "greenhouse"
+token = "databricks"
+category = "big-tech"
+
+[[company]]
+name = "Snowflake"
+ats = "ashby"
+token = "snowflake"
+category = "big-tech"
+
+[[company]]
+name = "Palantir"
+ats = "lever"
+token = "palantir"
+category = "big-tech"
+
+[[company]]
+name = "Stripe"
+ats = "greenhouse"
+token = "stripe"
+category = "big-tech"
+
+[[company]]
+name = "Datadog"
+ats = "greenhouse"
+token = "datadog"
+category = "big-tech"
+
+[[company]]
+name = "Figma"
+ats = "greenhouse"
+token = "figma"
+category = "big-tech"
+
+# --------------------------------------------------------- defense and hardware
+
+[[company]]
+name = "Anduril"
+ats = "greenhouse"
+token = "andurilindustries"
+category = "defense-hardware"
+
+[[company]]
+name = "SpaceX"
+ats = "greenhouse"
+token = "spacex"
+category = "defense-hardware"
+
+[[company]]
+name = "Shield AI"
+ats = "lever"
+token = "shieldai"
+notes = "Moved from ashby:shield-ai (404 since 2026-09-10) to lever on 2026-09-25, verified by its Dallas and Seattle aerostructures roles."
+category = "defense-hardware"
+
+[[company]]
+name = "Saronic"
+ats = "ashby"
+token = "saronic"
+category = "defense-hardware"
+
+[[company]]
+name = "Varda Space Industries"
+ats = "greenhouse"
+token = "vardaspace"
+category = "defense-hardware"
+
+[[company]]
+name = "Skydio"
+ats = "ashby"
+token = "skydio"
+category = "defense-hardware"
+
+[[company]]
+name = "Radiant Nuclear"
+ats = "ashby"
+token = "radiant"
+category = "defense-hardware"
+
+# ------------------------------------------------------- finance with AI work
+
+[[company]]
+name = "Point72"
+ats = "greenhouse"
+token = "point72"
+category = "finance-ai"
+
+[[company]]
+name = "AQR Capital Management"
+ats = "greenhouse"
+token = "aqr"
+category = "finance-ai"
+
+[[company]]
+name = "Man Group"
+ats = "greenhouse"
+token = "mangroup"
+category = "finance-ai"
+
+# ---------------------------------------------------------------- quant firms
+# Polled for their AI, software, and engineering roles. Their quant trading and
+# quant research postings die in the prefilter on TITLE, never on employer.
+# See PRD section 5.
+
+[[company]]
+name = "Jane Street"
+ats = "greenhouse"
+token = "janestreet"
+category = "quant-ai-only"
+
+[[company]]
+name = "Jump Trading"
+ats = "greenhouse"
+token = "jumptrading"
+category = "quant-ai-only"
+
+[[company]]
+name = "Akuna Capital"
+ats = "greenhouse"
+token = "akunacapital"
+category = "quant-ai-only"
+
+[[company]]
+name = "Five Rings"
+ats = "greenhouse"
+token = "fiveringsllc"
+category = "quant-ai-only"
+
+[[company]]
+name = "Optiver"
+ats = "greenhouse"
+token = "optiverus"
+category = "quant-ai-only"
+notes = "The bare 'optiver' board is an empty shell that still returns 200. Real board is optiverus. Corrected 2026-08-07; 176 postings."
+
+[[company]]
+name = "Hudson River Trading"
+ats = "greenhouse"
+token = "wehrtyou"
+category = "quant-ai-only"
+notes = "Not on Ashby. Their careers page is a WordPress plugin embedding greenhouse board 'wehrtyou'. Corrected 2026-08-07; 70 postings. The public 'hrttalentcommunity' board is a talent-community funnel, not the job board."
+
+# ------------------------------------------------------------------- venture
+
+[[company]]
+name = "Andreessen Horowitz"
+ats = "greenhouse"
+token = "a16z"
+category = "venture"
+
+[[company]]
+name = "Sequoia Capital"
+ats = "ashby"
+token = "sequoia"
+category = "venture"
+
+[[company]]
+name = "Lightspeed Venture Partners"
+ats = "ashby"
+token = "lightspeed"
+category = "venture"
+
+[[company]]
+name = "General Catalyst"
+ats = "greenhouse"
+token = "generalcatalyst"
+category = "venture"
+
+[[company]]
+name = "Bessemer Venture Partners"
+ats = "greenhouse"
+token = "bessemerventurepartners"
+category = "venture"
+
+# =============================================================================
+# Added 2026-08-07 for Milestone 3, which requires the map to pass 100 companies.
+# Every token below was probed live with tools.probe_tokens and then confirmed by
+# reading the job URL the board returns, so the token belongs to the company named
+# and not to a lookalike. Two candidates were rejected for returning a board with
+# zero postings: ashby:ssi (Safe Superintelligence) and greenhouse:magic (Magic).
+# An empty board is the failure that hid Mistral, Optiver and Hudson River Trading
+# for a day, so it does not get written into this file as if it were coverage.
+# =============================================================================
+
+# ------------------------------------------------- frontier labs, second wave
+
+[[company]]
+name = "Black Forest Labs"
+ats = "ashby"
+token = "black-forest-labs"
+notes = "Moved from greenhouse (404 since 2026-08-29) to ashby on 2026-09-25."
+category = "frontier-labs"
+
+[[company]]
+name = "World Labs"
+ats = "ashby"
+token = "worldlabs"
+notes = "Moved from greenhouse (404 since 2026-09-13) to ashby on 2026-09-25."
+category = "frontier-labs"
+
+[[company]]
+name = "Physical Intelligence"
+ats = "ashby"
+token = "physicalintelligence"
+category = "frontier-labs"
+notes = "Robot foundation models. Physics background is directly relevant here."
+
+# -------------------------------------------------------- AI infrastructure
+
+[[company]]
+name = "CoreWeave"
+ats = "greenhouse"
+token = "coreweave"
+category = "ai-infra"
+
+[[company]]
+name = "Cerebras"
+ats = "ashby"
+token = "cerebras"
+category = "ai-infra"
+
+[[company]]
+name = "SambaNova Systems"
+ats = "greenhouse"
+token = "sambanovasystems"
+category = "ai-infra"
+
+[[company]]
+name = "Anyscale"
+ats = "ashby"
+token = "anyscale"
+category = "ai-infra"
+notes = "Also has a lever:anyscale board with 1 posting. Ashby is the live one."
+
+[[company]]
+name = "Pinecone"
+ats = "ashby"
+token = "pinecone"
+category = "ai-infra"
+
+[[company]]
+name = "Chroma"
+ats = "ashby"
+token = "trychroma"
+category = "ai-infra"
+
+[[company]]
+name = "LlamaIndex"
+ats = "ashby"
+token = "llamaindex"
+category = "ai-infra"
+
+# ------------------------------------------ agent and AI startups, second wave
+
+[[company]]
+name = "Poolside"
+ats = "ashby"
+token = "poolside"
+category = "agent-startups"
+
+[[company]]
+name = "Luma AI"
+ats = "ashby"
+token = "lumaai"
+category = "agent-startups"
+
+[[company]]
+name = "Synthesia"
+ats = "ashby"
+token = "synthesia"
+category = "agent-startups"
+
+[[company]]
+name = "Ideogram"
+ats = "ashby"
+token = "ideogram"
+category = "agent-startups"
+
+[[company]]
+name = "Descript"
+ats = "greenhouse"
+token = "descript"
+category = "agent-startups"
+
+[[company]]
+name = "Supabase"
+ats = "ashby"
+token = "supabase"
+category = "agent-startups"
+
+[[company]]
+name = "PlanetScale"
+ats = "greenhouse"
+token = "planetscale"
+category = "agent-startups"
+
+[[company]]
+name = "Railway"
+ats = "ashby"
+token = "railway"
+category = "agent-startups"
+
+[[company]]
+name = "Temporal"
+ats = "ashby"
+token = "temporal"
+category = "agent-startups"
+
+[[company]]
+name = "Airbyte"
+ats = "ashby"
+token = "airbyte"
+category = "agent-startups"
+
+[[company]]
+name = "Hex"
+ats = "ashby"
+token = "hex"
+category = "agent-startups"
+notes = "Ashby only. A greenhouse board named 'hex' exists and returns malformed JSON; it is not this company."
+
+# ------------------------------------------------------------------ robotics
+
+[[company]]
+name = "Figure"
+ats = "greenhouse"
+token = "figureai"
+category = "robotics"
+
+[[company]]
+name = "1X Technologies"
+ats = "ashby"
+token = "1x"
+category = "robotics"
+
+[[company]]
+name = "Agility Robotics"
+ats = "greenhouse"
+token = "agilityrobotics"
+category = "robotics"
+
+[[company]]
+name = "Waymo"
+ats = "greenhouse"
+token = "waymo"
+category = "robotics"
+
+[[company]]
+name = "Zoox"
+ats = "lever"
+token = "zoox"
+category = "robotics"
+
+[[company]]
+name = "Nuro"
+ats = "greenhouse"
+token = "nuro"
+category = "robotics"
+
+# ------------------------------------------ defense and space, second wave
+
+[[company]]
+name = "Epirus"
+ats = "greenhouse"
+token = "epirus"
+category = "defense-hardware"
+
+[[company]]
+name = "Vannevar Labs"
+ats = "greenhouse"
+token = "vannevarlabs"
+category = "defense-hardware"
+
+[[company]]
+name = "Chaos Industries"
+ats = "greenhouse"
+token = "chaosindustries"
+category = "defense-hardware"
+
+[[company]]
+name = "Rocket Lab"
+ats = "greenhouse"
+token = "rocketlab"
+category = "defense-hardware"
+
+[[company]]
+name = "Planet Labs"
+ats = "greenhouse"
+token = "planetlabs"
+category = "defense-hardware"
+
+[[company]]
+name = "Astranis"
+ats = "greenhouse"
+token = "astranis"
+category = "defense-hardware"
+
+[[company]]
+name = "Muon Space"
+ats = "greenhouse"
+token = "muonspace"
+category = "defense-hardware"
+
+[[company]]
+name = "Loft Orbital"
+ats = "lever"
+token = "loftorbital"
+category = "defense-hardware"
+
+[[company]]
+name = "Slingshot Aerospace"
+ats = "greenhouse"
+token = "slingshotaerospace"
+category = "defense-hardware"
+
+[[company]]
+name = "Hermeus"
+ats = "lever"
+token = "hermeus"
+category = "defense-hardware"
+
+[[company]]
+name = "Ursa Major"
+ats = "greenhouse"
+token = "ursamajor"
+category = "defense-hardware"
+
+# ------------------------------------------------- finance with AI, second wave
+
+[[company]]
+name = "Schonfeld"
+ats = "greenhouse"
+token = "schonfeld"
+category = "finance-ai"
+
+[[company]]
+name = "ExodusPoint Capital"
+ats = "greenhouse"
+token = "exoduspoint"
+category = "finance-ai"
+
+[[company]]
+name = "Marshall Wace"
+ats = "greenhouse"
+token = "marshallwace"
+category = "finance-ai"
+
+# ------------------------------------------------------ quant firms, second wave
+# Polled for their AI and software roles only. Quant trading and quant research
+# titles die in the prefilter on title, never on the employer. See PRD section 5.
+
+[[company]]
+name = "IMC Trading"
+ats = "greenhouse"
+token = "imc"
+category = "quant-ai-only"
+
+[[company]]
+name = "Tower Research Capital"
+ats = "greenhouse"
+token = "towerresearchcapital"
+category = "quant-ai-only"
+
+[[company]]
+name = "Virtu Financial"
+ats = "greenhouse"
+token = "virtu"
+category = "quant-ai-only"
+
+[[company]]
+name = "Flow Traders"
+ats = "greenhouse"
+token = "flowtraders"
+category = "quant-ai-only"
+
+[[company]]
+name = "Squarepoint Capital"
+ats = "greenhouse"
+token = "squarepointcapital"
+category = "quant-ai-only"
+
+[[company]]
+name = "Old Mission Capital"
+ats = "greenhouse"
+token = "oldmissioncapital"
+category = "quant-ai-only"
+
+[[company]]
+name = "Belvedere Trading"
+ats = "lever"
+token = "belvederetrading"
+category = "quant-ai-only"
+
+# =============================================================================
+# Added 2026-08-13 at the owner's request: private aerospace and space, defense
+# startups, robotics, and a much wider AI startup list. Aerospace was 7 of 108
+# companies before this block and AI startups skewed toward infrastructure.
+#
+# Every token below was probed with tools.probe_tokens and then confirmed by
+# reading the titles and locations the board actually returns, because several
+# of the obvious tokens belong to a different company entirely. Boards that
+# resolve and return zero postings are NOT here; that is the failure that hid
+# Mistral, Optiver and Hudson River Trading for a day.
+#
+# Lookalike boards found and rejected, do not re-add:
+#   greenhouse:lovable   an Italian retail chain (job titles in Italian)
+#   greenhouse:axiom     Axiom Law;  ashby:axiom  a crypto startup in New York
+#   ashby:impulse        an SF hardware company, not Impulse Space
+#   ashby:boom           an Austin GTM company, not Boom Supersonic
+#   greenhouse:regent    a Beverly Hills holding company, not REGENT Craft
+#   ashby:astra          a remote SaaS company, not Astra the launch company
+#   greenhouse:galileo   a telehealth provider, not Galileo the AI eval company
+#   lever:neon           a Brazilian bank, not Neon the Postgres company
+#   lever:blueorigin     resolves, returns 0 postings. See needs-other-approach.md
+#   greenhouse:apex, greenhouse:capellaspace, lever:nominal   all resolve, all 0
+# =============================================================================
+
+# --------------------------------------------- aerospace, space and defense
+# The category the owner cares about most after AI, and the thinnest before this.
+
+[[company]]
+name = "Mach Industries"
+ats = "greenhouse"
+token = "machindustries"
+category = "defense-hardware"
+notes = "Huntington Beach. Asked for by name on 2026-08-13. Was ashby:mach until it 404ed from 2026-09-10; moved to greenhouse:machindustries on 2026-09-25, verified by its Huntington Beach roles."
+
+[[company]]
+name = "Relativity Space"
+ats = "greenhouse"
+token = "relativity"
+category = "defense-hardware"
+notes = "Long Beach. The bare token 'relativity' is correct here, confirmed by aerothermal and additive manufacturing titles, and is not the e-discovery software firm of the same name."
+
+[[company]]
+name = "Vast"
+ats = "greenhouse"
+token = "vast"
+category = "defense-hardware"
+notes = "Long Beach space stations. Already carries a fall 2026 internship. Not VAST Data."
+
+[[company]]
+name = "True Anomaly"
+ats = "greenhouse"
+token = "trueanomalyinc"
+category = "defense-hardware"
+
+[[company]]
+name = "Stoke Space"
+ats = "greenhouse"
+token = "stokespacetechnologies"
+category = "defense-hardware"
+
+[[company]]
+name = "Neros Technologies"
+ats = "greenhouse"
+token = "nerostechnologies"
+category = "defense-hardware"
+
+[[company]]
+name = "Inversion Space"
+ats = "greenhouse"
+token = "inversionspace"
+category = "defense-hardware"
+
+[[company]]
+name = "Allen Control Systems"
+ats = "greenhouse"
+token = "allencontrolsystems"
+category = "defense-hardware"
+
+[[company]]
+name = "Divergent Technologies"
+ats = "greenhouse"
+token = "divergent"
+category = "defense-hardware"
+
+[[company]]
+name = "Xona Space Systems"
+ats = "ashby"
+token = "xona-space"
+category = "defense-hardware"
+
+[[company]]
+name = "Terran Orbital"
+ats = "greenhouse"
+token = "terranorbitalcorporation"
+category = "defense-hardware"
+
+[[company]]
+name = "Long Wall"
+ats = "lever"
+token = "longwall"
+category = "defense-hardware"
+notes = "Formerly ABL Space Systems. El Segundo and Long Beach. The board kept the new name, so probing 'abl' finds nothing."
+feed_aliases = ["ABL Space Systems"]
+
+[[company]]
+name = "Portal Space Systems"
+ats = "greenhouse"
+token = "portalspacesystems"
+category = "defense-hardware"
+
+[[company]]
+name = "Gecko Robotics"
+ats = "ashby"
+token = "gecko-robotics"
+category = "defense-hardware"
+notes = "Pittsburgh and New York. Posts forward deployed engineer roles, which PRD section 5 scores high."
+
+[[company]]
+name = "Reflect Orbital"
+ats = "ashby"
+token = "reflect-orbital"
+category = "defense-hardware"
+
+[[company]]
+name = "REGENT Craft"
+ats = "ashby"
+token = "regent"
+category = "defense-hardware"
+
+[[company]]
+name = "Chariot Defense"
+ats = "greenhouse"
+token = "chariotdefense"
+category = "defense-hardware"
+
+[[company]]
+name = "Albedo"
+ats = "greenhouse"
+token = "albedo"
+category = "defense-hardware"
+
+[[company]]
+name = "Momentus"
+ats = "greenhouse"
+token = "momentus"
+category = "defense-hardware"
+
+[[company]]
+name = "CX2"
+ats = "lever"
+token = "cx2"
+category = "defense-hardware"
+
+[[company]]
+name = "Scout AI"
+ats = "greenhouse"
+token = "scoutai"
+category = "defense-hardware"
+
+[[company]]
+name = "Primer"
+ats = "greenhouse"
+token = "primerai"
+category = "defense-hardware"
+
+# ------------------------------------------------------- robotics, second wave
+
+[[company]]
+name = "Apptronik"
+ats = "greenhouse"
+token = "apptronik"
+category = "robotics"
+
+[[company]]
+name = "Collaborative Robotics"
+ats = "ashby"
+token = "cobot"
+category = "robotics"
+
+[[company]]
+name = "Dexterity"
+ats = "lever"
+token = "dexterity"
+category = "robotics"
+
+[[company]]
+name = "Standard Bots"
+ats = "ashby"
+token = "standardbots"
+category = "robotics"
+
+# ------------------------------------------ AI compute and silicon startups
+# A physics major is unusually well placed for these; several post research and
+# hardware roles that do not assume a CS degree.
+
+[[company]]
+name = "Etched"
+ats = "ashby"
+token = "etched"
+category = "ai-infra"
+
+[[company]]
+name = "Tenstorrent"
+ats = "greenhouse"
+token = "tenstorrent"
+category = "ai-infra"
+
+[[company]]
+name = "d-Matrix"
+ats = "ashby"
+token = "d-matrix"
+category = "ai-infra"
+
+[[company]]
+name = "Lightmatter"
+ats = "greenhouse"
+token = "lightmatter"
+category = "ai-infra"
+
+[[company]]
+name = "Extropic"
+ats = "ashby"
+token = "extropic"
+category = "ai-infra"
+notes = "Boston. Hires experimental physicists outright, which is rare on this list."
+
+[[company]]
+name = "Normal Computing"
+ats = "ashby"
+token = "normalcomputing"
+category = "ai-infra"
+
+[[company]]
+name = "Lambda"
+ats = "ashby"
+token = "lambda"
+category = "ai-infra"
+feed_aliases = ["Lambda Labs"]
+
+[[company]]
+name = "Fireworks AI"
+ats = "ashby"
+token = "fireworks"
+category = "ai-infra"
+
+[[company]]
+name = "fal"
+ats = "ashby"
+token = "fal-ai"
+category = "ai-infra"
+
+[[company]]
+name = "Prime Intellect"
+ats = "ashby"
+token = "primeintellect"
+category = "ai-infra"
+
+[[company]]
+name = "OpenRouter"
+ats = "ashby"
+token = "openrouter"
+category = "ai-infra"
+
+[[company]]
+name = "E2B"
+ats = "ashby"
+token = "e2b"
+category = "ai-infra"
+
+[[company]]
+name = "Browserbase"
+ats = "ashby"
+token = "browserbase"
+category = "ai-infra"
+
+[[company]]
+name = "Composio"
+ats = "ashby"
+token = "composio"
+category = "ai-infra"
+
+[[company]]
+name = "Unstructured"
+ats = "ashby"
+token = "unstructured"
+category = "ai-infra"
+
+# ------------------------------------- agent and AI product startups, third wave
+
+[[company]]
+name = "Character.AI"
+ats = "ashby"
+token = "character"
+category = "agent-startups"
+
+[[company]]
+name = "Cartesia"
+ats = "ashby"
+token = "cartesia"
+category = "agent-startups"
+
+[[company]]
+name = "Letta"
+ats = "ashby"
+token = "letta"
+category = "agent-startups"
+notes = "Agent memory. Small board, four postings, all agent research and engineering."
+
+[[company]]
+name = "Pika"
+ats = "ashby"
+token = "pika"
+category = "agent-startups"
+
+[[company]]
+name = "HeyGen"
+ats = "greenhouse"
+token = "heygen"
+category = "agent-startups"
+
+[[company]]
+name = "Lovable"
+ats = "ashby"
+token = "lovable"
+category = "agent-startups"
+notes = "Stockholm. Ashby only; greenhouse:lovable is an unrelated Italian retail chain."
+
+[[company]]
+name = "Deepgram"
+ats = "ashby"
+token = "deepgram"
+category = "agent-startups"
+
+[[company]]
+name = "AssemblyAI"
+ats = "greenhouse"
+token = "assemblyai"
+category = "agent-startups"
+
+[[company]]
+name = "Arize AI"
+ats = "greenhouse"
+token = "arizeai"
+category = "agent-startups"
+
+[[company]]
+name = "Patronus AI"
+ats = "greenhouse"
+token = "patronusaiinc"
+category = "agent-startups"
+
+[[company]]
+name = "Snorkel AI"
+ats = "greenhouse"
+token = "snorkelai"
+category = "agent-startups"
+
+[[company]]
+name = "Labelbox"
+ats = "greenhouse"
+token = "labelbox"
+category = "agent-startups"
+
+[[company]]
+name = "Turing"
+ats = "greenhouse"
+token = "turing"
+category = "agent-startups"
+
+# ------------------------------------------------- applied AI, vertical products
+# Companies whose product is AI applied to one industry. The owner's economics plus
+# agent-building profile fits the deployed and forward deployed roles these post.
+
+[[company]]
+name = "Abridge"
+ats = "ashby"
+token = "abridge"
+category = "applied-ai"
+
+[[company]]
+name = "OpenEvidence"
+ats = "ashby"
+token = "openevidence"
+category = "applied-ai"
+
+[[company]]
+name = "Ambience Healthcare"
+ats = "ashby"
+token = "ambiencehealthcare"
+category = "applied-ai"
+
+[[company]]
+name = "Anterior"
+ats = "ashby"
+token = "anterior"
+category = "applied-ai"
+
+[[company]]
+name = "Tennr"
+ats = "ashby"
+token = "tennr"
+category = "applied-ai"
+
+[[company]]
+name = "Cresta"
+ats = "greenhouse"
+token = "cresta"
+category = "applied-ai"
+
+[[company]]
+name = "Rogo"
+ats = "ashby"
+token = "rogo"
+category = "applied-ai"
+notes = "AI for investment research and banking. The closest thing on this list to the institutional investing plus AI combination."
+
+[[company]]
+name = "AlphaSense"
+ats = "greenhouse"
+token = "alphasense"
+category = "applied-ai"
+
+[[company]]
+name = "Basis"
+ats = "ashby"
+token = "basis-ai"
+category = "applied-ai"
+
+# ------------------------------------------------------------------- workday
+#
+# How Workday boards are polled, not which ones exist. Added 2026-08-19.
+#
+# Workday is the only board the agent reads through a search rather than whole,
+# because a Workday tenant answers with thousands of postings 20 at a time and
+# the other three fetchers cost one request each. That makes these terms load
+# bearing in a way no other setting here is: a posting no term matches is never
+# seen at all, rather than being seen and filtered out. Widening coverage on
+# these boards means adding a term.
+#
+# Keep them broad and generic. A term naming a company, a city or a specific
+# programme would be posting-specific logic, which belongs nowhere, least of all
+# in the one place it would be invisible.
+
+[workday]
+
+# The cheap, exact path. Every Workday tenant publishes a `workerSubType` facet
+# naming its own job types, and the agent reads those at runtime and asks for
+# the ones whose name contains any word below. The ids are per tenant and are
+# never written down here; the words are, and they are generic on purpose.
+#
+# "graduate" is deliberately absent. NVIDIA files 68 postings under "New College
+# Graduate" and they are full-time roles for people leaving university now, which
+# is not what this agent is for. Add it if that changes.
+# Two facets rather than one, queried separately and merged, because Workday
+# ANDs across facet parameters: asking for job type Intern and category Interns
+# in one query returns only postings that are both.
+worker_type_facets = ["workerSubType", "jobFamilyGroup"]
+worker_type_matches = ["intern", "co-op", "coop", "student", "apprentice", "trainee"]
+
+# The fallback, and it is off. A tenant naming no student job type raises
+# instead, because both alternatives are worse: an empty result reads to the
+# watcher as every posting from that source having closed, and a text search is
+# the Leidos measurement below.
+#
+# A search term matches body text as well as titles. Leidos returned 816
+# postings in 74 seconds this way, led by "International Program Coordinator",
+# which matched because "international" contains "intern". NVIDIA returns 936
+# for the same term against 35 under the facet. Turn this on for one tenant and
+# it is on for all of them.
+search_fallback = false
+search_terms = ["intern", "internship", "co-op", "student", "university"]
+
+page_size = 20
+max_pages = 20
+max_details_per_run = 120
+
+# --------------------------------------------------- workday boards, verified
+#
+# Probed live 2026-08-19. Lockheed Martin, RTX and L3Harris are NOT here and
+# are not Workday at all: sources/needs-other-approach.md said they were and was
+# wrong, which cost a probe of every plausible tenant and site before their
+# careers pages showed they run something else entirely. Do not re-add them
+# without checking the careers page first.
+
+[[company]]
+name = "NVIDIA"
+ats = "workday"
+token = "nvidia.wd5/NVIDIAExternalCareerSite"
+category = "ai-hardware"
+notes = "2,000 postings. The most AI-relevant employer the agent could not see until Workday landed."
+
+[[company]]
+name = "Northrop Grumman"
+ats = "workday"
+token = "ngc.wd1/Northrop_Grumman_External_Site"
+category = "aerospace-defense"
+notes = "3,677 postings. Clearance-heavy, so the description fetch matters more here than anywhere."
+
+[[company]]
+name = "Micron"
+ats = "workday"
+token = "micron.wd1/External"
+category = "ai-hardware"
+notes = "Semiconductors. Physics-adjacent hardware internships; drop the entry if the roles are wrong."

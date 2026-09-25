@@ -1,0 +1,79 @@
+# Vetted preparation resources and the concrete work they ask for.
+#
+# This file is data, never code. The owner adds resources here by hand. Nothing is
+# added automatically: automated discovery was considered and deliberately
+# rejected on 2026-08-07, because turning a model loose on the web weekly to find
+# "good essays" produces slop and burns budget the ranker needs.
+#
+# Task completion is NOT tracked here. SQLite is the source of truth for state,
+# so this file holds definitions and `python -m tools.prep done <key>` records
+# what is finished. That keeps the file editable without clobbering progress.
+#
+# key      stable identifier, never reuse or rename after tasks exist
+# weight   1 to 5, how much finishing this changes the owner's candidacy
+# relevance tags that later let the digest connect a task to a specific posting
+
+[[resource]]
+key = "feinberg-frontier-lab"
+title = "How to land a job at a frontier lab"
+author = "Vlad Feinberg"
+url = "https://vladfeinberg.com/2026/05/10/how-to-land-a-job-at-a-frontier-lab.html"
+added = 2026-08-07
+relevance = ["frontier-labs", "ml-engineering", "kernels", "agents", "research"]
+summary = """
+Argues that frontier labs hire people working at the edges of the LLM stack:
+kernel and systems work below it, agentic systems above it. Mathematical
+maturity is treated as non-negotiable. The essay is unusual because it names a
+specific portfolio and offers a direct hiring path to anyone who completes it,
+which turns it from advice into a checklist.
+"""
+
+[[resource.task]]
+key = "scaling-book"
+label = "Complete every exercise in the scaling book"
+detail = "The author says every exercise, not a skim. This is the prerequisite the rest builds on."
+weight = 5
+effort = "weeks"
+url = "https://jax-ml.github.io/scaling-book/"
+
+[[resource.task]]
+key = "jax-transformer"
+label = "Build a ~10M parameter transformer in JAX, Flax, and Optax on free Colab"
+detail = "Train it on single-digit addition. Small enough to finish, real enough to show."
+weight = 5
+effort = "days"
+
+[[resource.task]]
+key = "chinchilla-derivation"
+label = "Derive Chinchilla scaling laws for dense and MoE architectures"
+detail = "Directly exercises the math maturity the essay says has no substitute. Plays to the physics degree."
+weight = 4
+effort = "days"
+
+[[resource.task]]
+key = "pallas-kernels"
+label = "Write custom Pallas kernels that beat the baseline implementation"
+detail = "The hardest item and the strongest signal. Requires the roofline and memory-bandwidth thinking below."
+weight = 5
+effort = "weeks"
+
+[[resource.task]]
+key = "roofline-lecture"
+label = "Watch the Dwarkesh lecture with Reiner Pope on roofline analysis"
+detail = "Cheapest item on the list. Do this first; it frames why bandwidth matters more than FLOPs."
+weight = 2
+effort = "hours"
+
+[[resource.task]]
+key = "kernel-papers"
+label = "Read the Flash Attention series, ThunderKittens, and the quantization papers"
+detail = "LLM.int8(), QuIP, and AQLM. Enough to discuss tradeoffs in an interview, not to reimplement."
+weight = 3
+effort = "days"
+
+[[resource.task]]
+key = "document-portfolio"
+label = "Document the work: notes to LaTeX, code walkthrough, public repo"
+detail = "The essay is explicit that undocumented work does not count. This is the step people skip."
+weight = 4
+effort = "days"

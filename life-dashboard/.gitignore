@@ -1,0 +1,24 @@
+# Secrets
+.env
+.env.*
+!.env.example
+token*.json
+credentials*.json
+*.pem
+
+# Local store and generated page (will hold personal data)
+data/
+web/index.html
+
+# Agent reports: real reports stay local, samples are committed
+agent-reports/*.json
+!agent-reports/*.sample.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# OS
+.DS_Store

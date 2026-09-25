@@ -1,0 +1,9 @@
+# Direct dependencies only. Everything else is pulled in automatically.
+# Rebuild the environment with:
+#   python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+
+httpx==0.28.1                      # HTTP client for the watchers
+python-dotenv==1.2.2               # reads .env
+anthropic==0.120.2                 # Stage 0 tagging and the ranker, Milestones 4 and 6
+google-api-python-client==2.198.0  # calendar sync
+google-auth-oauthlib==1.4.0        # calendar OAuth

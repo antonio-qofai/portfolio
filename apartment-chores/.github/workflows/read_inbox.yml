@@ -1,0 +1,50 @@
+# Reads the landlord's recent email and proposes unconfirmed rows (PRD-v1.1).
+#
+# A separate workflow from the scheduler on purpose. It installs its own
+# dependencies and runs its own entry point, so nothing here can stop the
+# Monday digest.
+#
+# Live since Sept 25 2026 (CHANGELOG entry 19). It writes only unconfirmed
+# proposals. To rehearse again, add " --dry-run" back to the last line.
+
+name: Landlord inbox reader
+
+on:
+  schedule:
+    # Daily at 13:00 UTC: 08:00 Chicago until Nov 1 2026, 07:00 after.
+    # Hours after the scheduler (07:17 UTC) so the two rarely run at once.
+    # Daily is more than enough: notice of a visit arrives about a week ahead.
+    - cron: "0 13 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: landlord-inbox
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        # anthropic 1.x needs Python 3.10 or later. Pinned to the major
+        # version so a 2.0 cannot arrive unannounced mid-term.
+        run: pip install requests "anthropic>=1.8,<2"
+
+      - name: Read the landlord's email and propose rows
+        env:
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 -m src.read_inbox

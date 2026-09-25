@@ -1,0 +1,31 @@
+.env
+*.db
+# SQLite's write-ahead log and shared-memory files. `*.db` does not match these,
+# and they appear whenever anything reads state.db.
+*.db-wal
+*.db-shm
+
+# Timestamped copies of state.db, made before anything destructive:
+# tools.reconcile_identity --apply and the 2026-08-16 score clearing both write
+# one. They are ~100MB each and `*.db` does not match the suffix.
+*.db.backup-*
+__pycache__/
+.venv/
+.env
+.venv/
+__pycache__/
+*.pyc
+
+# Scheduled run logs. Local output, rotated in place, never useful in git.
+logs/
+
+# Google Calendar OAuth
+credentials.json
+.google-token.json
+
+# Editor and OS noise
+.DS_Store
+.Rhistory
+
+# Generated dashboard, rebuilt on every run
+build/

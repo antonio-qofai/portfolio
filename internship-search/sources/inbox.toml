@@ -1,0 +1,108 @@
+# The mailbox, as data. Same rule as companies.toml and feeds.toml.
+#
+# SHELVED 2026-08-16. Milestones 6.5 and 7.5 are off the build path and nothing on the
+# schedule reads this file. `agent/inbox.py` reads it and `tools/probe_inbox.py` runs that,
+# but neither is called by anything. UChicago's Workspace closes every route into the
+# mailbox: app passwords disabled, automatic forwarding disabled, and OAuth needing a
+# restricted Gmail scope no unverified personal app can hold. CHANGELOG.md for that date
+# lists each one. The file is kept intact because the facts in it are still true and were
+# expensive to establish; do not re-investigate without a changed policy or a new account.
+#
+# No address, sender name, subject line or phrase in this file may ever move into a .py
+# file. That is CLAUDE.md rule 2, and inbound mail is the likeliest place to break it,
+# because a list of phrases looks like code when you are in the middle of writing code.
+
+[mailbox]
+# These settings describe a Gmail-hosted mailbox and are correct for one. There is no
+# mailbox they currently point at, because the four routes into owner@example.edu are
+# all closed. Recorded here so nobody spends the afternoon rediscovering them:
+#
+#   app passwords    disabled by the Workspace administrator, so IMAP cannot authenticate.
+#                    IMAP itself is switched on; there is simply no usable credential
+#   OAuth            gmail.readonly is a restricted scope. An unverified published app
+#                    cannot hold one, and the Testing mode that could expires refresh
+#                    tokens every seven days, which no unattended job can live with
+#   forwarding       disabled by the same administrator. Gmail renames the settings tab
+#                    "POP/IMAP Download" and removes the Forwarding section outright, and
+#                    filter forwarding goes with it since the address cannot be verified
+#   pulling          Gmail's "check mail from other accounts" on a personal account asks
+#                    for a POP password, which is the first wall from the other side
+#
+# The address is not stored here. It goes in .env as IMAP_USER alongside IMAP_PASSWORD, for
+# the same reason SMTP_USER does: this file is committed and credentials are not.
+host = "imap.gmail.com"
+port = 993
+
+# Read-only, and not a preference. PRD section 13 forbids sending, deleting, moving, and
+# marking read from this connection. IMAP's EXAMINE command opens a mailbox without the
+# side effect that SELECT has, which is what enforces it at the protocol level rather than
+# by remembering not to.
+readonly = true
+folder = "INBOX"
+
+# How far back to search on each run. A newsletter arrives weekly or fortnightly and the
+# watcher runs four times a day, so anything beyond a couple of weeks is re-reading mail
+# that has already been handled. The Message-ID ledger is what actually prevents rework;
+# this only bounds the search.
+lookback_days = 21
+
+
+# ---------------------------------------------------------------- Milestone 6.5, sources
+
+# A newsletter is a source of postings, in the same sense companies.toml and feeds.toml are.
+# It is the third kind, and the one that costs a model call to read, because it is prose
+# rather than JSON.
+#
+# key      short name, used to build the source key stored in SQLite (inbox:careers-in-ai)
+# sender   exact address to match on. Match on the address, never the display name, which
+#          mail clients rewrite and which anyone can set to anything
+# subject  substring match, case-insensitive. Not a regex, because a regex here would be a
+#          rule in a data file, and the point of the file is that it holds no logic
+# enabled  set false to stop reading a newsletter without losing what it taught us
+
+[[newsletter]]
+key = "careers-in-ai"
+name = "This Week in Artificial Intelligence"
+sender = "newsletter@example.edu"
+subject = "This Week in Artificial Intelligence"
+enabled = true
+notes = """
+Careers in AI at UChicago. The owner reads it already and rates it highly; ingesting it is
+about not losing what it mentions, rather than about finding things first. Arrives weekly
+or every two weeks, per the owner on 2026-08-12.
+
+Two things Milestone 6.5 must get right for this source, both in PRD section 13. Closure
+ageing must never run against it, because a newsletter moves on to next week's roles rather
+than omitting what closed, and ageing would close everything it ever mentioned. And its
+postings carry no requisition id, so they key on the content fingerprint and will attach to
+a row an already-polled company board created, which is the wanted behaviour.
+
+Unverified until the first real read: whether it links to job postings directly, and whether
+one issue carries a handful of roles or several dozen. Both change what the extraction
+prompt has to do. Do not guess at these, read an issue.
+"""
+
+
+# ------------------------------------------------- Milestone 7.5, application state
+#
+# Deliberately unpopulated. The senders below are the three ATS platforms this repo already
+# polls, so they are facts rather than guesses, and they are the addresses an acknowledgement
+# or a rejection is most likely to come from.
+#
+# The phrase lists that separate an acknowledgement from a rejection from an interview
+# invitation are NOT written here yet, on purpose. Inventing them from imagination would
+# produce a data file that looks authoritative and has never matched a real message. They
+# get written from real mail once the owner has applied to something, which is the same
+# trigger Milestone 7.5 itself waits on.
+#
+# They will now stay empty. Milestone 7.5 was shelved on 2026-08-16, and not only because
+# the mailbox is unreachable. Classification was always the easy half; matching was the hard
+# half, and PRD section 13 already conceded that an acknowledgement naming only the company,
+# where more than one live application exists there, must write nothing and ask the owner in
+# the digest. He now sets Applied status in Airtable himself, which costs one dropdown per
+# application and removes the only real risk in the feature: a wrong `applied_status` write
+# teaching the ranker the wrong lesson permanently.
+
+[application]
+enabled = false
+ats_domains = ["greenhouse.io", "lever.co", "ashbyhq.com", "myworkday.com"]

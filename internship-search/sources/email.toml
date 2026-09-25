@@ -1,0 +1,221 @@
+# What the agent emails, described as data. Milestone 7, PRD section 3.
+#
+# Nothing here belongs in Python. `agent/delivery.py` reads this file to decide
+# what goes in which email and when; `agent/notify.py` only decides how it reads.
+#
+# What is deliberately NOT here: which tier goes to the daily digest and which
+# to the Sunday roundup. That is `delivery` on each `[[tier]]` band in
+# `rubric.md`, because CLAUDE.md rule 3 puts every tier definition in one file
+# and a tier's delivery is part of what the tier means. Change it there.
+#
+# This file holds the delivery policy that is not about scoring: how many items
+# an email may carry, when a roundup is due, and what makes a posting urgent.
+
+
+[daily]
+
+# The daily digest carries at most this many items. PRD section 3.
+#
+# An item is a collapsed group, not a row: one role posted in four cities is one
+# item. See [collapse] below.
+#
+# Nothing over the cap is lost or stamped. The overflow is reported as a count
+# and leads the next digest, because a posting is only ever marked alerted when
+# an email actually carried it. Raising this raises how much arrives at once;
+# it does not change what is eventually surfaced.
+max_items = 8
+
+# Surfaced postings that the ranker has not scored yet have no tier, so no tier
+# band can route them. They ride along on the daily digest, listed after the
+# scored tiers and marked NOT YET SCORED.
+#
+# Set false on 2026-09-20, at the owner's request that only the roles he should
+# really apply to reach his inbox. With the ranker paused this switch was the
+# only thing keeping 1,776 surfaced postings visible at all, and turning it off
+# then would have been the coverage failure CLAUDE.md rule 10 describes.
+#
+# Three things changed on the same day and all three have to stay true for this
+# to remain false. Turn it back on if any of them stops being true:
+#
+#   1. The ranker is running, not paused. RANK_MAX_CALLS is 150.
+#   2. `queue.max_age_days` in rubric.md is 0, so EVERY surfaced posting is
+#      scored eventually rather than only recent ones. A window here plus this
+#      switch off means a posting outside the window reaches nothing, ever.
+#   3. The dashboard exists. `tools.dashboard` lists unscored postings in its
+#      leverage panel, so "not emailed" no longer means "invisible", which was
+#      the whole basis of rule 10's objection.
+include_unscored = false
+
+
+[actions]
+
+# The block at the top of the daily digest listing the owner's own open loops:
+# roles he marked interested and has not applied to, and applications waiting on
+# a reply. Added 2026-08-19.
+#
+# This is the one part of the digest that is not a discovery alert, and the
+# difference matters. Everything else is offered once and stamped, so it is
+# never offered again. Nothing here is ever stamped: it repeats on every digest
+# until he applies, marks the posting closed, or unlabels it. That is the point.
+# A to-do list that disappears after being read once is not a to-do list.
+enabled = true
+
+# At most this many roles are named before the rest become a count. The whole
+# list is genuinely actionable, so this is larger than the digest cap, but a
+# block longer than the digest it sits above stops reading as a summary.
+max_items = 12
+
+# Which Applied status values still count as waiting on somebody else. Roles at
+# these statuses are reported as a pipeline line, not as work to do.
+#
+# "offer" is deliberately absent: an offer needs a decision from him, not a wait,
+# and it belongs at the top of the block rather than in a count. "rejected",
+# "skipped" and "missed" are finished and appear nowhere.
+waiting_statuses = ["applied", "interviewing"]
+
+# Roles at these statuses lead the block outright, above everything.
+decision_statuses = ["offer"]
+
+# Whether the action block on its own is reason enough to send a digest.
+#
+# Off, and the reasoning is the same one that suppresses an empty digest. This
+# list repeats until he moves it, so switching this on means an email every day
+# for as long as one unapplied role sits in the base, saying what yesterday's
+# said. The block rides along whenever the digest has a reason to send, which on
+# a database this size is most days.
+#
+# Turn it on if the opposite failure is the real one: a quiet week where the
+# agent finds nothing new and the twenty roles he already said yes to go
+# unmentioned because of it.
+send_on_actions_alone = false
+
+# An application with no reply after this many days is called out by name. Not a
+# reminder to chase, which is the owner's call, but the block cannot honestly say
+# "4 waiting" and leave one of them silent since June.
+silent_after_days = 21
+
+
+[roundup]
+
+# The Sunday roundup. Tiers whose band in rubric.md says delivery = "sunday",
+# plus a summary of what closed during the week.
+enabled = true
+
+# Which day it is due on. 0 is Monday and 6 is Sunday, matching Python's
+# weekday(). PRD section 3 says Sunday.
+weekday = 6
+
+# A roundup is owed when none has been sent since the most recent occurrence of
+# that weekday. That phrasing, rather than "send it if today is Sunday", is what
+# survives a closed laptop: launchd runs a missed job once on wake, so a digest
+# job that should have fired on Sunday evening may actually run on Monday, and a
+# plain day-of-week test would drop the roundup for that week entirely. See PRD
+# section 4 on why a lost run is a coverage problem rather than a timing one.
+
+# How far back the roundup reaches for postings, in days. Slightly more than a
+# week so nothing falls between two roundups that ran a little late.
+#
+# Bounded for the same reason the digest's carryover window is: without a bound
+# the first roundup would email the whole seeded backlog, and releasing that is
+# The owner's decision through `tools.backlog_report --mark-alerted`, not the
+# schedule's. Anything older stays where it is.
+lookback_days = 8
+
+# The closure summary reaches back this far. Kept separate from lookback_days
+# because it answers a different question: what shut this week, not what opened.
+closed_lookback_days = 7
+
+# At most this many closures are listed by name; the rest become a count. A
+# closure is one line rather than a block, so this is larger than max_items.
+# The first roundup after Milestone 7 shipped had 119 of them, which is a real
+# week of a large backlog ageing out and not a bug, but it is not an email
+# anybody reads to the end either.
+closed_max_items = 40
+
+# At most this many items, on the same overflow rule as the daily cap above.
+# Larger because a weekly email is read in one sitting and tier 3 is the tier
+# The owner skims rather than acts on.
+max_items = 25
+
+
+[urgent]
+
+# Sent the moment a trigger fires, on any run rather than only the digest run.
+# PRD section 3 allows exactly two triggers and no others. Both are stamped per
+# posting per trigger, so a posting can raise each one once and never nags.
+enabled = true
+
+# Which tiers can raise an urgent alert. PRD section 3 says tier 1. This is a
+# list rather than a number so widening it to tier 2 is an edit here.
+tiers = [1]
+
+# Trigger one. A posting whose stated deadline falls inside this many hours.
+# Deadlines come from the `stated_deadline` column that Stage 0 writes, and
+# almost every posting says "rolling" or gives no date at all, so this fires
+# rarely by nature rather than by tuning.
+deadline_within_hours = 72
+
+# Trigger two. A posting open this many days with nothing logged against it,
+# meaning no label and no applied status. This is the one that catches a role
+# quietly ageing out while it sat unlabelled in Airtable.
+#
+# "No action logged" counts a label as action. Marking something interested and
+# not applying yet is a decision, not neglect, and nagging about it would train
+# him to ignore the urgent email, which is the only failure this feature has.
+stale_after_days = 10
+stale_needs_action = true
+
+
+[collapse]
+
+# One role posted across many cities is one item in an email, not one per city.
+# Requested 2026-08-12.
+#
+# This is presentation only. Every city keeps its own SQLite row, its own
+# requisition id and its own closure clock, because a board issuing one id per
+# city is issuing genuinely separate postings and merging them at the identity
+# layer would reintroduce the defect CLAUDE.md rule 6 exists to prevent.
+enabled = true
+
+# How the collapsed locations are joined, and how many are shown before the
+# rest become "+N more".
+join = "; "
+max_locations = 4
+
+
+[links]
+
+# The filtered Airtable view showing only unlabeled rows, linked at the foot of
+# every digest. PRD section 6.
+#
+# Airtable's API cannot create or read view URLs, so this is pasted by hand:
+# open the base, click the Unlabeled view, and copy the address bar. Left empty
+# the line is simply omitted rather than printing a broken link.
+#
+# The three ids are the base, the Postings table and the Unlabeled view. The
+# trailing `?blocks=hide` Airtable adds is a panel preference and was stripped;
+# it changes nothing about where the link goes. The link needs the owner's own
+# Airtable login to open, so it is not a share link and exposes nothing.
+airtable_unlabeled_url = "https://airtable.com/appXXXXXXXXXXXXXX/tblXXXXXXXXXXXXXX/viwXXXXXXXXXXXXXX"
+
+# The Interested view, added 2026-08-19, linked from the YOUR MOVE block rather
+# than the footer, because it is where that block is worked rather than a
+# standing reminder. Filled 2026-09-20 once the owner built the view.
+#
+# It did not need pasting by hand after all. An Airtable view URL is exactly
+# base id / table id / view id, and the metadata API returns all three, so
+# `tools.airtable_view_urls` prints it. The old note here and in README said the
+# API "cannot read a view URL"; that is true literally and misleading in
+# practice, and it is why this line sat empty for a month after the other one
+# was filled by hand.
+airtable_interested_url = "https://airtable.com/appXXXXXXXXXXXXXX/tblXXXXXXXXXXXXXX/viwXXXXXXXXXXXXXX"
+
+
+[reminders]
+
+# Standing lines appended to every digest. Handshake is behind a login and out
+# of scope (PRD section 2), so the only thing the agent can do about it is say
+# so on a schedule.
+lines = [
+  "Check UChicago Handshake manually. It is behind login and out of scope.",
+]

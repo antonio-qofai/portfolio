@@ -1,0 +1,62 @@
+# Runs the chore scheduler on weekday mornings.
+#
+# Live since Sept 22 2026. It writes to Airtable and sends mail.
+# To put it back in rehearsal, add " --dry-run" to the run line at the
+# bottom: it then reads, prints what it would write and email, and changes
+# nothing.
+
+name: Chore scheduler
+
+on:
+  schedule:
+    # 07:17 UTC on weekdays. Chicago is UTC-5 on CDT and UTC-6 on CST, so
+    # this is 02:17 local in the first half of the quarter and 01:17 local
+    # after daylight saving ends on Nov 1 2026. Still Monday in Chicago
+    # either way, so it generates the right week.
+    #
+    # It is this early because GitHub's cron is best-effort. The earlier
+    # 12:00 UTC slot started 4-4.25 hours late on Sept 23-25 2026, which
+    # would miss the 08:00 CT Monday deadline in PRD SC1. Starting at 02:17
+    # leaves more than five hours of slack. The odd minute avoids the
+    # top-of-the-hour rush that makes delays worse.
+    #
+    # Do not add a second schedule line as a backup: a second Monday run
+    # would send the digest twice. The scheduler does all its date
+    # arithmetic in America/Chicago, so the DST shift changes when the job
+    # starts and nothing else.
+    - cron: "17 7 * * 1-5"
+  workflow_dispatch:
+
+# Two overlapping runs could both decide a week is ungenerated and write it
+# twice. One at a time.
+concurrency:
+  group: chore-scheduler
+  cancel-in-progress: false
+
+jobs:
+  run:
+    # Pinned rather than ubuntu-latest: that label migrates to Ubuntu 26 on
+    # Oct 19 2026, which lands in week 4 of the term. One less moving part
+    # during the eleven weeks this has to work unattended.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Generate assignments and send nudges
+        env:
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: python3 -m src.orchestrator

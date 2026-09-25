@@ -1,0 +1,84 @@
+# Public sync rules. Anything that names a real person, address, account or
+# identifier belongs in ~/.config/portfolio-sync/private.toml, not here.
+
+exclude_everywhere = [
+    ".env", ".env.*", "*.db", "*.db-*", "*.pem", "credentials*.json", "token*.json",
+    ".DS_Store", "*/.DS_Store", ".claude/settings.local.json",
+]
+
+# Generic redactions, applied after the private ones.
+[[redact]]
+# Airtable base, table, view and share IDs.
+pattern = '\b(app|tbl|viw|shr)[A-Za-z0-9]{14}\b'
+replace = '\1XXXXXXXXXXXXXX'
+scan = false
+
+[scan]
+secret_patterns = [
+    'sk-ant-[A-Za-z0-9_-]{10,}',
+    'sk-[A-Za-z0-9]{32,}',
+    'gh[opsu]_[A-Za-z0-9]{30,}',
+    'github_pat_[A-Za-z0-9_]{30,}',
+    'AKIA[0-9A-Z]{16}',
+    'AIza[0-9A-Za-z_-]{35}',
+    'xox[abpr]-[A-Za-z0-9-]{10,}',
+    'pat[A-Za-z0-9]{14}\.[a-f0-9]{40,}',
+    '-----BEGIN [A-Z ]*PRIVATE KEY-----',
+    '''(?i)(client_secret|app_password|api_key)\s*[:=]\s*["'][A-Za-z0-9_/+=-]{16,}["']''',
+    '\b(app|tbl|viw|shr)(?!X{14})[A-Za-z0-9]{14}\b',
+]
+deny_patterns = [
+    'GPA\s*[:=]?\s*\d\.\d',
+    '\d\.\d+\s*GPA',
+]
+# Domains used only by fake addresses in tests and docs.
+email_allow_domains = [
+    "example.com", "example.org", "example.edu", "example.net", "test",
+    "greenhouse.io",
+]
+# Individual fake addresses from test fixtures, reviewed by hand.
+email_allow = [
+    "a@b.com",
+    "a@uchicago.edu",
+    "a@x.com",
+    "a1@mail.gmail.com",
+    "alerts@bank.com",
+    "alice@uchicago.edu",
+    "b@uchicago.edu",
+    "b@y.com",
+    "bob@uchicago.edu",
+    "bot@gmail.com",
+    "c@uchicago.edu",
+    "deals@shop.com",
+    "hi@store.com",
+    "landlord@gmail.com",
+    "lee@uchicago.edu",
+    "lord@gmail.com",
+    "me@gmail.com",
+    "noreply@github.com",
+    "noreply@joinhandshake.com",
+    "one@uchicago.edu",
+    "root@host.com",
+    "three@uchicago.edu",
+    "two@uchicago.edu",
+    "u@shop.com",
+    "x@lists.org",
+    "your.address@gmail.com",
+]
+
+[projects.apartment-chores]
+
+[projects.internship-search]
+exclude = ["MY_SEARCH.md", "NEXT_STEPS.md", "PRD.md", "CHANGELOG.md"]
+
+[[projects.internship-search.overlay]]
+path = "sources/contacts.toml"
+from = "tools/overlays/internship-search/contacts.toml"
+
+[[projects.internship-search.block]]
+file = "rubric.md"
+start = '^## The candidate$'
+end = '^## Fit, 1 to 10$'
+with = "tools/overlays/internship-search/rubric-candidate.md"
+
+[projects.life-dashboard]

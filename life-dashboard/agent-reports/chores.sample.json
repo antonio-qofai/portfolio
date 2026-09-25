@@ -1,0 +1,27 @@
+{
+  "generated_at": "2026-09-25T05:45:00-05:00",
+  "status": "ok",
+  "items": [
+    {
+      "title": "Take out recycling",
+      "summary": "Pickup is tomorrow morning.",
+      "due": "2026-09-25",
+      "urgency": "due_today",
+      "link": ""
+    },
+    {
+      "title": "Clean the bathroom",
+      "summary": "Your week on the rotation.",
+      "due": "2026-09-23",
+      "urgency": "overdue",
+      "link": ""
+    },
+    {
+      "title": "Buy dish soap",
+      "summary": "Shared supplies list.",
+      "due": "2026-09-27",
+      "urgency": null,
+      "link": ""
+    }
+  ]
+}

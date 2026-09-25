@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Secrets. The four the scheduler needs live in GitHub Actions secrets and
+# never in the repo: AIRTABLE_API_KEY, AIRTABLE_BASE_ID, GMAIL_ADDRESS,
+# GMAIL_APP_PASSWORD.
+.env
+*.env
+
+# Local tooling and OS noise
+.claude/settings.local.json
+.DS_Store

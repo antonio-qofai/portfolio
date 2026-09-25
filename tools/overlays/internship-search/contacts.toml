@@ -1,0 +1,17 @@
+# People who could refer the owner into a company. PRD section 7.
+#
+# Example data. The live file lists real people and is not published.
+#
+# When a posting appears at a company named here, the digest puts the
+# contact's name and relationship next to it. `company` does not have to be in
+# the token map; a company named here that the agent has never seen gets a row
+# of its own so the referral can surface if a posting ever arrives from a feed.
+#
+# Matching ignores case and punctuation and allows one name to contain the
+# other, so "Example Capital" here matches "Example Capital Partners".
+
+[[contacts]]
+name = "Jordan Example"
+company = "Example Capital"
+relationship = "Family friend"
+notes = "Illustrative entry."

@@ -1,0 +1,703 @@
+# Stage A prefilter data. This file is data, never code, same rule as
+# companies.toml and feeds.toml.
+#
+# Everything the prefilter matches on lives here: title patterns, place names,
+# term names, phrases. agent/prefilter.py contains the logic and not a single
+# company, city, or job title. If the filter is killing something it should
+# keep, or keeping something it should kill, edit this file, not the Python.
+#
+# The rules here implement PRD.md section 5, "hard exclusions" and "timing
+# rules". Scoring lives in rubric.md and never here; this file decides only
+# what is looked at, not what it is worth.
+#
+# One principle runs through the whole file. A false kill is invisible, since
+# The owner never sees what was dropped. A false surface costs him three seconds
+# in the digest. Those are not symmetric, so every ambiguous case surfaces with
+# a flag rather than dying.
+
+# ---------------------------------------------------------------- student gate
+
+[student_role]
+# A company job board carries every role the company has open, most of them
+# senior full-time positions. This gate is what stops the agent from paying a
+# model to read ten thousand of them. It replaced the [digest] title_include
+# list in companies.toml, which did the same job by hand.
+#
+# Two ways in, and either is enough.
+#
+# 1. The title marks it as a student or early-career role.
+# 2. It came from an aggregator feed. The feeds track internships and nothing
+#    else, so their provenance is proof on its own, whatever the title says.
+#    86 open feed postings had titles this list would miss, including
+#    "Undergraduate Research Assistant" and one straightforward typo,
+#    "ntern, Engineer Software". Those are real internships.
+#
+# TURNED OFF 2026-08-19, so route 2 no longer exists and every title is judged.
+# The owner asked why the Airtable base held roles that are not internships, and
+# this was the whole answer: a feed listing skipped the title check entirely, so
+# "Modelling Resident", "GTM Engineer - Data & Analytics", "Sys & Development
+# Analyst" and "Junior Analyst - Data & Technology Solutions" walked in on
+# provenance. Measured before the change: 15 of the 600 rows in the base and 22
+# of the 838 surfaced postings, carrying no labels between them.
+#
+# The cost is real and was accepted knowingly. The feeds do track internships,
+# so a few of the 22 are genuine internship programmes with names that say
+# nothing: SharkNinja's "Codeshark" and "Xsolla School - Engineering" are both
+# real. They are still stored in SQLite and still findable; they stop reaching
+# the base and the digest. That trade was his call, made on the sample above.
+#
+# Turning this back on is one word and re-admits all 22.
+trust_feed_provenance = false
+
+# Matched as a word-start prefix, so "intern" catches "Internship" and "fellow"
+# catches "Fellowship". The start is anchored: a plain substring match once let
+# "resident" catch "Vice President".
+title_include = [
+    "intern", "internship", "co-op", "coop",
+    "university", "student",
+    "fellow", "fellowship", "residency",
+    "undergraduate", "summer analyst", "summer associate",
+    "placement",
+]
+
+# Removed on 2026-08-14, at the owner's instruction, after an audit of what each
+# entry was letting in on its own:
+#
+#     "campus", "apprentice", "trainee", "resident"
+#
+# All four are words companies use for things that are not internships, and the
+# audit found every posting they admitted by themselves was junk:
+#
+#   campus     12 postings, all 12 in Airtable, none an internship. Jump
+#              Trading's five "Campus ... (Full-Time)" hires, Five Rings'
+#              "Campus Full Time 2027", Hudson River Trading's "Campus Sourcer",
+#              which is a recruiter, SpaceX's "Bastrop Campus Planning Manager"
+#              and "Campus Infrastructure Project Manager", which are facilities
+#              jobs, and IMC's "EU Campus Programme Talent Community".
+#   apprentice 7 postings. SpaceX's "Apprentice Controls Technician",
+#              "Apprentice Fabrication Technician", "Apprentice Instrumentation
+#              Fitter" and "Apprentice Weld Support Technician" are skilled
+#              trades on a shift roster.
+#   trainee    3 postings, all trades: "NDE Inspector Trainee", "Data Center
+#              Trainee", "Software Developer Trainee" at a training provider.
+#   resident   3 postings. Glean's "Resident Solutions Architect" and Anduril's
+#              "Resident Supplier Quality Engineer" are full-time staff jobs.
+#
+# Nothing genuine is lost, and that was checked rather than assumed. Every real
+# internship carrying these words carries "intern" too, so it still gets in:
+# Jump Trading's nine "Campus ... (Intern)" postings, American Express's "Campus
+# Undergraduate Summer Internship", and Zurich's "Bachelor's Apprentice" all
+# survive on that entry alone.
+#
+# "residency" deliberately stays. An AI residency is a real programme the owner
+# wants, and 1X's "AI Residency" matches on it. "resident", the singular, is a
+# job title; "residency" is a programme.
+
+# Removed from title_include on 2026-08-12, at the owner's instruction, because
+# every one of them names full-time employment rather than an internship:
+#
+#     "new grad", "new graduate", "early career", "early-career",
+#     "graduate program", "rotational", "emerging talent"
+#
+# A new-grad or early-career role is a job you start after you graduate. The owner
+# graduates in June 2028, so none of them are takeable in this cycle, and they
+# were arriving in volume: "Anduril: 2026 Early Career Electrical Engineer",
+# "Notion: Software Engineer, Early Career", "LangChain: Deployed Engineer
+# (Early Career-NYC)". All full-time jobs.
+#
+# This does not lose genuine early-career internships. A company board posting
+# "Early Career Internship Program" still matches on "intern", and an aggregator
+# feed listing gets in on provenance alone under trust_feed_provenance above,
+# because the feeds track internships and nothing else.
+#
+# The one thing it does cost is visibility of new-grad roles at companies he
+# wants to work for eventually, including Palantir's forward deployed engineer
+# postings, which are his stated first choice of role. They are still stored in
+# SQLite and still findable; they just stop reaching the digest and stop costing
+# a scoring call. Put a term back on this list to reverse it.
+
+# Words a title_include entry must not have matched. A word-start match on
+# "intern" also matches "International" and "Internal", which let 98 senior
+# roles such as "Head of Deal Desk - International" into the funnel. If a match
+# turns out to be one of these whole words, it does not count.
+title_block = [
+    "international", "internationally", "internal", "internals", "internally",
+    "internet", "residential", "residence", "residences", "cooperation",
+    "cooperative", "coordination", "coordinator",
+]
+# Note on what this list is and is not, because it is easy to misuse. It is
+# checked against THE SINGLE WORD an entry above landed in, not against the
+# whole title, so it can only undo a false-positive match. Putting "recruiter"
+# here would do nothing, because no entry above ever lands inside that word.
+# Excluding a whole category of role is what [excluded_roles] below is for.
+
+# ------------------------------------------------------------ role exclusions
+
+# Added 2026-08-12. Whole categories of work the owner does not want, killed on
+# the title at any employer, exactly like [quant] below and for the same reason.
+#
+# Why this exists separately from the student gate above. That gate asks "is
+# this a student role at all", and a campus ambassador or a recruiting
+# internship passes it honestly: they really are student roles. They are just
+# not roles he wants. Before this section there was nowhere to say that, so
+# "Law School Student Ambassador" and "Campus Recruiting Intern" reached him.
+#
+# Why this exists separately from rubric.md. The rubric already scores all of
+# this 1 to 2, which is tier 4 and never emailed, so none of it was reaching his
+# inbox. But the rubric only reaches that conclusion after paying for a scoring
+# call, and the posting still occupies one of 300 Airtable rows in the meantime.
+# Killing here is the difference between a right answer and a free right answer.
+#
+# The rule for what belongs here: a category of work, obvious from the title
+# alone, that would be wrong at every employer. Anything that depends on the
+# company, the team, or the description belongs in rubric.md instead.
+[excluded_roles]
+kill_title = [
+    # Hiring and HR. He wants to build things, not staff teams.
+    #
+    # "recruiting" and "recruitment" are PHRASES here, never bare words, since
+    # 2026-09-25. Employers name their campus PROGRAMS with the same words:
+    # "Forward Deployed Engineer Intern - Campus Recruiting 2027" at Domino Data
+    # Lab, "R&D Product Development Intern - Campus Recruiting" at Hormel, and
+    # ByteDance's "Global Frontier Tech Recruitment Program". The bare word
+    # killed all of them, including a forward deployed internship, which is his
+    # stated first choice of role. Every phrase below names the recruiting JOB.
+    # A recruiting internship titled some other way now surfaces and costs him
+    # three seconds, which is the asymmetry this file is built on.
+    "recruiter", "talent acquisition", "human resources",
+    "recruiting intern", "recruiting co-op", "recruiting coordinat",
+    "recruiting assistant", "recruiting associate", "recruiting specialist",
+    "recruiting operations", "recruiting analyst", "recruiting manager",
+    "recruiting & hr", "recruitment intern",
+    "recruitment coordinat", "recruitment assistant", "recruitment specialist",
+    # Campus representative and brand promotion work. This is what let
+    # "Law School Student Ambassador" through.
+    "ambassador", "brand ambassador", "campus rep", "student ambassador",
+    "brand representative", "promoter",
+    # Fields with their own degree track that his does not touch. Kept to
+    # unambiguous field names: "law school" and "juris doctor", never a bare
+    # "law", which would catch "Lawrence Livermore" and every lawful-basis
+    # compliance role.
+    "law school", "juris doctor", "law student", "nursing", "pre-med",
+    "medical student", "dental", "veterinary", "pharmacy",
+
+    # Added 2026-08-14, all four groups at the owner's instruction, after an audit
+    # of what was occupying the 300 Airtable rows he has to label by hand.
+
+    # Skilled trades. Hands-on shift work at a manufacturer, not engineering.
+    # This is what SpaceX's apprenticeships and Figure's "Apprentice Robot
+    # Service Technician" are, and it stays killed here even now that
+    # "apprentice" is out of the student gate, because a trades posting can
+    # reach the gate on "student" or "intern" just as easily.
+    "technician", "fitter", "welder", "welding", "machinist", "assembler",
+    "barista", "inspector", "custodian", "groundskeeper",
+
+    # Roles that are internships but are not technical ones. He is an economics
+    # and physics major aiming at AI, quantitative and aerospace engineering
+    # work; a legal or compliance internship is a different career.
+    #
+    # Every entry here is a PHRASE, not a bare field name, and that is
+    # deliberate. A bare "compliance" would kill ByteDance's "Software Engineer
+    # Intern - Global Payment - Compliance", which is a software role on a
+    # compliance team and exactly the kind of posting he wants.
+    "legal intern", "legal fellow", "legal counsel", "paralegal",
+    "compliance analyst", "compliance intern", "compliance co-op",
+    "sales development", "sdr intern", "business development",
+    "public policy", "community affairs", "government affairs",
+    "sourcer", "growth marketing", "integrated marketing", "brand marketing",
+
+    # Not a posting at all. A talent community is a mailing list with an apply
+    # button, so it can never close and never be applied to.
+    "talent community", "talent network", "talent pool", "general application",
+    "expression of interest",
+
+    # Senior staff titles that reach the gate on the word "fellow". A technical
+    # fellow is the most senior individual contributor a company has. Anduril's
+    # "Senior Fellow, Energetics Safety" is twenty years from here. This does not
+    # touch the Anthropic Fellows Program or Scale AI's fellowships, which match
+    # "fellow" without either word.
+    "senior fellow", "technical fellow", "distinguished fellow",
+    "principal fellow",
+
+    # Contract staffing dressed as a student role. Zoox posts four "Student
+    # Contract Worker ... (Full-time)" roles that are contract jobs with a
+    # student label on them. Killing the phrase rather than "full-time" is
+    # deliberate: some companies genuinely title summer roles "Full-Time Summer
+    # Intern", and killing on that wording would be a silent false kill.
+    # Both word orders, because Zoox uses both: "Student Contract Worker" on
+    # four postings and "Contract Student Worker" on a fifth. The second one
+    # survived the first version of this rule and had to be added by hand, which
+    # is the argument for reading what a rule actually killed rather than
+    # assuming it worked.
+    "contract worker", "contract student worker",
+]
+
+# ------------------------------------------------ generalist software roles
+
+# Added 2026-09-20 at the owner's instruction, after he said he has a low
+# probability of success in pure software engineering roles and wants them out.
+#
+# He is right about the competition. He is an economics and physics double
+# major; a generalist "Software Engineer Intern" at a large employer is judged
+# against CS majors with three internships already, and he loses that comparison
+# on paper before anyone reads the resume. It is the single largest category in
+# the queue and the one he is least competitive in, which is the worst possible
+# combination.
+#
+# This is the only rule in the file with a keep list, and the reason is that a
+# title like "Software Engineer Intern" names the CRAFT and says nothing about
+# the DOMAIN, while the domain is the whole of what makes him competitive.
+# "Software Engineer Intern, Torque Path & Chassis Control" at Tesla and
+# "Software Engineer Intern - Backend" at Robinhood are the same three words
+# attached to two completely different competitions. Killing on the craft alone
+# would have taken every Palantir forward deployed internship, which is his
+# stated first choice of role, every Tesla self-driving posting, and Blue
+# Origin's avionics software intern.
+#
+# So kill_title names the craft and keep_title names the domains where his
+# physics, student CubeSat and quantitative background actually counts. A title
+# matching both is kept. Nothing here names an employer, per CLAUDE.md rule 2;
+# every keep entry is generic role vocabulary and any new company using the same
+# words is rescued without an edit.
+#
+# Measured against the live queue on 2026-09-20, per CLAUDE.md rule 7. Of 2,349
+# surfaced open postings, 649 matched kill_title, 94 of those were rescued by
+# keep_title, and 553 died, which is 24 percent of the queue. The queue went to
+# 1,796. Read what it killed with `tools.prefilter_report --samples 8` before
+# widening either list.
+#
+# If this ever needs reversing, empty kill_title rather than deleting the
+# section, so the reasoning above survives the reversal.
+[generalist_software]
+
+kill_title = [
+    "software engineer", "software engineering", "software developer",
+    "software development engineer", "swe intern", "programmer",
+]
+
+# A domain word anywhere in the title rescues the posting. Deliberately generous,
+# because the asymmetry the whole prefilter is built on applies here too: a false
+# surface costs him three seconds of reading and a false kill costs the posting
+# entirely, with no way to notice it happened.
+keep_title = [
+    # AI and research, the centre of what he wants.
+    "machine learning", "artificial intelligence", "deep learning", "research",
+    "ai infrastructure", "ai platform", "llm", "nlp", "computer vision",
+    # Forward deployed, his stated first choice of role.
+    "forward deployed", "solutions engineer", "applied ai",
+    # Quantitative work, where the economics half of the degree counts.
+    "quant", "trading", "algorithmic", "data scien",
+    # Aerospace and space, where the CubeSat project counts.
+    "aerospace", "spacecraft", "satellite", "avionics", "flight", "orbital",
+    "propulsion", "gnc", "guidance", "navigation",
+    # Vehicles, autonomy and robotics, a stated domain interest.
+    "autonomy", "autonomous", "self-driving", "robotics", "perception",
+    "motion planning", "maneuver", "vehicle", "chassis", "powertrain",
+    "controls",
+    # Close to hardware, where a physics degree is an advantage rather than a
+    # handicap. "embedded" and "firmware" are the two that rescue the most.
+    "embedded", "firmware", "hardware", "fpga", "silicon", "physics",
+    "simulation", "computational",
+]
+
+# --------------------------------------------------------- employer exclusions
+
+# Added 2026-08-14 at the owner's instruction. The only rule in this file that
+# matches on the employer rather than the role, and it is here for a reason the
+# role rules cannot express.
+#
+# The aggregator feeds carry campus jobs from other universities: "Undergraduate
+# Research Assistant" at Penn State, "Student Data Science Assistant" at Arizona
+# State, "Student Barista" at Aramark, "Content Management Automation Student
+# Technician" at UT Austin. Every one of them is an honest undergraduate
+# research or campus job, so no title rule can tell them apart from work he
+# wants. What disqualifies them is that they are open only to that university's
+# own enrolled students, and the owner is at Chicago.
+#
+# It is a generic name test, not a list of companies, which is what keeps it on
+# the right side of CLAUDE.md rule 2: nothing here names an employer, it names a
+# kind of employer. Any new university appearing in a feed is caught without an
+# edit.
+[employer]
+# Matched word-start against the company name, same as every title rule.
+kill_company = [
+    "university", "college", "school district", "polytechnic",
+]
+
+# Checked first and vetoes the kill. His own university is the one place where
+# an undergraduate research assistantship is both takeable and local, and the
+# physics department is a live option. This is a name, not a company rule: it
+# exists so the generic test above does not have to be weakened.
+allow_company = [
+    "university of chicago", "uchicago",
+
+    # A separately incorporated employer that carries a university's name is not
+    # a university. Caught in testing: the University of Virginia Investment
+    # Management Company runs UVA's endowment and posts an "Investment Analyst
+    # Intern" that is an ordinary finance internship, open to anyone. The kill
+    # above would have taken it silently.
+    "investment management",
+
+    # Added 2026-09-25. Two more kinds of employer that carry "University" in
+    # the name without being one. A hospital system is an ordinary employer
+    # open to anyone: "Cooper University Health Care" posted an Enterprise
+    # Analytics Intern and the kill took it. The words are generic, per rule 2.
+    "health care", "healthcare", "health system", "hospital", "medical center",
+
+    # And a trading firm that brands its campus program as a "University".
+    # Akuna Capital posts every internship under "Akuna Capital University",
+    # seven of them open on 2026-09-25, including hardware engineering and
+    # quantitative development, and all seven died as if Akuna were a school.
+    # This one has to be a name: no generic word separates a firm's program
+    # brand from a real university, and "capital" alone would rescue Capital
+    # University in Ohio.
+    "akuna capital",
+]
+
+# ------------------------------------------------------------ quant exclusions
+
+# PRD section 5. The exclusion matches on the ROLE, never on the employer. An
+# AI engineer role at Jane Street is in scope and should be scored normally;
+# only the quant trading and quant research titles die, at any firm.
+[quant]
+# Killed outright. These are unambiguously the quant interview loop.
+kill_title = [
+    "quantitative research", "quantitative researcher", "quant research",
+    "quantitative trader", "quantitative trading", "quant trader",
+    "quant trading", "quantitative strategist", "quantitative portfolio",
+    "systematic trading", "quantitative analyst intern",
+]
+
+# Surfaced with an UNCLEAR QUANT flag rather than killed. These titles are used
+# by firms for what is really a software or ML role. Flip an entry into
+# kill_title above if the flagged ones turn out to be noise.
+flag_title = [
+    "quantitative developer", "quantitative engineer", "quantitative software",
+    "quant developer", "quant engineer", "quantitative", "quant",
+]
+
+# ---------------------------------------------------------- location exclusion
+
+# Kill only what resolves confidently AND exclusively outside the United
+# States. A posting listing several places survives if any one of them is or
+# might be American. Anything unresolved surfaces with an UNCLEAR LOCATION flag.
+#
+# Signals come in two strengths, and the difference is what stops the filter
+# from killing American cities that share a name with a foreign one. A country
+# name is strong. A city name and a two-letter state code are both weak, and a
+# strong signal always beats a weak one:
+#
+#   "Vancouver, WA"       weak non-US city vs weak US state code -> code wins,
+#                         because Vancouver, Washington is a real place
+#   "Toronto, ON, Canada" strong non-US country -> killed
+#   "Bengaluru, IN"       weak city vs the Indiana code -> city wins, since
+#                         nothing else in the string looks American
+#
+# Add a name to non_us_countries only when it can never be American. Everything
+# else goes in non_us_cities.
+[location]
+# Locations arrive as one string with several places crammed in. Split on these.
+# Comma is deliberately NOT a separator: "San Jose, CA" is one place, not two.
+#
+# The slash is " / " with spaces, not a bare "/", changed 2026-09-20. A slash
+# used to separate two places is written with spaces around it; a slash inside
+# one token is part of a name. Micron writes its Singapore fab as
+# "Fab 10N/X, Singapore", and a bare "/" split that into "Fab 10N" and
+# "X, Singapore". The first fragment resolves to nothing, so "resolves entirely
+# outside the US" was never true and 40 Singapore fab postings surfaced, which
+# was the largest single block of junk in the Airtable base.
+#
+# Measured before changing it, per CLAUDE.md rule 7: across all 2,572 distinct
+# location strings in the database this kills exactly one string and rescues
+# none, so no multi-city posting relied on the bare slash.
+separators = [";", "|", " / ", " and "]
+
+# Strong United States signal. Beats everything else in the same place name.
+# Bare "us" is deliberately absent: it matches inside "Campus" and "Belarus".
+us_strong = [
+    "united states", "usa", "u.s.a", "u.s.", "remote in usa", "remote - us",
+    "nyc", "new york city", "bay area", "silicon valley", "washington, d.c.",
+    "washington dc", "d.c.", "puerto rico", "hawaii", "alaska",
+]
+
+# Full state names. Also a strong signal.
+us_states = [
+    "alabama", "alaska", "arizona", "arkansas", "california", "colorado",
+    "connecticut", "delaware", "florida", "georgia", "hawaii", "idaho",
+    "illinois", "indiana", "iowa", "kansas", "kentucky", "louisiana", "maine",
+    "maryland", "massachusetts", "michigan", "minnesota", "mississippi",
+    "missouri", "montana", "nebraska", "nevada", "new hampshire", "new jersey",
+    "new mexico", "new york", "north carolina", "north dakota", "ohio",
+    "oklahoma", "oregon", "pennsylvania", "rhode island", "south carolina",
+    "south dakota", "tennessee", "texas", "utah", "vermont", "virginia",
+    "washington", "west virginia", "wisconsin", "wyoming",
+    "district of columbia",
+]
+
+# Two-letter state codes. A WEAK signal, deliberately, because several collide
+# with country codes. "Bengaluru, IN" is India, not Indiana. A weak signal only
+# wins when nothing in us_non list below matched the same place name.
+us_state_codes = [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID",
+    "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS",
+    "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK",
+    "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV",
+    "WI", "WY", "DC",
+]
+
+# Major American cities, so a string like "San Francisco, Amsterdam" is read as
+# a role open in both rather than as a foreign posting. A strong signal.
+us_cities = [
+    "san francisco", "south sf", "sf", "nyc", "brooklyn", "san jose",
+    "palo alto", "mountain view", "menlo park", "sunnyvale", "santa clara",
+    "cupertino", "redwood city", "los angeles", "santa monica", "san diego",
+    "seattle", "bellevue", "redmond", "portland", "denver", "boulder",
+    "austin", "dallas", "houston", "chicago", "boston", "somerville",
+    "philadelphia", "pittsburgh", "atlanta", "miami", "orlando", "phoenix",
+    "salt lake city", "minneapolis", "detroit", "st. louis", "nashville",
+    "charlotte", "raleigh", "arlington", "el segundo", "hawthorne",
+    "costa mesa", "irvine", "fremont", "state college", "reston", "mclean",
+    "ann arbor", "madison", "milwaukee", "kansas city", "columbus",
+]
+
+# Confidently outside the United States. A strong signal: no American place
+# carries these names.
+non_us_countries = [
+    "united kingdom", "england", "scotland", "wales", "ireland", "canada",
+    "mexico", "brazil", "argentina", "chile", "colombia", "india", "china",
+    "japan", "korea", "singapore", "malaysia", "indonesia", "thailand",
+    "vietnam", "philippines", "australia", "new zealand", "germany", "france",
+    "spain", "portugal", "italy", "netherlands", "belgium", "switzerland",
+    "austria", "sweden", "norway", "denmark", "finland", "poland", "czech",
+    "hungary", "romania", "greece", "turkey", "israel", "egypt",
+    "united arab emirates", "saudi arabia", "qatar", "south africa", "nigeria",
+    "kenya", "russia", "ukraine", "taiwan", "hong kong", "macau", "pakistan",
+    "bangladesh", "sri lanka",
+]
+
+# Foreign cities. A WEAK signal, because several share a name with an American
+# town: Vancouver is in Washington, Waterloo in Iowa, Melbourne in Florida,
+# Athens in Georgia. A two-letter state code in the same string beats these.
+non_us_cities = [
+    "london", "manchester", "edinburgh", "dublin", "paris", "berlin", "munich",
+    "hamburg", "amsterdam", "rotterdam", "brussels", "zurich", "geneva",
+    "vienna", "stockholm", "oslo", "copenhagen", "helsinki", "warsaw",
+    "prague", "budapest", "madrid", "barcelona", "lisbon", "milan", "rome",
+    "athens", "istanbul", "tel aviv", "dubai", "abu dhabi", "riyadh", "doha",
+    "bangalore", "bengaluru", "hyderabad", "mumbai", "delhi", "gurgaon",
+    "gurugram", "pune", "chennai", "noida", "beijing", "shanghai", "shenzhen",
+    "guangzhou", "hangzhou", "tokyo", "osaka", "kyoto", "seoul", "taipei",
+    "sydney", "melbourne", "brisbane", "perth", "auckland", "wellington",
+    "toronto", "vancouver", "montreal", "ottawa", "calgary", "waterloo",
+    "mississauga", "sao paulo", "mexico city", "guadalajara", "bogota",
+    "buenos aires", "santiago", "lima", "nairobi", "lagos", "cairo",
+    "cape town", "johannesburg", "warszawa", "krakow", "bucharest", "sofia",
+]
+
+# Umbrella and remote wording. PRD section 5 is unambiguous: "remote and
+# remote-friendly postings of any description" are surfaced, never filtered on
+# location. Any of these anywhere in the location string takes the location kill
+# off the table entirely, so "Remote in Canada" survives with a flag.
+umbrella = [
+    "remote", "global", "worldwide", "americas", "emea", "apac", "multiple",
+    "various", "flexible", "anywhere", "hybrid", "distributed", "tbd", "n/a",
+]
+
+# ------------------------------------------------------------------- clearance
+
+# PRD section 5. A role requiring an EXISTING clearance at application is out.
+# A role that sponsors one is in and should be surfaced. allow_phrases are
+# checked first and veto the kill, because "ability to obtain an active
+# security clearance" contains the kill phrase inside a sponsorship offer.
+[clearance]
+allow_phrases = [
+    "ability to obtain", "able to obtain", "eligible to obtain",
+    "willing to obtain", "will sponsor", "clearance sponsorship",
+    "sponsor a security clearance", "obtain and maintain",
+    "eligibility to obtain", "or ability to obtain",
+]
+kill_phrases = [
+    "must have an active security clearance",
+    "must possess an active security clearance",
+    "must currently hold an active",
+    "requires an active ts/sci",
+    "active ts/sci clearance is required",
+    "active secret clearance is required",
+    "active top secret clearance is required",
+    "an active security clearance is required",
+    "current security clearance is required",
+]
+
+# ------------------------------------------------------ graduate-only postings
+
+[degree]
+# Aggregator feeds publish the degree levels outright. A posting open only to
+# graduate degrees is out; one that admits a bachelor's is in.
+undergraduate_feed_degrees = ["bachelor", "associate", "certificate", "incomplete"]
+
+# Checked BEFORE kill_title below, and vetoes it, exactly as
+# [clearance].allow_phrases vetoes a clearance kill. A title listing several
+# degree levels is open to the lowest one it names, so a bachelor's anywhere in
+# the title means the posting is not graduate-only whatever else it says.
+#
+# This is what makes the bare "phd" kill below safe. Pika's "Research Intern
+# (BS/MS/PhD)" takes undergraduates and says so in the title; without this line
+# the new rule would kill it silently, which is the exact failure this file
+# opens by warning about.
+allow_title = [
+    "bs/", "ba/", "bs,", "bachelor", "undergrad", "undergraduate", "b.s.",
+]
+
+# Title-level signal for the company boards, which publish no degree field.
+kill_title = [
+    "phd intern", "ph.d. intern", "phd internship", "doctoral intern",
+    "phd residency", "phd fellowship", "postdoc", "post-doc", "post doc",
+    "mba intern", "mba internship", "mba associate",
+    # The suffix form. A company board publishes no degree field, so
+    # "Data Science Intern, PhD" is the only signal that posting gives.
+    "intern, phd", "internship, phd", "intern - phd", "intern (phd)",
+    "intern, ph.d", "intern, mba", "internship, mba",
+    # Master's, added 2026-08-12 at the owner's instruction. He is an
+    # undergraduate, so a posting restricted to master's students is as much a
+    # mismatch as a PhD one, and this was the gap: "Apple: Software Engineering
+    # Intern, Masters" and LLNL's "Computing Graduate Student Intern" were both
+    # surfacing.
+    #
+    # "graduate student intern" is safe next to "undergraduate student intern"
+    # because matching is word-start anchored, so \bgraduate finds no word
+    # boundary inside "undergraduate". Verified against both titles before
+    # adding. Do not switch this list to a plain substring match.
+    "masters intern", "master's intern", "masters internship",
+    "master's internship", "ms intern", "msc intern",
+    "graduate student intern", "grad student intern",
+    "intern, masters", "intern, master's", "intern - masters",
+    "intern (masters)", "internship, masters", "internship, master's",
+
+    # The bare degree name, added 2026-08-14 at the owner's instruction. The
+    # patterns above all require the degree to sit next to the word "intern",
+    # and three postings put it elsewhere in the title: "PhD GenAI Research
+    # Scientist Intern" at Databricks, "PhD Research Scientist Intern" at Canva,
+    # and "Hardware Machine Learning PhD Research Internship" at IMC. A title
+    # that names a doctorate anywhere is describing who may apply.
+    #
+    # Safe only because allow_title above runs first. Do not remove that list
+    # without removing these three entries with it.
+    "phd", "ph.d", "doctoral", "mba",
+]
+
+# Description-level signal. Kept deliberately narrow. A posting that merely
+# prefers a graduate degree is not graduate-only and must survive.
+kill_phrases = [
+    "phd students only", "phd candidates only", "open only to phd",
+    "must be enrolled in a phd", "must be a phd candidate",
+    "graduate students only", "open only to graduate students",
+    "restricted to phd", "phd required",
+]
+
+# --------------------------------------------------------------- timing rules
+
+# PRD section 5. Each entry maps the term a posting states onto what the agent
+# does with it. Both the aggregator feed's term field and Stage 0's reading of
+# the description are matched against `patterns` here, so there is one term
+# vocabulary and one place to change it.
+#
+# policy is one of:
+#   surface         no timing restriction, goes through
+#   part_time_only  in-person full-time roles are filtered SILENTLY. The owner is
+#                   in class. Part time, remote, or unstated hours survive.
+#   kill            never relevant, drop it
+#
+# flag, when set, is attached to every surviving posting in that term.
+
+[[term]]
+key = "summer2027"
+patterns = ["summer 2027", "su 2027", "summer27", "2027 summer"]
+policy = "surface"
+
+[[term]]
+key = "fall2026"
+patterns = ["fall 2026", "autumn 2026", "fa 2026", "2026 fall"]
+# Changed from part_time_only to kill on 2026-08-12, at the owner's instruction:
+# he cannot do a fall internship at all, part time or otherwise. Spring and
+# winter stay open, fall does not. This was 410 of the 1,205 surfaced postings,
+# a third of everything the ranker had queued, so it is also the single largest
+# cost saving available on the filter.
+#
+# To reverse: set this back to "part_time_only", then run
+# tools.prefilter_report --dry-run, --reapply, and tools.test_prefilter.
+policy = "kill"
+
+[[term]]
+key = "winter2027"
+patterns = ["winter 2027", "wi 2027", "2027 winter"]
+policy = "surface"
+flag = "leave_required"
+
+[[term]]
+key = "spring2027"
+patterns = ["spring 2027", "sp 2027", "2027 spring"]
+policy = "part_time_only"
+# Exception, added 2026-08-09 at the owner's request. A full-time spring 2027 role
+# in Chicago is acceptable; he is already there for the term. Everywhere else
+# the part-time rule stands and in-person full time is still filtered.
+#
+# Matched against the posting's location, so "Chicago, IL", "Chicago" and
+# "Chicago; New York" all qualify. Adding these same two lines to the fall2026
+# entry above would do the same thing for that term.
+full_time_ok_locations = ["chicago"]
+full_time_ok_flag = "local_full_time"
+
+# Terms that have already closed as of the 2027 cycle. Killed outright.
+[[term]]
+key = "past"
+patterns = [
+    "summer 2026", "spring 2026", "winter 2026", "fall 2025", "summer 2025",
+    "spring 2025", "winter 2025", "fall 2024", "summer 2024",
+]
+policy = "kill"
+
+# Beyond the cycle the owner is recruiting for. He graduates June 2028, so a
+# fall 2027 or later start is a full-time offer, not an internship. Surfaced
+# rather than killed, with a flag, because the boundary is a judgement call and
+# a false kill is the failure this system exists to prevent.
+[[term]]
+key = "beyond_cycle"
+patterns = ["fall 2027", "winter 2028", "spring 2028", "summer 2028", "2029"]
+policy = "surface"
+flag = "outside_cycle"
+
+[terms]
+# A posting whose term could not be read at all. PRD section 5: surfaced with a
+# flag, never dropped. A missed term is a silent coverage miss.
+unknown_policy = "surface"
+unknown_flag = "unclear_term"
+
+# A posting that states a term matching none of the entries above, for example
+# a bare "Summer" with no year. Same treatment as unknown, for the same reason.
+unmatched_policy = "surface"
+unmatched_flag = "unclear_term"
+
+# ------------------------------------------------------------ commitment rules
+
+[commitment]
+# PRD section 5. Part time means 25 hours per week or less, or explicitly
+# described as term time, student, or flexible.
+max_part_time_hours = 25
+
+# Any of these in the posting text makes it part-time-compatible regardless of
+# a stated hour count.
+part_time_phrases = [
+    "part time", "part-time", "term time", "term-time", "during the semester",
+    "during the school year", "flexible hours", "flexible schedule",
+    "around your class", "alongside your studies", "10-20 hours",
+    "15-20 hours", "20 hours per week", "student worker", "work study",
+    "work-study",
+]
+
+# Remote roles survive the part-time-only terms whatever the hours, per PRD
+# section 5: "Part time or remote only".
+remote_phrases = ["remote", "work from home", "wfh", "distributed", "virtual"]
+
+# A posting in a part-time-only term that states no hours at all is surfaced
+# with this flag, never dropped.
+unclear_flag = "unclear_commitment"

@@ -1,0 +1,490 @@
+# The Airtable base, described as data.
+#
+# Airtable is an input surface, never the state store. SQLite holds every
+# posting; this base holds only what the owner needs to look at and label, and
+# the labels he writes are read back into SQLite on the next run. See PRD
+# section 6.
+#
+# This file is the single description of the base. `tools/airtable_bootstrap.py`
+# reads it to create the tables, and the sync reads it to know which Airtable
+# field a SQLite column belongs in. Renaming a field here and re-running the
+# bootstrap is the whole procedure for renaming a field; no Python changes.
+#
+# Field keys:
+#   name      what the field is called in Airtable
+#   type      an Airtable field type
+#   column    the `postings` / `companies` / `contacts` column it maps to
+#   editable  true for the five fields the owner writes and the agent reads back.
+#             Everything else is agent-written and should be treated as output.
+#   link_to   the `key` of another table in this file, for link fields
+#
+# Table order matters. A link field needs its target table to already exist, so
+# Companies is created before Contacts and Postings, both of which link to it.
+
+[base]
+# The free plan caps a base at exactly 1,000 records, confirmed on the workspace
+# billing page 2026-08-15. There are more surfaced postings than that, so the
+# sync pushes a bounded slice rather than everything, and SQLite keeps the full
+# history regardless. Lower this if Airtable starts refusing writes; nothing is
+# lost when it shrinks.
+#
+# Raised from 300 to 600 on 2026-08-15. The base was measured at 420 of 1,000
+# records that day, so the old number was leaving 580 records unused while
+# NEXT_STEPS.md told the owner to resolve rows to make space that already existed.
+#
+# Measure before raising this again, and measure the whole base rather than the
+# postings. Company rows come in behind postings at a ratio that worsens as the
+# slice widens, because a bigger slice reaches further into the aggregator
+# feeds where company names are long-tailed. 600 postings were predicted to
+# cost about 760 records and actually cost 835.
+#
+# The company leak that made that permanent was fixed the same day: orphaned
+# company rows are now deleted at the end of every sync, which took the base to
+# 812 and stops it drifting. Deleting posting rows does NOT free records, since
+# the push refills to this number on the same run. This setting and the company
+# prune are the only two things that move the total.
+# 900, reached in three steps on 2026-09-20: 600, then 650, then here once the
+# Companies link was removed.
+#
+# The free plan caps the whole BASE at 1,000 records, not the Postings table,
+# and while every posting linked to a Company row the ceiling was far lower than
+# it looked. Projected before each change:
+#
+#     linked, cap 600 -> 600 + 222 companies + 1 = 823 records
+#     linked, cap 650 -> 650 + 241 companies + 1 = 892
+#     linked, cap 750 -> 750 + 277 companies + 1 = 1028   over the limit, not done
+#     unlinked, cap 900 -> 900 + 1 company + 1 contact = 902
+#
+# Unlinking Companies freed 244 records in one run, which is four times what
+# raising the cap from 600 to 650 bought. See the Company name field above.
+#
+# 900 rather than 950 because the projection says about 910 postings deserve a
+# slot once everything is scored, so more capacity would buy nothing and the
+# remaining 98 records are worth keeping as headroom for contacts.
+#
+# Per rule 8, the cost: the push skips rows whose payload has not changed, so
+# this is about three extra read calls per sync and nothing in steady state.
+max_posting_records = 900
+
+# Which postings win a place in that slice.
+#
+# Until the ranker lands there are no scores to sort by, and sorting by date
+# alone is meaningless here: the database was seeded in one afternoon, so
+# "newest" is really "whichever source was polled last". That put all 300 rows
+# in one aggregator feed on the first attempt.
+#
+# Provenance is the honest proxy. A posting from one of the 108 curated company
+# boards is on the list because the owner chose that company; an aggregator
+# listing is there because a volunteer added it, carries no description, and
+# usually has an unclear term. Boards first, newest first inside each group.
+#
+# Kept as the SECOND sort key, not deleted. The line above used to say to delete
+# it once Milestone 6 wrote tiers; tiers arrived 2026-09-20 and provenance still
+# breaks ties usefully between two postings in the same band.
+prefer_company_boards = true
+
+# Sort the refill by tier, best band first, added 2026-09-20.
+#
+# What this does and, more importantly, what it does not. It orders the
+# CANDIDATES that fill slots the prune has freed. It never evicts anything: a
+# row already in the base stays until one of the five prune rules resolves it.
+# So the base improves by attrition, over days, rather than being reshuffled.
+#
+# That restraint is the whole design and it is CLAUDE.md rule 9. Ordering the
+# base on a score and enforcing it would delete and recreate rows every time a
+# ranking moved, burning the monthly quota and issuing a fresh record id each
+# time, which strands the owner's labels. Rule 10 names that trap explicitly for
+# the location collapse; this is the same trap at the level of the whole slice.
+# Never pair this with an eviction.
+#
+# Unscored postings sort last rather than first. The ranker is no longer
+# windowed, so an unscored posting is one the queue has not reached yet, and a
+# scored tier 3 is a better use of a slot than an unknown.
+sort_by_tier = true
+
+# Drop rows in a tier the rubric will never deliver, added 2026-09-20.
+#
+# WHICH tiers is not written here. It is read from `rubric.md`, from the bands
+# whose delivery is "never", so there is one definition of what a tier means per
+# CLAUDE.md rule 3. Move tier 4 back onto the Sunday roundup and its rows return
+# with no code change. Today it is tier 4 alone, 43 of the 600 rows.
+#
+# Two exemptions, both the same principle as the prefilter's label override: a
+# role the owner marked interested stays whatever the model scored it, and a role
+# he applied to stays, because the pipeline is the one thing the base must never
+# lose.
+#
+# This is a prune, so it is paired with a matching exclusion in the push query,
+# per rule 9. The two clauses are negations of each other and separating them
+# deletes and recreates every affected row on every run forever.
+prune_never_delivered_tiers = true
+
+# Evict a row once the posting is this many days old, so the base stays a view
+# of the search rather than a photograph of when it was first filled.
+# Added 2026-09-20, and it is the change the owner actually asked for.
+#
+# Rows only ever left when they resolved, so an open, unlabelled posting held
+# its slot indefinitely. Measured that day: 335 of 600 slots were held by
+# postings 30 or more days old while 1,040 postings from the previous month
+# could not get in.
+#
+# AGE, NEVER RANK. A posting only gets older, so this eviction is one-way and
+# nothing evicted can become young again and be recreated next run. Evicting on
+# rank instead would oscillate every time a score moved, which is the churn
+# CLAUDE.md rule 9 exists to prevent. Do not replace this with a score.
+#
+# 30 days is chosen against the cycle rather than the data: an internship
+# posting he has scrolled past for a month is one he has decided about, and
+# summer 2027 postings arrive faster than 600 slots can hold. Raise it if the
+# base starts looking empty, which would show as the cap no longer binding in
+# `tools.sync_airtable --dry-run`.
+# 14, lowered from 30 on 2026-09-25 at the owner's prompting. He was right for a
+# reason different from the one he gave.
+#
+# His worry was that good roles sit behind the 900-row wall unseen. They do not:
+# tiers 1 and 2 are age-exempt, so the eligible count at every window carries
+# the SAME 168 tier 1 and 319 tier 2. Modelled before changing it:
+#
+#     30d -> 1,158 eligible, over the cap, tail is 413 tier 3
+#     21d -> 1,008 eligible, over the cap
+#     14d ->   891 eligible, FITS, tail is 393 tier 3
+#      7d ->   777 eligible, fits, tail is 279 tier 3
+#
+# So shortening never surfaces a better role, because nothing better is waiting.
+# What it does is remove the wall entirely: at 14 days the cap stops binding, so
+# every posting that deserves a slot has one and there is no hidden remainder to
+# wonder about. A state you can trust beats a state you have to audit.
+#
+# 14 rather than 7 because it keeps 114 more tier 3 rows at no cost while still
+# fitting, and because internships reward applying early: a posting he has
+# scrolled past for a fortnight is one he has decided about.
+max_row_age_days = 14
+
+# Tiers that never age out. A tier 1 role open for two months is still the best
+# thing on the page. Written here rather than read from rubric.md because this
+# is a statement about shelf life, not about what a tier means.
+age_exempt_tiers = [1, 2]
+
+# How a source key says it came from an aggregator rather than a company board.
+# Set by agent/sources.py Feed.source_key; named here so the rule stays data.
+feed_source_prefix = "feed:"
+
+# One role posted across many cities gets one row, with the cities joined into
+# the Location field. Requested 2026-08-12, built 2026-08-16. About 68 of the
+# surfaced rows are duplicates of this kind, mostly Palantir, RTX and TikTok.
+#
+# Presentation only, on both sides. Every city keeps its own SQLite row, its own
+# requisition id and its own closure clock; this decides which of them is shown
+# to the owner. Merging them at the identity layer would reintroduce the defect
+# CLAUDE.md rule 6 exists to prevent.
+#
+# Three consequences worth knowing before turning this off again:
+#
+#   The row shown is the OLDEST member of the group, never the best scored. A
+#   lead that moved when a score landed would delete one Airtable record and
+#   create another every time the ranker touched the group, which is exactly the
+#   delete-and-recreate churn CLAUDE.md rule 9 warns about. Row ids only
+#   increase, so the oldest member never changes while the group holds.
+#
+#   The Tier, Fit, Reach and Reason shown are the best any member scored, not
+#   the lead's own. A group where one city is tier 1 and the rest are unscored
+#   is a tier 1 role, and showing the lead's blank score would bury it.
+#
+#   A label on a city that is now hidden stays in SQLite and stays in the
+#   ranker's few-shot examples. It is simply no longer visible in the base.
+collapse_locations = true
+
+
+# ---------------------------------------------------------------------------
+
+[[tables]]
+key = "companies"
+name = "Companies"
+description = "One row per company in the token map. Agent-written."
+
+  [[tables.fields]]
+  name = "Name"
+  type = "singleLineText"
+  column = "name"
+
+  [[tables.fields]]
+  name = "ATS platform"
+  type = "singleLineText"
+  column = "ats_platform"
+
+  [[tables.fields]]
+  name = "Token"
+  type = "singleLineText"
+  column = "token"
+
+  [[tables.fields]]
+  name = "Tier bias"
+  type = "number"
+  precision = 2
+  column = "tier_bias"
+
+  [[tables.fields]]
+  name = "Rolling yes rate"
+  type = "number"
+  precision = 2
+  column = "rolling_yes_rate"
+
+
+# ---------------------------------------------------------------------------
+
+[[tables]]
+key = "contacts"
+name = "Contacts"
+description = "People who could refer the owner. Linked to Companies so a contact shows up next to any posting from that company. PRD section 7."
+
+  [[tables.fields]]
+  name = "Name"
+  type = "singleLineText"
+  column = "name"
+
+  [[tables.fields]]
+  name = "Company"
+  type = "multipleRecordLinks"
+  link_to = "companies"
+  column = "company_id"
+
+  [[tables.fields]]
+  name = "Relationship"
+  type = "singleLineText"
+  column = "relationship"
+
+  [[tables.fields]]
+  name = "Notes"
+  type = "multilineText"
+  column = "notes"
+
+  [[tables.fields]]
+  name = "Last contacted"
+  type = "date"
+  column = "last_contacted"
+
+
+# ---------------------------------------------------------------------------
+
+[[tables]]
+key = "postings"
+name = "Postings"
+description = "Surfaced postings only. The owner edits Label, Applied status, Label reason, Fit override and Reach override. Everything else is agent-written and will be overwritten on the next sync."
+
+  [[tables.fields]]
+  name = "Title"
+  type = "singleLineText"
+  column = "title"
+
+  # Plain text, not a link to the Companies table, changed 2026-09-20.
+  #
+  # The free plan caps the whole BASE at 1,000 records, and a linked Company
+  # field meant every posting dragged a Company row behind it: 241 records, a
+  # quarter of the budget, to carry `tier_bias` and `rolling_yes_rate`, which
+  # PRD section 6 specifies and nothing has ever computed or read. Unlinking
+  # frees those records for postings, which is what the owner actually looks at.
+  #
+  # The Companies table stays. Contacts still link to it, and the one referral
+  # in the base hangs off that link.
+  #
+  # The old linked "Company" field is still in the base and is not in this
+  # schema any more, so nothing writes it. Airtable's API cannot delete a field
+  # or change its type, so removing it is a manual click whenever the owner wants
+  # the column gone; leaving it costs nothing because records, not fields, are
+  # what the plan meters.
+  [[tables.fields]]
+  name = "Company name"
+  type = "singleLineText"
+  column = "company"
+
+  [[tables.fields]]
+  name = "Location"
+  type = "singleLineText"
+  column = "location"
+
+  [[tables.fields]]
+  name = "URL"
+  type = "url"
+  column = "url"
+
+  # Flags are the capitalised words the prefilter attaches when it could not
+  # resolve something and surfaced the posting rather than drop it. Reading
+  # these is how the owner catches a filter rule that is wrong.
+  [[tables.fields]]
+  name = "Flags"
+  type = "singleLineText"
+  column = "flags"
+
+  [[tables.fields]]
+  name = "Term"
+  type = "singleLineText"
+  column = "term"
+
+  # Written by the Milestone 6 ranker. Empty until then.
+  [[tables.fields]]
+  name = "Tier"
+  type = "number"
+  precision = 0
+  column = "tier"
+
+  [[tables.fields]]
+  name = "Fit"
+  type = "number"
+  precision = 0
+  column = "fit_score"
+
+  [[tables.fields]]
+  name = "Reach"
+  type = "number"
+  precision = 0
+  column = "reach_score"
+
+  [[tables.fields]]
+  name = "Reason"
+  type = "multilineText"
+  column = "reason"
+
+  [[tables.fields]]
+  name = "Deadline"
+  type = "date"
+  column = "stated_deadline"
+
+  [[tables.fields]]
+  name = "First seen"
+  type = "date"
+  column = "first_seen"
+
+  [[tables.fields]]
+  name = "Source"
+  type = "singleLineText"
+  column = "source"
+
+  # The join key back to SQLite. The sync matches on this, so it must never be
+  # edited by hand in Airtable. It is deliberately last among the agent fields
+  # so it sits out of the way in the grid.
+  [[tables.fields]]
+  name = "Hash"
+  type = "singleLineText"
+  column = "hash"
+
+  # --- The five fields the owner writes. Everything above is output. ---
+
+  # `values` maps what Airtable shows to what SQLite stores. Airtable reads
+  # better with spaces and the database wants the underscored values PRD
+  # section 6 specifies, so the translation lives here rather than as a pair of
+  # dictionaries buried in Python.
+  [[tables.fields]]
+  name = "Label"
+  type = "singleSelect"
+  choices = ["interested", "not interested"]
+  values = { "interested" = "interested", "not interested" = "not_interested" }
+  column = "label"
+  editable = true
+
+  [[tables.fields]]
+  name = "Applied status"
+  type = "singleSelect"
+  choices = [
+    "not applied",
+    "applied",
+    "interviewing",
+    "rejected",
+    "offer",
+    "skipped",
+    "missed",
+  ]
+  values = { "not applied" = "not_applied", "applied" = "applied", "interviewing" = "interviewing", "rejected" = "rejected", "offer" = "offer", "skipped" = "skipped", "missed" = "missed" }
+  column = "applied_status"
+  editable = true
+  # A blank cell in Airtable means this, rather than meaning null. The column is
+  # NOT NULL in SQLite because PRD criterion 8 wants every posting to reach a
+  # resolved state, and an untouched row is legitimately "not applied".
+  # Without this the first pull after a fresh push fails outright.
+  empty_value = "not_applied"
+
+  # Free text. This is what gets injected into the ranker's few-shot block, so
+  # a sentence on why beats a one-word answer. See PRD section 4.
+  [[tables.fields]]
+  name = "Label reason"
+  type = "multilineText"
+  column = "label_reason"
+  editable = true
+
+  [[tables.fields]]
+  name = "Fit override"
+  type = "number"
+  precision = 0
+  column = "fit_override"
+  editable = true
+
+  [[tables.fields]]
+  name = "Reach override"
+  type = "number"
+  precision = 0
+  column = "reach_override"
+  editable = true
+
+  # The owner's own closure, added 2026-08-19. Ticked from the Interested view
+  # when he learns a role is gone before the watcher does: an email saying the
+  # posting is filled, a recruiter telling him, a board that still lists a job
+  # nobody is hiring for.
+  #
+  # A tick is not a deletion. CLAUDE.md rule 7 exists because the base is
+  # rebuilt from SQLite on every run, so a row deleted by hand comes back six
+  # hours later carrying none of his edits. This writes a column instead, which
+  # is durable, and the sync then prunes the row on his behalf. Untick it and
+  # the posting comes back, because the prune is the consequence of the column
+  # rather than the other way round.
+  [[tables.fields]]
+  name = "Closed"
+  type = "checkbox"
+  column = "closed_by_me"
+  editable = true
+
+  # The digest email links straight here. Clearing this view is the whole
+  # labelling loop. PRD section 6.
+  [[tables.views]]
+  name = "Unlabeled"
+  type = "grid"
+  filter_field = "Label"
+  filter_operator = "isEmpty"
+  purpose = "The labelling queue. Set Label and write a sentence in Label reason."
+
+  # The shortlist, added 2026-08-19. One tab holding everything he said yes to,
+  # with the ones he has not applied to at the top.
+  #
+  # Grouped rather than split into two views on purpose: flipping Applied status
+  # moves a row from the top group to the bottom one, so the work visibly
+  # shrinks in the same place he is already looking, and the pipeline stays one
+  # scroll away instead of one click.
+  [[tables.views]]
+  name = "Interested"
+  type = "grid"
+  filter_field = "Label"
+  filter_operator = "is"
+  filter_value = "interested"
+  group_field = "Applied status"
+  sort_by = ["Deadline asc", "First seen asc"]
+  purpose = "The shortlist. Flip Applied status when you apply; tick Closed when a role is gone."
+
+  # Added 2026-09-25. The owner asked whether there is an applied view; there was
+  # not, only Applied status as a field and the dashboard's pipeline panel. This
+  # is the Airtable-side answer, and like every view it is a manual step because
+  # the API can read views and cannot create them.
+  [[tables.views]]
+  name = "Applied"
+  type = "grid"
+  # POSITIVE, not "is not: not applied". Corrected 2026-09-25 after the owner
+  # built the view from the wrong spec and got 26 rows instead of 7.
+  #
+  # A blank Applied status cell MEANS not applied. `_create_payload` skips
+  # writing a value equal to the field's `empty_value`, so 817 of the 848 rows
+  # carry a blank rather than the words "not applied". Airtable does not treat
+  # blank as equal to any choice, so "is not: not applied" matches every blank
+  # and returns almost the whole base.
+  filter_field = "Applied status"
+  filter_operator = "is any of"
+  filter_value = "applied, interviewing, rejected, offer"
+  group_field = "Applied status"
+  sort_by = ["First seen desc"]
+  purpose = "Everywhere you have applied. Move the dropdown as you hear back; the agent stamps the date on the first move off not_applied."

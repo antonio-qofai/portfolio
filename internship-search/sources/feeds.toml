@@ -1,0 +1,82 @@
+# Aggregator feed map. This file is data, never code, same rule as companies.toml.
+#
+# These are community-maintained repositories that track internship postings across
+# thousands of employers and publish the result as JSON. They cover the companies the
+# per-company watcher structurally cannot poll, the ones listed in
+# sources/needs-other-approach.md: Microsoft, Apple, Amazon, Meta, Tesla and the rest.
+#
+# Both feeds below were fetched live and verified on 2026-08-07.
+#
+# The branch is dev on both. main 404s. If a feed starts returning nothing, check the
+# branch first; these repos rename and reorganise without notice.
+#
+# key      short name, used to build the source key stored in SQLite (feed:simplify)
+# url      raw JSON, not the rendered README. Never scrape the markdown table.
+# enabled  set false to stop polling a feed without deleting what it taught us
+
+[settings]
+# A feed listing for a company already in companies.toml is skipped, because that
+# company's own job board is authoritative, carries the full description text that
+# Stage 0 needs, and closes more promptly. Turning this off produces the same posting
+# twice under two source keys, which double-counts it in the digest and ages it for
+# closure twice. Leave it on unless you are debugging feed coverage.
+prefer_company_boards = true
+
+# A listing must be both active and visible to count as open. Inactive listings are
+# simply not emitted, which lets the existing consecutive_misses logic in agent/db.py
+# close them on its own schedule rather than adding a second closure path beside it.
+require_visible = true
+
+[[feed]]
+key = "simplify"
+name = "SimplifyJobs Summer 2027"
+url = "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/.github/scripts/listings.json"
+enabled = true
+notes = "14,622 listings on 2026-08-07, 1,545 active and visible. Carries terms, degrees and category, which cuts what the Stage 0 tagger has to guess."
+
+[[feed]]
+key = "vanshb03"
+name = "vanshb03 Summer 2027"
+url = "https://raw.githubusercontent.com/vanshb03/Summer2027-Internships/dev/.github/scripts/listings.json"
+enabled = true
+notes = "401 listings on 2026-08-07, 314 active. Smaller and largely overlapping, but it carries a season field and catches some postings Simplify misses."
+
+# Added 2026-09-22, the third feed PRD success criterion 3 has asked for since
+# Milestone 3. Found by searching rather than known in advance; the criterion sat
+# openly unmet from 2026-08-07 because nobody had looked.
+#
+# This one is NOT in the Simplify lineage, which is the whole reason it is worth
+# having and also why it needs the field map below. It polls roughly 4,876 job
+# board endpoints across 12 ATS platforms directly, so its coverage is
+# independently sourced rather than a re-publication of the other two.
+#
+# Measured before adding, per CLAUDE.md rule 7. Of its 993 listings, 790 were not
+# in the database at all, and the reason is visible in its own source field:
+#
+#     workday 467   oracle 114   greenhouse 104   ashby 32
+#     smartrecruiters 29   lever 17   rippling 8   workable 7   breezy 4
+#
+# Oracle, SmartRecruiters, Workable, Breezy and Rippling have no fetcher in this
+# repo at all, and Workday is deliberately narrowed under rule 13 to the
+# internships a tenant's own facets name. So this reaches exactly what the
+# per-company watcher structurally cannot, which is the stated purpose of a feed
+# at the top of this file. 180 of the 790 look domain-relevant on a keyword pass.
+#
+# It publishes a live snapshot of OPEN roles with no `active` flag, hence
+# assume_active. Being in the file is the open signal; a listing that disappears
+# falls out of the seen set and the existing consecutive_misses logic closes it
+# on its normal two-poll schedule, exactly as an inactive Simplify listing does.
+[[feed]]
+key = "zshah"
+name = "zshah101 automated ATS sweep"
+url = "https://zshah101.github.io/Automated-List-Of-Summer-2027-and-Fall-2026-Tech-Internships/api/jobs.json"
+enabled = true
+root = "jobs"
+assume_active = true
+notes = "993 listings on 2026-09-22, 790 of them new to the database. Independent: sweeps ATS endpoints directly rather than republishing another list. Carries a single location string and a season field."
+
+  # Its names for the things this repo calls by Simplify's names. Data, not code.
+  [feed.fields]
+  company_name = "company"
+  locations = "location"
+  terms = "season"

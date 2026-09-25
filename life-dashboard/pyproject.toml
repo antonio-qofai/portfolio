@@ -1,0 +1,24 @@
+[project]
+name = "life-dashboard"
+version = "0.1.0"
+description = "Personal morning brief: news, weather, inboxes, calendar, chores, job search, QofAI."
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=1.8.0",
+    "google-auth>=2.58.1",
+    "google-auth-oauthlib>=1.4.1",
+    "pyyaml>=6.0",
+    "requests>=2.34.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

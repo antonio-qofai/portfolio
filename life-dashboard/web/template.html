@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$title</title>
+<style>
+  :root {
+    --bg: #f6f5f2;
+    --card: #ffffff;
+    --text: #1d1d1f;
+    --muted: #6b6b70;
+    --border: #e3e1dc;
+    --accent: #7a1f2b;
+    --work: #eef2f8;
+    --error-bg: #fdecec;
+    --error-text: #9b1c1c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #151517;
+      --card: #1f1f22;
+      --text: #ececee;
+      --muted: #9a9aa0;
+      --border: #2e2e33;
+      --accent: #e0848f;
+      --work: #1c2330;
+      --error-bg: #3a1d1d;
+      --error-text: #f3a5a5;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 16px; display: grid; gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .card.sub { border: none; padding: 0; background: transparent; }
+  .card.work { background: var(--work); }
+  h1 { font-size: 1.45rem; margin: 0 0 6px; }
+  h2 { font-size: 1.05rem; margin: 0 0 8px; color: var(--accent); }
+  h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 12px 0 4px; }
+  .header p { margin: 2px 0; }
+  .date { color: var(--muted); font-size: .9rem; }
+  ul, ol { margin: 0; padding-left: 0; list-style: none; }
+  li { padding: 7px 0; border-top: 1px solid var(--border); }
+  li:first-child { border-top: none; }
+  .meta, .why { display: block; font-size: .78rem; color: var(--muted); }
+  .why { margin-left: 26px; }
+  .summary { margin: 2px 0 0; font-size: .9rem; color: var(--muted); }
+  a { color: inherit; }
+  .note, .empty, .updated { font-size: .8rem; color: var(--muted); margin: 6px 0 0; }
+  .error { font-size: .85rem; background: var(--error-bg); color: var(--error-text); padding: 6px 8px; border-radius: 6px; margin: 8px 0 0; }
+  details summary { cursor: pointer; font-size: .9rem; color: var(--muted); padding-top: 8px; }
+  .split { display: grid; gap: 14px; }
+  @media (min-width: 640px) { .split { grid-template-columns: 1fr 1fr; } }
+  footer { text-align: center; font-size: .75rem; color: var(--muted); padding: 8px 0 24px; }
+</style>
+</head>
+<body>
+<main>
+$body
+<footer>Brief generated $generated_at · stub data (M0)</footer>
+</main>
+</body>
+</html>

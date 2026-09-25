@@ -1,0 +1,115 @@
+# Known application windows for the Summer 2027 cycle.
+#
+# This file is data, never code. Add, edit, or delete windows here and the next
+# calendar sync picks the change up. Nothing about these companies appears in
+# Python source.
+#
+# key        stable identifier. NEVER change it after an event exists, or the sync
+#            creates a duplicate instead of updating the original.
+# start/end  real dates. Google all-day events treat the end as inclusive here;
+#            the code adds the extra day the API wants.
+# confidence  confirmed  = the company has published these dates
+#             expected   = based on prior cycles, reliable but not announced
+#             uncertain  = rough guess, verify before relying on it
+#
+# Source for all of these: PRD section 11, as of 2026-08-06. None are confirmed
+# by the companies. Treat every date as a prompt to go check, not as gospel.
+
+[[window]]
+key = "amazon-summer2027"
+company = "Amazon"
+label = "Amazon summer 2027 applications"
+start = 2026-07-01
+end = 2026-08-31
+confidence = "expected"
+action = "Check amazon.jobs student programs. Amazon posts earliest of anyone."
+url = "https://www.amazon.jobs/content/en/career-programs/student-programs"
+
+[[window]]
+key = "databricks-summer2027"
+company = "Databricks"
+label = "Databricks summer 2027 applications"
+start = 2026-07-01
+end = 2026-08-31
+confidence = "expected"
+action = "Also covered by the watcher, greenhouse:databricks."
+url = "https://www.databricks.com/company/careers/university-recruiting"
+
+[[window]]
+key = "microsoft-summer2027"
+company = "Microsoft"
+label = "Microsoft summer 2027 applications"
+start = 2026-08-15
+end = 2026-09-30
+confidence = "expected"
+action = "Own careers site, NOT covered by the watcher. Check by hand."
+url = "https://careers.microsoft.com/students"
+
+[[window]]
+key = "apple-summer2027"
+company = "Apple"
+label = "Apple summer 2027 applications"
+start = 2026-09-01
+end = 2026-10-15
+confidence = "expected"
+action = "Own careers site, NOT covered by the watcher. Check by hand."
+url = "https://www.apple.com/careers/us/students.html"
+
+[[window]]
+key = "google-swe-intern-summer2027"
+company = "Google"
+label = "Google SWE intern window, closes fast"
+start = 2026-10-13
+end = 2026-11-10
+confidence = "expected"
+action = "Two to four weeks only. This is the highest-risk window on the calendar."
+url = "https://www.google.com/about/careers/applications/students"
+
+[[window]]
+key = "openai-summer2027"
+company = "OpenAI"
+label = "OpenAI summer 2027 applications, rolling"
+start = 2026-09-01
+end = 2026-11-30
+confidence = "expected"
+action = "Rolling, closes when pools fill. Apply early, not at the deadline. Watcher covers ashby:openai."
+url = "https://openai.com/careers/"
+
+[[window]]
+key = "anthropic-fellows-jan2027"
+company = "Anthropic"
+label = "Anthropic Fellows, January 2027 cohort"
+start = 2026-09-15
+end = 2026-11-15
+confidence = "uncertain"
+action = "Fellows Program, not a conventional internship. Rolling. Watcher covers greenhouse:anthropic."
+url = "https://www.anthropic.com/careers"
+
+[[window]]
+key = "deepmind-student-researcher"
+company = "Google DeepMind"
+label = "DeepMind Student Researcher postings expected"
+start = 2026-11-01
+end = 2027-02-28
+confidence = "uncertain"
+action = "Timing is a guess. Watcher covers greenhouse:deepmind."
+url = "https://deepmind.google/about/careers/"
+
+[[window]]
+key = "anthropic-fellows-aug2027"
+company = "Anthropic"
+label = "Anthropic Fellows, August 2027 cohort"
+start = 2027-04-01
+end = 2027-06-15
+confidence = "uncertain"
+action = "Second cohort of the year. Dates are inferred, verify in spring."
+url = "https://www.anthropic.com/careers"
+
+[[window]]
+key = "startups-late-cycle"
+company = "Startups, general"
+label = "Startup internship season, the backup if fall does not land"
+start = 2026-12-01
+end = 2027-03-31
+confidence = "expected"
+action = "Most agent and AI startups recruit here. The watcher covers ~40 of them."
