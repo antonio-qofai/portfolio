@@ -221,6 +221,50 @@ def _action_lines(actions: dict, collapse_cfg: dict, url: str = "") -> list[str]
     return lines
 
 
+def split_closed(closed: list[dict] | None) -> tuple[list[dict], int]:
+    """The closures worth a line in the digest, and a count of the rest.
+
+    Only a posting the prefilter surfaced is one he could have seen, so only its
+    closure is news. On 2026-09-25 one run detected 203 closures and 160 of them
+    were roles the filter had killed ("xAI: Executive Sous Chef"), which buried
+    the 43 that mattered. The rest are counted rather than listed, so the number
+    is never silent. A posting still awaiting its verdict counts as the rest: it
+    was never shown to him either.
+    """
+    listed = [p for p in (closed or []) if p.get("prefilter_verdict") == "surface"]
+    return listed, len(closed or []) - len(listed)
+
+
+def digest_has_content(
+    split: dict,
+    closed: list[dict] | None,
+    owed_closures: list[dict] | None,
+    stats: dict,
+    actions: dict | None = None,
+    action_cfg: dict | None = None,
+) -> bool:
+    """Whether the daily digest has a reason to send. PRD success criterion 5.
+
+    Empty digests never send; a seeding run always reports, since it is a setup
+    step. A closure counts only when `split_closed` would list it: a killed
+    posting closing is not news, and until 2026-09-25 it was enough on its own
+    to send an email with nothing new in it.
+
+    The action block does not count as content by default. It repeats until he
+    moves it, so counting it would mean a digest every single day for as long
+    as one unapplied role sits in the base, and a daily email that is identical
+    to yesterday's is one he stops opening. It rides along when the digest has
+    a reason to send. send_on_actions_alone in sources/email.toml reverses that.
+    """
+    action_cfg = action_cfg or {}
+    return bool(
+        split.get("shown") or split_closed(closed)[0] or owed_closures
+        or stats.get("seeding") or stats.get("seeded_sources")
+        or (action_cfg.get("send_on_actions_alone", False)
+            and actions and delivery.has_actions(actions))
+    )
+
+
 def build_digest(
     split: dict,
     closed: list[dict],
@@ -328,13 +372,29 @@ def build_digest(
             lines.append(f"  - {line}")
         lines.append("")
 
-    if closed:
-        lines.append(f"CLOSED SINCE LAST RUN ({len(closed)})")
-        for p in sorted(closed, key=lambda x: (x["company"], x["title"])):
+    listed, dropped = split_closed(closed)
+    if listed:
+        lines.append(f"CLOSED SINCE LAST RUN ({len(listed)})")
+        for p in sorted(listed, key=lambda x: (x["company"], x["title"])):
             lines.append(f"  - {p['company']}: {p['title']}")
+        lines.append("")
+    if dropped:
+        lines.append(
+            f"{dropped} other closure(s) of roles the filter had not surfaced, "
+            "not listed."
+        )
         lines.append("")
 
     lines.append("---")
+    money = stats.get("budget") or {}
+    if money.get("limit"):
+        line = f"Model spend this month: ${money['spend']:.2f} of ${money['limit']:.2f}."
+        if money.get("paused"):
+            line += (" Ranking is PAUSED until next month; new postings arrive "
+                     "marked NOT YET SCORED. Raise [budget] in rubric.md to lift it.")
+        elif money.get("warn"):
+            line += " Close to the ceiling set in rubric.md."
+        lines.append(line)
     lines.append(
         f"Sources polled: {stats.get('sources_ok', 0)} ok, "
         f"{stats.get('sources_failed', 0)} failed. "

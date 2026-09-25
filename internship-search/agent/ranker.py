@@ -377,6 +377,26 @@ def _account(stats: dict, answer: dict, stage: str) -> None:
     stats["calls"] += 1
 
 
+def budget_state(conn, cfg: dict | None = None) -> dict:
+    """Month-to-date spend against the `[budget]` block in `rubric.md`.
+
+    `paused` means ranking stops for the rest of the month. A rubric with no
+    budget block never pauses, so removing the block is the off switch.
+    """
+    cfg = rubric.settings() if cfg is None else cfg
+    budget = cfg.get("budget") or {}
+    limit = float(budget.get("monthly_usd", 0) or 0)
+    spend = db.month_spend(conn)
+    if limit <= 0:
+        return {"spend": spend, "limit": 0.0, "warn": False, "paused": False}
+    return {
+        "spend": spend,
+        "limit": limit,
+        "warn": spend >= limit * float(budget.get("warn_fraction", 0.8)),
+        "paused": spend >= limit * float(budget.get("stop_fraction", 1.0)),
+    }
+
+
 def run(conn, max_calls: int | None = None, verbose: bool = False) -> dict:
     """Score every surfaced posting that has no score, up to the call budget.
 
@@ -396,6 +416,21 @@ def run(conn, max_calls: int | None = None, verbose: bool = False) -> dict:
     )
     stats["examined"] = len(postings)
     if not postings:
+        stats["tiers"] = db.score_counts(conn)
+        return stats
+
+    # The monthly ceiling, checked before any client exists so a paused month
+    # cannot spend a cent. It waits rather than drops, the same as the call cap:
+    # every posting keeps its empty score and is picked up next month.
+    money = budget_state(conn, cfg)
+    stats["budget"] = money
+    if money["paused"]:
+        if verbose:
+            print(f"  Ranker: paused, ${money['spend']:.2f} spent this month against "
+                  f"${money['limit']:.2f} in rubric.md. {len(postings)} posting(s) wait.")
+        stats["skipped"] = True
+        stats["budget_paused"] = True
+        stats["remaining"] = len(postings)
         stats["tiers"] = db.score_counts(conn)
         return stats
 
@@ -515,6 +550,10 @@ def run(conn, max_calls: int | None = None, verbose: bool = False) -> dict:
 
 def summary_lines(stats: dict) -> list[str]:
     """Human-readable block, shared by the digest, the run output, and the report."""
+    if stats.get("budget_paused"):
+        money = stats["budget"]
+        return [f"Ranker paused by the monthly budget, ${money['spend']:.2f} of "
+                f"${money['limit']:.2f}. {stats['remaining']} posting(s) waiting."]
     if stats["skipped"]:
         return [f"Ranker skipped, no API key. {stats['remaining']} posting(s) waiting."]
     if not stats["examined"]:

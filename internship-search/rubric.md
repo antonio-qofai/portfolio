@@ -325,6 +325,27 @@ newest_first = true
 # them. This is the same principle as the prefilter's label override.
 always_score_labelled = ["interested"]
 
+[budget]
+# The monthly ceiling from PRD section 2 and success criterion 9, added
+# 2026-09-25. Month-to-date spend is summed from the `runs` table, which records
+# every run's estimated cost (Stage 0 tagging plus ranking), per UTC calendar
+# month.
+#
+# Why it exists now. The backlog cleared at about $0.0004 a posting, but a normal
+# run scores 5 to 30 postings and pays the cache write on both stages every
+# time, since runs are hours apart and the cache lives five minutes. Measured on
+# 2026-09-24 and 2026-09-25 that is $0.0045 to $0.006 a posting, which at 60 a
+# day projects $3.50 to $10 a month, and October volume can push it past $10.
+#
+# warn_fraction puts a line in the digest and in `tools.health`. stop_fraction
+# pauses ranking for the rest of the month. A pause never strands a posting:
+# while it holds, the daily digest carries unscored postings marked NOT YET
+# SCORED, which is the condition CLAUDE.md rule 10 sets for include_unscored
+# being off. Raise monthly_usd here to lift it; nothing else needs editing.
+monthly_usd = 10.0
+warn_fraction = 0.8
+stop_fraction = 1.0
+
 [variance]
 # The self-check in PRD section 4. Re-score this fraction of each batch a second
 # time; if the mean absolute movement on either axis exceeds max_mean_delta, the

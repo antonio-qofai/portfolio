@@ -35,6 +35,34 @@ def recent_runs(sched: schedule.Schedule, count: int) -> list[str]:
     return lines[-count:]
 
 
+def spend_lines() -> list[str]:
+    """Month-to-date model spend against rubric.md's [budget] block.
+
+    Imported here, lazily, and never in `agent/health.py`: that module must
+    survive a broken database (CLAUDE.md rule 12), and this command must still
+    report health when the database cannot be read, so any failure here prints
+    one line and nothing more.
+    """
+    try:
+        from agent import db, ranker
+
+        conn = db.connect()
+        try:
+            money = ranker.budget_state(conn)
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001
+        return [f"Model spend this month: unavailable ({type(exc).__name__})"]
+    if not money["limit"]:
+        return [f"Model spend this month: ${money['spend']:.2f} (no [budget] in rubric.md)"]
+    line = f"Model spend this month: ${money['spend']:.2f} of ${money['limit']:.2f}"
+    if money["paused"]:
+        line += "  PAUSED: ranking stops until next month"
+    elif money["warn"]:
+        line += "  close to the ceiling"
+    return [line]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -63,6 +91,10 @@ def main() -> int:
         print("Failure alerts are OFF (health.enabled is false in schedule.toml).")
         print("The heartbeat is still being recorded, so turning them back on")
         print("loses nothing.")
+
+    print()
+    for line in spend_lines():
+        print(line)
 
     if args.runs > 0:
         runs = recent_runs(sched, args.runs)

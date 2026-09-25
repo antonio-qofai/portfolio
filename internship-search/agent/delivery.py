@@ -69,6 +69,20 @@ def route(row, cfg=None) -> str:
     return rubric.delivery_for(tier, cfg)
 
 
+def while_ranking_paused(email_rules: dict) -> dict:
+    """The email rules with unscored postings carried, for a month the budget
+    has paused ranking.
+
+    CLAUDE.md rule 10 allows `daily.include_unscored = false` only while the
+    ranker is running. A paused ranker scores nothing, so with the switch off a
+    posting found during the pause would reach no email at all. This returns a
+    copy and never edits the parsed file.
+    """
+    out = dict(email_rules)
+    out["daily"] = {**email_rules.get("daily", {}), "include_unscored": True}
+    return out
+
+
 def split_daily(rows, cfg=None, email_rules=None) -> dict:
     """Partition this run's reportable postings by where they go.
 

@@ -48,6 +48,12 @@ class Report:
     records_after: int = 0
     cap: int = 0
     dry_run: bool = False
+    # What this run actually cost against the monthly quota, CLAUDE.md rule 8.
+    # Filled from the client in `sync`'s finally, so a sync that fails part way
+    # still reports what it spent before failing.
+    api_calls: int = 0
+    api_reads: int = 0
+    api_writes: int = 0
 
     def over_cap(self) -> bool:
         return self.records_after >= self.cap
@@ -526,7 +532,7 @@ def _push_contacts(client, conn, schema, company_ids, dry_run) -> int:
     )
 
     existing = {
-        str(rec["fields"].get(name_field, "")).strip().lower(): rec["id"]
+        str(rec["fields"].get(name_field, "")).strip().lower(): rec
         for rec in client.records(table.name)
     }
 
@@ -547,7 +553,10 @@ def _push_contacts(client, conn, schema, company_ids, dry_run) -> int:
                 fields[fld.name] = str(row[fld.column])
         key = str(row["name"]).strip().lower()
         if key in existing:
-            updates.append({"id": existing[key], "fields": fields})
+            # Until 2026-09-25 every existing contact was re-sent on every run,
+            # one write call per sync for nothing. Same test as the postings.
+            if _payload_differs(fields, existing[key]):
+                updates.append({"id": existing[key]["id"], "fields": fields})
         else:
             creates.append(fields)
 
@@ -844,7 +853,16 @@ def sync(dry_run: bool = False, conn=None) -> Report:
         )
 
         return report
+    except airtable.AirtableError as exc:
+        # The caller gets an exception rather than the report, so the report
+        # rides on it. The finally below has filled it in by the time anyone
+        # reads it.
+        exc.report = report
+        raise
     finally:
+        report.api_calls = client.calls
+        report.api_reads = client.reads
+        report.api_writes = client.writes
         client.close()
         if owns_conn:
             conn.close()

@@ -15,7 +15,7 @@ committed. See README for the Google Cloud setup.
 
 import datetime as dt
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from . import config
 
@@ -40,6 +40,12 @@ class Window:
     confidence: str = "expected"
     action: str = ""
     url: str = ""
+    # True for the events derived from the database. Their computed date can be
+    # in the past, so it is only a floor: the event is created no earlier than
+    # the day the sync first makes it, and after that its date never moves. A
+    # cycle window from the TOML is not pinned, because there the TOML is the
+    # truth and an edit to its dates must reach the calendar.
+    pinned: bool = False
 
     @property
     def summary(self) -> str:
@@ -200,6 +206,7 @@ def derived_windows(conn, today: dt.date | None = None) -> list[Window]:
             start=when,
             end=when,
             confidence="confirmed",
+            pinned=True,
             action=(f"Applied {applied.isoformat()}, {FOLLOWUP_DAYS} days ago. "
                     "Chase it or mark the outcome in Airtable."),
             url=row["url"] or "",
@@ -230,7 +237,9 @@ def derived_windows(conn, today: dt.date | None = None) -> list[Window]:
         # Dated when it BECAME stale, not today. A date computed from `today`
         # moves on every run, so the same event would be patched to a new day
         # four times a day and drift down the calendar forever. first_seen is
-        # fixed, so this date is too.
+        # fixed, so this date is too. That date is usually already past, which
+        # is what `pinned` is for: `push` lifts it to the day the event is
+        # first created and then leaves it there.
         try:
             became = dt.date.fromisoformat(str(row["first_seen"]).strip()[:10])
             became = became + dt.timedelta(days=STALE_TIER1_DAYS)
@@ -243,6 +252,7 @@ def derived_windows(conn, today: dt.date | None = None) -> list[Window]:
             start=became,
             end=became,
             confidence="confirmed",
+            pinned=True,
             action=("Top band, open since "
                     f"{str(row['first_seen'])[:10]}, and you have neither "
                     "labelled nor applied to it."),
@@ -296,17 +306,43 @@ def sync(dry_run: bool = False, conn=None) -> dict:
 
     service = get_service()
     calendar_id = ensure_calendar(service)
+    result = push(service, calendar_id, windows)
+    result["calendar_id"] = calendar_id
+    return result
 
+
+def push(service, calendar_id: str, windows: list[Window],
+         today: dt.date | None = None) -> dict:
+    """Create or patch one event per window. Split from `sync` so it can be
+    tested against a fake service without a Google account.
+
+    A pinned window is dated no earlier than the day its event is first created,
+    and never moves after that. Until 2026-09-25 every derived event was dated
+    by its computed day, and all 12 live ones sat between 2026-08-17 and
+    2026-09-02, in the past on the day they were made, so he never saw one. A
+    date of `today` is not the fix on its own, because recomputed on every run
+    it walks down the calendar; the fix is today once, at creation, and then
+    whatever date the event already carries. The title, description and
+    reminders are still patched, so a retitled posting stays readable.
+    """
+    today = today or dt.date.today()
     created = updated = 0
     for w in windows:
         body = _event_body(w)
         existing = find_existing(service, calendar_id, w.key)
         if existing:
+            if w.pinned:
+                for side in ("start", "end"):
+                    if side in existing:
+                        body[side] = existing[side]
             service.events().patch(
                 calendarId=calendar_id, eventId=existing["id"], body=body
             ).execute()
             updated += 1
         else:
+            if w.pinned and w.start < today:
+                span = w.end - w.start
+                body = _event_body(replace(w, start=today, end=today + span))
             service.events().insert(calendarId=calendar_id, body=body).execute()
             created += 1
 
@@ -314,6 +350,5 @@ def sync(dry_run: bool = False, conn=None) -> dict:
         "created": created,
         "updated": updated,
         "total": len(windows),
-        "calendar_id": calendar_id,
         "dry_run": False,
     }

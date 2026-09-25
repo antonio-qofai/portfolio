@@ -349,6 +349,112 @@ def test_referrals_reach_the_email():
     check("a referral appears beside the role", "REFERRAL: Jordan Example" in body, True)
 
 
+def test_killed_closures_are_counted_not_listed():
+    """Only a surfaced posting's closure is news. Added 2026-09-25.
+
+    One run that day detected 203 closures and 160 were roles the prefilter had
+    killed, "xAI: Executive Sous Chef" among them, listed line by line above the
+    43 that mattered. Worse, a killed posting closing was enough on its own to
+    send a digest with nothing new in it, against PRD success criterion 5.
+    """
+    surfaced = {"company": "Acme", "title": "Quant Research Intern",
+                "prefilter_verdict": "surface"}
+    killed = {"company": "xAI", "title": "Executive Sous Chef",
+              "prefilter_verdict": "kill"}
+    pending = {"company": "Beta", "title": "Pending Role",
+               "prefilter_verdict": None}
+    empty = {"shown": []}
+
+    _, body = notify.build_digest(empty, [surfaced, killed, pending], {})
+    check("a surfaced closure is listed", "Acme: Quant Research Intern" in body, True)
+    check("a killed closure is not listed", "Executive Sous Chef" in body, False)
+    check("an untagged closure is not listed", "Pending Role" in body, False)
+    check("the closed heading counts only what it lists",
+          "CLOSED SINCE LAST RUN (1)" in body, True)
+    check("the rest are one count line",
+          "2 other closure(s) of roles the filter had not surfaced" in body, True)
+
+    _, body = notify.build_digest(empty, [killed], {})
+    check("killed-only closures print no closed section",
+          "CLOSED SINCE LAST RUN" in body, False)
+
+    check("a killed closure alone does not send the digest",
+          notify.digest_has_content(empty, [killed, pending], [], {}), False)
+    check("a surfaced closure still sends the digest",
+          notify.digest_has_content(empty, [killed, surfaced], [], {}), True)
+    check("an owed closure still sends the digest",
+          notify.digest_has_content(empty, [killed], [surfaced], {}), True)
+    check("nothing at all sends nothing",
+          notify.digest_has_content(empty, [], [], {}), False)
+    check("a shown posting sends", notify.digest_has_content(
+        {"shown": [object()]}, [], [], {}), True)
+    check("a seeding run always sends",
+          notify.digest_has_content(empty, [], [], {"seeding": True}), True)
+    idle = {"apply": [1], "decide": [], "silent": [], "waiting": 0}
+    check("the action block alone does not send by default",
+          notify.digest_has_content(empty, [killed], [], {}, idle, {}), False)
+    check("send_on_actions_alone reverses that", notify.digest_has_content(
+        empty, [], [], {}, idle, {"send_on_actions_alone": True}), True)
+
+
+def test_html_half_keeps_the_digest_readable():
+    """`agent/emailhtml.py` reads the text's indentation, so a builder change
+    breaks it silently. Added 2026-09-25 with the redesign: these fail if a role
+    stops rendering as a card, a URL comes back raw, or the renderer can raise.
+    """
+    from agent import emailhtml
+
+    conn = make_db()
+    add(conn, n=0, hash="a", identity="a", company="Jane Street",
+        title="Quant Trader Intern (Summer 2027)", location="New York, NY",
+        tier=1, fit_score=9, reach_score=7, reason="quant at a top firm",
+        url="https://example.test/js")
+    add(conn, n=1, hash="b", identity="b", company="Jane Street",
+        title="Quant Trader Intern (Summer 2027)", location="London, UK",
+        tier=1, fit_score=9, reach_score=7, reason="quant at a top firm",
+        url="https://example.test/js2")
+    split = delivery.split_daily(rows(conn))
+    _, body = notify.build_digest(split, [], {"sources_ok": 1})
+    page = emailhtml._render_body(body)
+
+    check("a tier heading with a lower case count is still a heading",
+          emailhtml.is_heading("TIER 1 (1 roles, 2 listings)"), True)
+    check("the role's title renders without its location group",
+          "Quant Trader Intern (Summer 2027)</div>" in page, True)
+    check("the locations render on their own line",
+          "New York, NY; London, UK" in page, True)
+    check("the role has a button rather than a raw URL",
+          "View posting" in page and ">https://example.test/js<" not in page, True)
+    check("the score renders as a tier pill", ">Tier 1<" in page, True)
+    check("the reason survives", "quant at a top firm" in page, True)
+
+    check("a trailing title parenthesis is not mistaken for a location",
+          emailhtml.split_item("Mech Intern (Summer 2027) (Austin, TX)  [REACH]"),
+          ("Mech Intern (Summer 2027)", ["Austin, TX"], ["REACH"]))
+    check("facts split on the builder's double space",
+          emailhtml._split_meta("Palo Alto, CA  open since 2026-08-07"),
+          ["Palo Alto, CA", "open since 2026-08-07"])
+
+    raised = None
+    for junk in ["", "---", "  - ", "      https://x.test", "(((", "TIER (", "\t- a: b"]:
+        try:
+            emailhtml.render(junk, "s")
+        except Exception as exc:  # noqa: BLE001
+            raised = repr(exc)
+    check("render never raises on malformed text", raised, None)
+
+    saved = emailhtml._render_body
+    emailhtml._render_body = lambda _b: 1 / 0
+    try:
+        page = emailhtml.render("hello <b>", "s")
+    except Exception as exc:  # noqa: BLE001 - the regression being guarded
+        page = f"raised {exc!r}"
+    finally:
+        emailhtml._render_body = saved
+    check("a renderer bug falls back to the plain render, escaped",
+          "hello &lt;b&gt;" in page, True)
+
+
 
 def test_send_never_raises():
     """`notify.send` answers with False and never with an exception.
@@ -423,6 +529,120 @@ def test_send_never_raises():
         cfg.SMTP_USER, cfg.SMTP_PASSWORD, cfg.EMAIL_FROM, cfg.SMTP_PORT = saved
 
 
+def test_html_keeps_every_line():
+    """The HTML half re-parses the text half, and its failure is ugly, not loud.
+
+    Added 2026-09-25 with the redesign. The first render found by eye was a
+    heading carrying a lowercase count, "TIER 1 (1 roles, 3 listings)", read
+    as a paragraph because is_heading demanded every letter be uppercase.
+    """
+    import html as _html
+    import re as _re
+    from agent import emailhtml
+
+    body = "\n".join([
+        "YOUR MOVE",
+        "",
+        "  Marked interested, not applied (1)",
+        "    - Acme Robotics: Controls Intern",
+        "      Boston, MA  open since 2026-08-07",
+        "      you said: robots",
+        "      https://example.com/acme/1",
+        "",
+        "TIER 1 (1 roles, 2 listings)",
+        "",
+        "Palantir",
+        "  - Forward Deployed Engineer, Internship (New York, NY; Denver, CO)  [UNCLEAR TERM]",
+        "    tier 1, fit 9, reach 6",
+        "    Forward deployed work, his named target.",
+        "    https://example.com/palantir/2",
+        "",
+        "---",
+        "Sources polled: 172 ok, 5 failed.",
+    ])
+    out = emailhtml.render(body, "Internship watcher: 1 posting")
+    text = _html.unescape(_re.sub(r"<[^>]+>", " ", out))
+    words = " ".join(text.split())
+    for line in body.splitlines():
+        want = line.strip()
+        if not want or want == "---":
+            continue
+        want = want[2:] if want.startswith("- ") else want
+        want = want.replace("you said: ", "")
+        want = _re.sub(r"\s+\[[A-Z ,]+\]$", "", want)
+        if want.startswith("http"):
+            check(f"html keeps the link {want}", want in out, True)
+            continue
+        want = want.split(" (")[0] if want.startswith(("Forward", "TIER")) else want
+        # Two lines are restyled on purpose: "Company: Title" splits into a
+        # bold company and the title, and the score line becomes pills.
+        if want.startswith("tier "):
+            want = "  ".join(w.strip() for w in want.split(",")[1:])
+        parts = [q for part in _re.split(r"\s{2,}", want) for q in part.split(": ", 1)]
+        for part in parts:
+            check(f"html keeps: {part[:50]}", part in words, True)
+    check("a heading with a lowercase count is still a heading",
+          emailhtml.is_heading("TIER 1 (1 roles, 3 listings)"), True)
+    check("a role gets a button rather than a raw URL", "View posting" in out, True)
+    check("the company heads the tier card", ">Palantir<" in out, True)
+
+    real = emailhtml._render_body
+    emailhtml._render_body = lambda b: 1 / 0
+    try:
+        fallback = emailhtml.render(body, "s")
+    finally:
+        emailhtml._render_body = real
+    check("a renderer crash falls back instead of raising",
+          "https://example.com/palantir/2" in fallback, True)
+
+
+def test_monthly_budget_pauses_ranking_without_stranding():
+    """Added 2026-09-25. A month past its ceiling scores nothing, and a paused
+    ranker must not make new postings invisible (CLAUDE.md rule 10)."""
+    from agent import config, ranker
+
+    conn = make_db()
+    old = (datetime.now(timezone.utc) - timedelta(days=40)).isoformat(timespec="seconds")
+    db.record_run(conn, estimated_cost=50.0)                 # this month
+    conn.execute("UPDATE runs SET timestamp=? WHERE id=1", (old,))
+    db.record_run(conn, estimated_cost=4.0)
+    check("month spend counts this month only", round(db.month_spend(conn), 2), 4.0)
+
+    cfg = {"budget": {"monthly_usd": 10.0, "warn_fraction": 0.8, "stop_fraction": 1.0}}
+    check("under the ceiling does not pause", ranker.budget_state(conn, cfg)["paused"], False)
+    db.record_run(conn, estimated_cost=6.5)
+    money = ranker.budget_state(conn, cfg)
+    check("at the ceiling pauses", money["paused"], True)
+    check("and warns", money["warn"], True)
+    check("no budget block never pauses", ranker.budget_state(conn, {})["paused"], False)
+
+    add(conn, n=1, hash="u1", identity="u1", tier=None, title="Unscored Role")
+    # No real call may happen even if this case is broken, so the key check is
+    # forced off. A broken pause then reads as "skipped, no key" and fails here.
+    real = config.ranker_configured
+    config.ranker_configured = lambda: False
+    try:
+        stats = ranker.run(conn, 5)
+    finally:
+        config.ranker_configured = real
+    check("a paused month says so", stats.get("budget_paused"), True)
+    check("and leaves the posting unscored",
+          conn.execute("SELECT tier FROM postings WHERE hash='u1'").fetchone()[0], None)
+
+    rules_off = {"daily": {"include_unscored": False, "max_items": 8}}
+    hidden = delivery.split_daily(rows(conn), email_rules=rules_off)
+    shown = delivery.split_daily(rows(conn),
+                                 email_rules=delivery.while_ranking_paused(rules_off))
+    check("with the switch off an unscored posting is not shown", len(hidden["shown"]), 0)
+    check("while paused it is carried anyway", len(shown["shown"]), 1)
+    check("the parsed rules are not edited", rules_off["daily"]["include_unscored"], False)
+
+    _, body = notify.build_digest(
+        {"shown": [], "overflow": 0}, [], {"budget": money, "sources_ok": 1}
+    )
+    check("the digest footer says ranking is paused", "PAUSED" in body, True)
+
+
 def main() -> int:
     for fn in [
         test_tier_routing,
@@ -435,7 +655,11 @@ def main() -> int:
         test_roundup_window_leaves_the_backlog_alone,
         test_emails_build_and_suppress,
         test_referrals_reach_the_email,
+        test_killed_closures_are_counted_not_listed,
+        test_html_half_keeps_the_digest_readable,
         test_send_never_raises,
+        test_html_keeps_every_line,
+        test_monthly_budget_pauses_ranking_without_stranding,
     ]:
         fn()
 

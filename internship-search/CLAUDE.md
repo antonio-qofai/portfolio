@@ -165,6 +165,12 @@ full spec; it is the single specification of record.
     this switch off is the specific combination to never ship: it strands every posting older
     than the window, permanently and silently.
 
+    The monthly budget in `rubric.md`, added 2026-09-25, breaks the first condition on
+    purpose: a month past its ceiling pauses ranking. That is only safe because
+    `delivery.while_ranking_paused` turns the switch back on for any run the budget paused, and
+    `tools.test_digest` fails if it stops doing so. Any other way of pausing the ranker needs
+    the same pairing.
+
     And the location collapse has two different lead
     rows on purpose: the digest leads with the best-scored member, Airtable leads with the oldest,
     and swapping Airtable onto the score is the rule 9 churn trap wearing a different hat.

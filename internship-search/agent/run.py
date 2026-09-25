@@ -342,7 +342,16 @@ def main() -> int:
     # Milestone 7. Tier decides which email a posting belongs in, and the tier
     # bands in rubric.md decide which tier goes where. Everything not shown here
     # is left unstamped, so nothing is consumed by an email that did not carry it.
-    split = delivery.split_daily(reportable_new)
+    email_rules = delivery.rules()
+    if (rank_stats or {}).get("budget_paused"):
+        email_rules = delivery.while_ranking_paused(email_rules)
+    split = delivery.split_daily(reportable_new, email_rules=email_rules)
+    # Read after record_run, so the figure includes this run. It is a footer
+    # line and must never be what stops a run, per CLAUDE.md rule 15.
+    try:
+        stats["budget"] = ranker.budget_state(conn)
+    except Exception:  # noqa: BLE001
+        stats["budget"] = None
     digest_rows = [r for g in split["shown"] for r in g.rows]
     referrals = delivery.referrals_for(conn, split["shown"])
 
@@ -355,19 +364,12 @@ def main() -> int:
         split, closed, stats, owed_closures, referrals, actions=actions
     )
 
-    # Empty digests never send. A seeding run always reports, since it is a setup step.
-    #
-    # The action block does not count as content by default. It repeats until he
-    # moves it, so counting it would mean a digest every single day for as long
-    # as one unapplied role sits in the base, and a daily email that is identical
-    # to yesterday's is one he stops opening. It rides along when the digest has
-    # a reason to send. send_on_actions_alone in sources/email.toml reverses that.
-    action_cfg = delivery.rules().get("actions", {})
-    has_content = bool(
-        split["shown"] or closed or owed_closures
-        or stats["seeding"] or stats["seeded_sources"]
-        or (action_cfg.get("send_on_actions_alone", False)
-            and delivery.has_actions(actions))
+    # Empty digests never send, and a closure of a posting the filter killed is
+    # not content. The rules live in notify.digest_has_content so they can be
+    # tested without running the agent.
+    has_content = notify.digest_has_content(
+        split, closed, owed_closures, stats, actions,
+        delivery.rules().get("actions", {}),
     )
     send_digest = not (args.no_email or args.no_digest)
 

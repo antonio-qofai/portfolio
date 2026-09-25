@@ -17,6 +17,19 @@ import argparse
 from agent import airtable, airtable_sync, config
 
 
+def calls_line(report) -> str:
+    """What this run cost against the free plan's monthly quota, CLAUDE.md rule 8.
+
+    The monthly figure assumes one sync a day, which is the digest job's cadence
+    under `digest_only` in sources/schedule.toml.
+    """
+    return (
+        f"Airtable API calls this run: {report.api_calls} "
+        f"({report.api_reads} read, {report.api_writes} write). "
+        f"Roughly {report.api_calls * 30} a month at one sync a day."
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -35,6 +48,8 @@ def main() -> int:
         report = airtable_sync.sync(dry_run=args.dry_run)
     except airtable.AirtableError as exc:
         print(f"Airtable refused the sync: {exc}")
+        if getattr(exc, "report", None) is not None:
+            print(calls_line(exc.report))
         return 1
 
     verb = "would be" if report.dry_run else "were"
@@ -81,6 +96,9 @@ def main() -> int:
             "or raise max_posting_records in sources/airtable.toml if the free "
             "plan has room."
         )
+
+    # Dry runs print it too. They read the live base, and reads are calls.
+    print("\n" + calls_line(report))
 
     if report.dry_run:
         print("\nNothing was written.")

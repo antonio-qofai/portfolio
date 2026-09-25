@@ -781,6 +781,21 @@ def labeled_examples(conn: sqlite3.Connection, per_label: int) -> dict[str, list
     return grouped
 
 
+def month_spend(conn: sqlite3.Connection, now_iso: str | None = None) -> float:
+    """Estimated model spend so far this UTC calendar month, from `runs`.
+
+    Run timestamps are stored in UTC with an offset, so the month prefix of the
+    string is the month. A timestamp in any other form would miss the prefix and
+    under-count, which is why this reads the same `now()` that writes them.
+    """
+    month = (now_iso or now())[:7]
+    row = conn.execute(
+        "SELECT COALESCE(SUM(estimated_cost), 0) FROM runs WHERE timestamp LIKE ?",
+        (month + "%",),
+    ).fetchone()
+    return float(row[0] or 0.0)
+
+
 def score_counts(conn: sqlite3.Connection) -> dict:
     """How the surfaced set currently splits by tier. Read-only."""
     rows = conn.execute(

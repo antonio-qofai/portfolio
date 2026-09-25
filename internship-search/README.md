@@ -1,6 +1,6 @@
 # Internship Opportunity Agent
 
-Watches 174 company job boards and 2 community aggregator feeds on a schedule, stores every
+Watches 174 company job boards and 3 community aggregator feeds on a schedule, stores every
 posting in SQLite, works out what is genuinely new and what has closed, filters out everything
 that cannot apply to the owner, and emails a short digest. Built for the Summer 2027 recruiting
 cycle.
@@ -28,14 +28,16 @@ setup at all.
     .venv/bin/python -m tools.backlog_report         # everything open now, printed
     .venv/bin/python -m tools.prefilter_report       # what the filter kept and killed
     .venv/bin/python -m tools.rank_report            # what the ranker would do and what it decided
-    .venv/bin/python -m tools.test_prefilter         # 116 checks on the filter rules, one second
+    .venv/bin/python -m tools.test_prefilter         # 122 checks on the filter rules, one second
     .venv/bin/python -m tools.test_airtable_slice    # 18 checks on who gets an Airtable row
     .venv/bin/python -m tools.test_feeds             # 23 checks on reading aggregator feeds
     .venv/bin/python -m tools.test_identity          # 9 checks on how postings are identified
-    .venv/bin/python -m tools.test_digest            # 46 checks on who gets which email
+    .venv/bin/python -m tools.test_digest            # 102 checks on the emails, the HTML and the budget
     .venv/bin/python -m tools.test_health            # 22 checks on the failure alert
-    .venv/bin/python -m tools.test_actions           # 48 checks on your own to-do loop
+    .venv/bin/python -m tools.test_actions           # 53 checks on your own to-do loop
     .venv/bin/python -m tools.test_workday           # 23 checks on the Workday fetcher
+    .venv/bin/python -m tools.test_gcal              # 10 checks on calendar event dates
+    .venv/bin/python -m tools.test_airtable_calls    # 19 checks on the Airtable call counter
     .venv/bin/python -m tools.reconcile_identity     # find postings stored on more than one row
     .venv/bin/python -m tools.verify_tokens          # prove every token in the map still works
     .venv/bin/python -m tools.probe_tokens cohere    # hunt one company across all three platforms
@@ -443,6 +445,17 @@ ticking Closed; or changing your mind and unlabelling it.
 It does not make an empty digest send. If you would rather hear about your own open loops even
 on a day the agent finds nothing, set `send_on_actions_alone = true` in `sources/email.toml`.
 
+The closed section lists only roles the filter had surfaced to you. Everything else that closed,
+usually a hundred or more senior roles and chefs a day, is one count line, and a closure of that
+kind never makes a digest send on its own. Changed 2026-09-25, when 117 of the 160 closures in
+one email were postings the filter had already dropped.
+
+Every email is sent twice over, as plain text and as HTML, and each mail client shows one.
+`agent/emailhtml.py` builds the HTML by reading the plain text's indentation, so tier roles
+become cards with a "View posting" button and the footer is small and grey. If it ever meets a
+shape it cannot read it falls back to plain lines rather than failing, and `tools.test_digest`
+checks that no line of the text goes missing from the HTML.
+
 The Sunday roundup carries tier 3 and a summary of what closed in the week. It is worth
 skimming, not acting on, which is why it is weekly.
 
@@ -593,10 +606,15 @@ touches Airtable, so polling four times a day costs nothing here.
 Going over does not create a charge. Airtable blocks calls until the month resets and
 says so in the warning email; there is no overage billing on the free plan.
 
-Writes go 10 records per call, so a sync costs about 3 calls to read the postings table,
-3 more to read companies and contacts, and one call per 10 rows it actually writes. A
-sync that changes nothing costs about 7 calls; a sync that rewrites all 300 rows costs
-about 36.
+Reads are metered as well as writes. A sync downloads the whole postings table at 100
+records a call, so 849 rows is 9 calls, plus 3 for companies and contacts, before it
+writes anything. Writes go 10 records per call. Measured on 2026-09-25, a sync that
+changes nothing costs 12 calls, and an ordinary day adds 6 to 10 for new and aged-out
+rows. A `--dry-run` reads the live base, so it costs the same 12.
+
+Every sync now prints what it actually spent, dry runs included:
+`Airtable API calls this run: 12 (12 read, 0 write). Roughly 360 a month at one sync a day.`
+Trust that line over any estimate in this file.
 
 Two things keep it cheap, and both are easy to undo by accident:
 
@@ -606,7 +624,8 @@ Two things keep it cheap, and both are easy to undo by accident:
 - The sync runs once a day rather than four times, via `digest_only` in
   `sources/schedule.toml`.
 
-Together that is about 210 calls a month. Before adding a call, mirroring another table,
+Together that is roughly 360 to 650 calls a month, which fits the free plan but not by a
+wide margin. Before adding a call, mirroring another table,
 or raising the record cap below, multiply the per-run cost by 30 and check it still fits.
 `--dry-run` tells you how many rows would be written, and every 10 rows is one call.
 
@@ -886,10 +905,19 @@ per-run cap. `tools.rank_report` prints the bracket before you commit to it, and
 trust, since the queue grows while the ranker is paused. After the backlog clears the steady
 state is small, because a posting is scored once.
 
+Measured on 2026-09-24 and 2026-09-25, and superseding the older figures above: the backlog
+cleared at about $0.0004 a posting, but an ordinary run costs $0.0045 to $0.006 a posting,
+because it scores a handful and pays to set up the prompt cache on both stages every time (the
+cache lasts five minutes and runs are hours apart). At about 60 new surfaced postings a day that
+is $3.50 to $10 a month, so October volume can reach the budget.
+
 Lifetime spend on 2026-09-07 was $1.47, because ranking has been paused since 2026-08-12 and
 almost all of that is intake tagging.
 
-Four guards keep it bounded. The hard exclusions run before any model call, so a posting that was
+Five guards keep it bounded. The newest is the monthly ceiling, the `[budget]` block in
+`rubric.md`: at 80 percent the digest footer and `tools.health` say so, and at 100 percent
+ranking pauses until the month turns. A paused month strands nothing, because the daily digest
+then carries unscored postings marked NOT YET SCORED. Raise `monthly_usd` to lift it. The hard exclusions run before any model call, so a posting that was
 never a candidate is never paid for. `STAGE0_MAX_CALLS` caps tagging calls per run at 400 and
 `RANK_MAX_CALLS` caps ranking calls at 150, and anything over either cap waits for the next run
 rather than being lost. `--skip-triage` turns all spending off and `--skip-ranking` turns off

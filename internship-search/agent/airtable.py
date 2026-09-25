@@ -250,7 +250,8 @@ class Client:
     Nothing here knows what a posting is. It moves JSON.
     """
 
-    def __init__(self, token: str | None = None, base_id: str | None = None):
+    def __init__(self, token: str | None = None, base_id: str | None = None,
+                 transport: httpx.BaseTransport | None = None):
         self.token = token or config.AIRTABLE_TOKEN
         self.base_id = base_id or config.AIRTABLE_BASE_ID
         if not self.token or not self.base_id:
@@ -259,12 +260,27 @@ class Client:
             )
         self._http = httpx.Client(
             timeout=config.HTTP_TIMEOUT,
+            transport=transport,
             headers={
                 "Authorization": f"Bearer {self.token}",
                 "User-Agent": config.USER_AGENT,
             },
         )
         self._last_write = 0.0
+        # Every HTTP attempt, counted by method. CLAUDE.md rule 8: the free plan
+        # meters calls per workspace per month, and until 2026-09-25 every
+        # figure for what a sync costs was an estimate. An attempt that errors
+        # is counted too, because Airtable counts a refused request as a call.
+        self.calls = 0
+        self.calls_by_method: dict[str, int] = {}
+
+    @property
+    def reads(self) -> int:
+        return self.calls_by_method.get("GET", 0)
+
+    @property
+    def writes(self) -> int:
+        return self.calls - self.reads
 
     def close(self) -> None:
         self._http.close()
@@ -277,6 +293,9 @@ class Client:
 
     def request(self, method: str, path: str, json: dict | None = None) -> dict:
         url = f"{config.AIRTABLE_API_ROOT}/{path.lstrip('/')}"
+        # Counted before the attempt, so a request that raises is still counted.
+        self.calls += 1
+        self.calls_by_method[method] = self.calls_by_method.get(method, 0) + 1
         try:
             r = self._http.request(method, url, json=json)
         except httpx.HTTPError as exc:
