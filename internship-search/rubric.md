@@ -162,7 +162,9 @@ through this in order and stop at the first line that matches.
 At the vehicle and autonomy employers added on 2026-09-25 (the `vehicles-autonomy` category in
 `sources/companies.toml`), score the work exactly as above. The agent then holds any role there
 whose title names no AI or ML work to tier 2 at best, by the `[[tier_cap]]` rule below, so do
-not adjust the score to anticipate it.
+not adjust the score to anticipate it. The same holds for robotics: he has no robotics
+experience, so a role with robotics in its title, and any non-AI role at a robotics employer, is
+held to tier 2 by the agent. Score those on the work as usual.
 
 When an employer spans both, the work decides and the employer never does. A robotics or
 autonomy team inside a bank is step 2. A trading firm's own settlement and accounting
@@ -298,6 +300,28 @@ flag_at_or_below = 4
 # or fewer match as whole words, so "ai" never catches "aircraft"; longer ones
 # match as a word-start prefix, as in sources/prefilter.toml.
 category = "vehicles-autonomy"
+best_tier = 2
+unless_title = [
+    "ai", "ml", "ai/ml", "machine learning", "deep learning",
+    "artificial intelligence", "llm", "nlp", "vlm", "computer vision",
+    "perception", "reinforcement learning", "neural", "foundation model",
+    "embodied", "generative", "data scien",
+]
+
+[[tier_cap]]
+# Added 2026-09-25 at the owner's instruction: robotics is not tier 1 any more,
+# because he has no robotics experience. Two halves. This one holds a role with
+# robotics in its TITLE to tier 2 at any employer, with no AI exemption, since a
+# robot learning role still asks for robotics experience. "robotic" rather than
+# "robot" so Tesla's "Robotaxi" roles, which are vehicle work, are not caught.
+title_has = ["robotic", "mechatronic", "humanoid"]
+best_tier = 2
+
+[[tier_cap]]
+# The other half: at a robotics employer (category "robotics" in
+# sources/companies.toml, which includes Waymo, Zoox and Nuro) only AI or ML
+# work reaches tier 1, the same rule as the vehicle employers above.
+category = "robotics"
 best_tier = 2
 unless_title = [
     "ai", "ml", "ai/ml", "machine learning", "deep learning",

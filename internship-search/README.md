@@ -25,6 +25,7 @@ setup at all.
     .venv/bin/python -m tools.airtable_view_urls     # the URL of every Airtable view
     .venv/bin/python -m tools.airtable_coverage      # is anything good missing from the base
     .venv/bin/python -m tools.rescore --all --dry-run # re-judge postings after labelling
+    .venv/bin/python -m tools.reapply_caps --dry-run # apply rubric.md tier caps to scored postings
     .venv/bin/python -m tools.backlog_report         # everything open now, printed
     .venv/bin/python -m tools.prefilter_report       # what the filter kept and killed
     .venv/bin/python -m tools.rank_report            # what the ranker would do and what it decided
@@ -334,6 +335,13 @@ no AI or ML work is held to tier 2 at best, so only their AI roles reach the dai
 rule is the `[[tier_cap]]` block in `rubric.md`; the model's own score is still stored, and your
 own fit override is never capped. To put another employer under the same rule, give it that
 category.
+
+Robotics has the same rule and one more, added the same day because you have no robotics
+experience. A role with robotics in its title is tier 2 at best at any employer, AI or not, and
+at a `robotics` employer (Waymo, Zoox, Nuro, Figure and the rest) only AI roles reach tier 1.
+A cap applies when a posting is scored, so after editing one run
+`tools.reapply_caps --dry-run`, then `tools.reapply_caps`, then `tools.sync_airtable`. It only
+ever lowers a tier and never touches your overrides, labels or what was emailed.
 
 Built 2026-08-12. It scores every posting the filter surfaced, on the two scales above, and
 derives the tier from the settings block. Two stages, because the two questions cost very

@@ -666,9 +666,23 @@ def test_vehicle_employers_keep_tier_1_for_ai():
     check("'ai' is a whole word, so aircraft is not AI",
           tier("Motional", "Aircraft Systems Intern")["tier"], 2)
     check("an employer outside the category is untouched",
-          tier("Waymo", "Controls Intern")["tier"], 1)
+          tier("Anduril", "Controls Intern")["tier"], 1)
     check("his own fit override is never capped",
           tier("Kodiak Robotics", "Controls Intern", fit_override=9)["tier"], 1)
+
+    # Added 2026-09-25: robotics is not tier 1 any more, AI or not.
+    check("a robotics title is held to tier 2 anywhere",
+          tier("Tesla", "Robotics Modeling & Simulation Engineer Intern")["tier"], 2)
+    check("even when the title also names AI",
+          tier("Figure", "Machine Learning Intern, Robotics")["tier"], 2)
+    check("robotaxi is vehicle work, not robotics",
+          tier("Tesla", "Robotaxi Simulation Engineer Intern")["tier"], 1)
+    check("a non-AI role at a robotics employer is held to tier 2",
+          tier("Waymo", "2027 Summer Intern, BS/MS, Scenes")["tier"], 2)
+    check("an AI role at a robotics employer stays tier 1",
+          tier("Nuro", "Software Engineer, AI Platform - Intern")["tier"], 1)
+    check("a cap naming neither category nor title applies to nothing",
+          rubric.capped_tier(1, "", "Anything", {"tier_cap": [{"best_tier": 4}]}), 1)
 
 
 def main() -> int:

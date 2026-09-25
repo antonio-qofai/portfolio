@@ -195,7 +195,7 @@ def tier_for(fit: int, cfg: dict | None = None) -> dict:
 
 
 def capped_tier(tier: int, category: str, title: str, cfg: dict | None = None) -> int:
-    """The tier after any `[[tier_cap]]` for this employer's category.
+    """The tier after every `[[tier_cap]]` in rubric.md that applies.
 
     Lower numbers are better tiers, so a cap raises the number. A title naming
     any `unless_title` entry is exempt. Short entries match as whole words and
@@ -203,18 +203,28 @@ def capped_tier(tier: int, category: str, title: str, cfg: dict | None = None) -
     """
     cfg = cfg or settings()
     lowered = (title or "").lower()
-    for cap in cfg.get("tier_cap", []) or []:
-        if not category or cap.get("category") != category:
-            continue
-        exempt = False
-        for word in cap.get("unless_title", []) or []:
+
+    def names(words) -> bool:
+        for word in words or []:
             w = re.escape(word.lower())
             pattern = rf"\b{w}\b" if len(word) <= 3 else rf"\b{w}"
             if re.search(pattern, lowered):
-                exempt = True
-                break
-        if not exempt:
-            tier = max(tier, int(cap.get("best_tier", tier)))
+                return True
+        return False
+
+    for cap in cfg.get("tier_cap", []) or []:
+        # A cap names an employer category, title words, or both, and applies
+        # only where everything it names matches. One naming neither applies to
+        # nothing, so a half-written entry can never cap the whole queue.
+        if "category" not in cap and "title_has" not in cap:
+            continue
+        if "category" in cap and (not category or cap["category"] != category):
+            continue
+        if "title_has" in cap and not names(cap["title_has"]):
+            continue
+        if names(cap.get("unless_title")):
+            continue
+        tier = max(tier, int(cap.get("best_tier", tier)))
     return tier
 
 
