@@ -44,11 +44,9 @@ ats = "ashby"
 token = "openai"
 category = "frontier-labs"
 
-[[company]]
-name = "Google DeepMind"
-ats = "greenhouse"
-token = "deepmind"
-category = "frontier-labs"
+# Google DeepMind was here until 2026-09-25. Its Greenhouse board 404ed on
+# every run from 2026-09-06 and no other token answers; the reason and the
+# hand-check are in sources/needs-other-approach.md.
 
 [[company]]
 name = "xAI"

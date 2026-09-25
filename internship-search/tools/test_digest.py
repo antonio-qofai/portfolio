@@ -685,6 +685,56 @@ def test_vehicle_employers_keep_tier_1_for_ai():
           rubric.capped_tier(1, "", "Anything", {"tier_cap": [{"best_tier": 4}]}), 1)
 
 
+def test_a_board_down_for_days_is_named():
+    """Added 2026-09-25, after DeepMind 404ed for three weeks in the footer."""
+    from agent import emailhtml
+
+    conn = make_db()
+    day0, day2, day4 = ts(4), ts(2), ts(0)
+    db.update_source_streaks(conn, ["Anthropic"], ["DeepMind"], ["Quiet Co"], day0)
+    check("nothing is stale on the first bad run",
+          db.stale_sources(conn, 3, day0), [])
+    db.update_source_streaks(conn, ["Anthropic"], ["DeepMind"], ["Quiet Co"], day2)
+    check("a repeat failure keeps the date its streak began",
+          [e["since"] for e in db.stale_sources(conn, 3, day4)], [day0[:10], day0[:10]])
+    db.update_source_streaks(conn, ["Quiet Co"], ["DeepMind"], [], day4)
+    stale = db.stale_sources(conn, 3, day4)
+    check("a board that answers again is cleared", [e["name"] for e in stale], ["DeepMind"])
+    check("its age is counted in days", stale[0]["days"], 4)
+    db.update_source_streaks(conn, [], [], ["DeepMind"], day4)
+    check("failing then empty starts a new streak",
+          db.stale_sources(conn, 3, day4), [])
+    check("0 days turns it off", db.stale_sources(conn, 0, day4), [])
+
+    _, body = notify.build_digest(
+        {"shown": [], "overflow": 0}, [],
+        {"stale_sources": stale, "sources_ok": 1},
+    )
+    check("the digest names the board", "DeepMind: failing on every run" in body, True)
+    check("above the footer, where it will be read",
+          body.index("BOARDS DOWN") < body.index("Sources polled"), True)
+    html = emailhtml.render(body, "s")
+    check("the HTML renders it as a heading", ">BOARDS DOWN FOR DAYS (1)<" in html, True)
+
+
+def test_retired_sources_close_but_his_rows_stay():
+    """Added 2026-09-25 with tools.retire_sources."""
+    from tools import retire_sources
+
+    conn = make_db()
+    live = add(conn, n=1, hash="a", identity="a", source="greenhouse:live")
+    gone = add(conn, n=2, hash="b", identity="b", source="greenhouse:gone")
+    liked = add(conn, n=3, hash="c", identity="c", source="greenhouse:gone",
+                label="interested")
+    sent = add(conn, n=4, hash="d", identity="d", source="greenhouse:gone",
+               applied_status="applied")
+    close, keep = retire_sources.retired(conn, {"greenhouse:live"})
+    check("a row under a retired source is closed", [r["id"] for r in close], [gone])
+    check("a live source is untouched", live in [r["id"] for r in close + keep], False)
+    check("his labelled and applied rows are left for him",
+          sorted(r["id"] for r in keep), sorted([liked, sent]))
+
+
 def main() -> int:
     for fn in [
         test_tier_routing,
@@ -703,6 +753,8 @@ def main() -> int:
         test_html_keeps_every_line,
         test_monthly_budget_pauses_ranking_without_stranding,
         test_vehicle_employers_keep_tier_1_for_ai,
+        test_a_board_down_for_days_is_named,
+        test_retired_sources_close_but_his_rows_stay,
     ]:
         fn()
 

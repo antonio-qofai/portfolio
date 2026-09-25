@@ -1,6 +1,6 @@
 # Internship Opportunity Agent
 
-Watches 180 company job boards and 3 community aggregator feeds on a schedule, stores every
+Watches 179 company job boards and 3 community aggregator feeds on a schedule, stores every
 posting in SQLite, works out what is genuinely new and what has closed, filters out everything
 that cannot apply to the owner, and emails a short digest. Built for the Summer 2027 recruiting
 cycle.
@@ -731,7 +731,7 @@ something.
 ## Two kinds of source
 
 A company board is polled directly. It is fast, authoritative, carries the full posting text,
-and updates the moment the company posts. Those live in `sources/companies.toml`, 180 of them
+and updates the moment the company posts. Those live in `sources/companies.toml`, 179 of them
 across four job boards: Greenhouse, Lever, Ashby and Workday.
 
 Workday, added 2026-08-19, works differently enough to be worth knowing about. It hands over 20
@@ -825,6 +825,21 @@ than `ok` and exits non-zero. When one appears, find the real board:
 
 If nothing hits, open the company's careers page and look at where the "apply" links point.
 That is how all three were found. Put the answer in `sources/companies.toml`, never in code.
+
+A board that fails, or answers with nothing, on every run for three days gets its own section
+near the top of the digest, "BOARDS DOWN FOR DAYS", and a line in `tools.health`. Added
+2026-09-25, after Google DeepMind failed for three weeks in the footer where nobody reads.
+`stale_source_days` in `sources/email.toml` sets the threshold. A run that reached under a
+quarter of its sources, which is the laptop offline, does not count toward it.
+
+When a company moves boards, change its entry and then close what the old address stored,
+because a source the agent no longer polls can never close its own postings:
+
+    .venv/bin/python -m tools.retire_sources --dry-run
+    .venv/bin/python -m tools.retire_sources
+    .venv/bin/python -m tools.sync_airtable
+
+It never closes a posting you labelled or applied to; it lists those for you to tick Closed.
 
 ## Setup from a fresh clone
 

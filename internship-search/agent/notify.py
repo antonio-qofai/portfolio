@@ -366,6 +366,19 @@ def build_digest(
             f"{split['not_emailed']} posting(s) scored into a tier that is never "
             "emailed. They are in SQLite and in the Airtable base."
         )
+    stale = stats.get("stale_sources") or []
+    if stale:
+        lines.append(f"BOARDS DOWN FOR DAYS ({len(stale)})")
+        for e in stale:
+            what = "failing" if e["kind"] == "failed" else "returning 0 postings"
+            lines.append(f"  - {e['name']}: {what} on every run since {e['since']} "
+                         f"({e['days']} days). Nothing from it is being seen.")
+        lines.append(
+            "A company that moved job boards looks exactly like this. "
+            "tools.probe_tokens finds the new one."
+        )
+        lines.append("")
+
     if withheld:
         lines.append("HELD BACK")
         for line in withheld:

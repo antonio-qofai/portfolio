@@ -81,6 +81,7 @@ class Cycle:
         self.closed: list[dict] = []
         self.failures: list[tuple[str, str]] = []
         self.empty: list[str] = []
+        self.healthy: list[str] = []
         self.seeded_sources: list[str] = []
         self.seen_total = 0
         self.ok = 0
@@ -105,6 +106,8 @@ class Cycle:
             self.empty.append(name)
             if self.verbose:
                 print(f"  EMPTY {name}: 0 postings, source may be stale")
+        else:
+            self.healthy.append(name)
 
         # A poll can hand back two postings under one external_id. Settle that
         # before storage, so upsert_seen and age_missing below agree on what
@@ -255,6 +258,24 @@ def main() -> int:
     poll_feeds(cycle, feed_list, companies)
 
     new, closed, stats = cycle.new, cycle.closed, cycle.stats()
+
+    # How long each board has been failing or empty, so one that stays broken
+    # for days is named where he will see it, not only in the footer. Skipped
+    # when the run reached under a quarter of its sources, which is the machine
+    # being offline rather than evidence about any board. Never allowed to stop
+    # the watcher (CLAUDE.md rule 15).
+    stats["stale_sources"] = []
+    try:
+        polled = cycle.ok + len(cycle.failures)
+        if polled and cycle.ok >= 0.25 * polled:
+            db.update_source_streaks(
+                conn, cycle.healthy, [n for n, _ in cycle.failures], cycle.empty
+            )
+        days = float(delivery.rules().get("daily", {}).get("stale_source_days", 0) or 0)
+        stats["stale_sources"] = db.stale_sources(conn, days)
+    except Exception as exc:  # noqa: BLE001
+        if not args.quiet:
+            print(f"  source streaks unavailable: {exc}", file=sys.stderr)
 
     # Stage A and Stage 0. Runs on everything open, not just this run's new
     # postings, so the backlog drains a batch at a time across runs.

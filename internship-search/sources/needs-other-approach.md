@@ -85,6 +85,14 @@ information; the reasoning is his preference, not a technical limit.
 NASA Pathways is therefore a hand-check, tracked in `MY_SEARCH.md`. His aerospace interest is
 private-sector, which is a token map problem rather than a fetcher problem.
 
+## Google DeepMind, removed from the token map
+
+Removed 2026-09-25. `greenhouse:deepmind` returned 404 on every run from 2026-09-06, and none of
+`googledeepmind`, `google-deepmind`, `deepmindtechnologies`, `gdm` or `deepmindcareers` answers
+on Greenhouse, Lever or Ashby. Its roles now appear to live on Google's own careers site, which
+no fetcher here reads. The owner checks it by hand, alongside Google itself. Re-add it only if a
+probe finds a live board; its stored rows were closed by `tools.retire_sources`.
+
 ## Blue Origin, confirmed uncovered
 
 Added 2026-08-13, resolved the same day. The suspicion was right. `lever:blueorigin` resolves,

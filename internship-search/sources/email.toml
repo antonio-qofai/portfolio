@@ -25,6 +25,13 @@
 # it does not change what is eventually surfaced.
 max_items = 8
 
+# A board that has failed, or answered with nothing, on every run for this many
+# days gets its own section near the top of the digest and a line in
+# `tools.health`. Added 2026-09-25, after Google DeepMind 404ed on every run for
+# three weeks while its failure sat in the footer where nobody reads. One bad
+# run is weather; days of them mean the company moved boards. 0 turns it off.
+stale_source_days = 3
+
 # Surfaced postings that the ranker has not scored yet have no tier, so no tier
 # band can route them. They ride along on the daily digest, listed after the
 # scored tiers and marked NOT YET SCORED.

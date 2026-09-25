@@ -63,6 +63,28 @@ def spend_lines() -> list[str]:
     return [line]
 
 
+def stale_source_lines() -> list[str]:
+    """Boards failing or empty for days. Lazily imported and fail-open, for the
+    same reason as `spend_lines`."""
+    try:
+        from agent import db, delivery
+
+        days = float(delivery.rules().get("daily", {}).get("stale_source_days", 0) or 0)
+        conn = db.connect()
+        try:
+            stale = db.stale_sources(conn, days)
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001
+        return [f"Boards down for days: unavailable ({type(exc).__name__})"]
+    if not stale:
+        return ["Boards down for days: none"]
+    out = [f"Boards down for days: {len(stale)}"]
+    for e in stale:
+        out.append(f"  {e['name']}: {e['kind']} since {e['since']} ({e['days']} days)")
+    return out
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument(
@@ -94,6 +116,8 @@ def main() -> int:
 
     print()
     for line in spend_lines():
+        print(line)
+    for line in stale_source_lines():
         print(line)
 
     if args.runs > 0:

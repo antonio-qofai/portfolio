@@ -6,6 +6,7 @@ have to migrate a live database.
 """
 
 import hashlib
+import json
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -1071,6 +1072,55 @@ def mark_urgent(conn: sqlite3.Connection, rows: list[dict], column: str) -> int:
     )
     conn.commit()
     return len(unmarked)
+
+
+SOURCE_STREAKS_KEY = "source_streaks"
+
+
+def update_source_streaks(conn, healthy, failed, empty, ts: str | None = None) -> None:
+    """Remember since when each source has been failing or empty.
+
+    A source that answered with postings clears its streak. A failing or empty
+    one keeps the time its streak began, so the first bad run is the one that
+    dates it. The caller skips this on a run that reached almost nothing, since
+    a laptop offline fails every source at once and that is no evidence about
+    any of them.
+    """
+    ts = ts or now()
+    try:
+        streaks = json.loads(get_state(conn, SOURCE_STREAKS_KEY) or "{}")
+    except ValueError:
+        streaks = {}
+    for name in healthy:
+        streaks.pop(name, None)
+    for kind, names in (("failed", failed), ("empty", empty)):
+        for name in names:
+            entry = streaks.get(name)
+            if not entry or entry.get("kind") != kind:
+                streaks[name] = {"kind": kind, "since": ts}
+    set_state(conn, SOURCE_STREAKS_KEY, json.dumps(streaks, sort_keys=True))
+
+
+def stale_sources(conn, days: float, ts: str | None = None) -> list[dict]:
+    """Sources failing or empty on every counted run for at least `days`."""
+    if not days or days <= 0:
+        return []
+    try:
+        streaks = json.loads(get_state(conn, SOURCE_STREAKS_KEY) or "{}")
+    except ValueError:
+        return []
+    current = datetime.fromisoformat(ts or now())
+    out = []
+    for name, entry in streaks.items():
+        try:
+            since = datetime.fromisoformat(entry["since"])
+        except (KeyError, ValueError, TypeError):
+            continue
+        age = (current - since).total_seconds() / 86400
+        if age >= days:
+            out.append({"name": name, "kind": entry.get("kind", "failed"),
+                        "since": entry["since"][:10], "days": int(age)})
+    return sorted(out, key=lambda e: (-e["days"], e["name"]))
 
 
 def get_state(conn: sqlite3.Connection, key: str) -> str | None:
