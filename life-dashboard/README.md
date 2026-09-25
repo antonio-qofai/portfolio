@@ -1,6 +1,6 @@
 # Life Dashboard
 
-A personal morning brief. One page that pulls news, weather, three inboxes, Google Calendar, chores, job search, and a separate QofAI work section, with a short ranked list of Pressing actions at the top. It runs locally on my laptop and is read-only.
+A personal morning brief. One page that pulls news, weather, two inboxes, Google Calendar, chores, job search, and a separate QofAI work section, with a short ranked list of Pressing actions at the top. It runs locally on my laptop and is read-only.
 
 PRD.md is the source of truth for scope and design.
 
@@ -34,11 +34,11 @@ The code refuses any Google token with a scope beyond read-only Calendar and Gma
 
 The personal inbox uses the same token with `gmail.readonly` added. Enable the Gmail API in the same Cloud project, then re-run `uv run scripts/google_auth.py authorize` (the consent screen should list only read-only Calendar and Gmail access).
 
-Only inboxes with a `google_account` in config.yaml are read. UChicago waits on the university policy check; test whether UChicago allows it with `uv run scripts/google_auth.py authorize uchicago` (saves a Gmail-only token; nothing is read until the inbox names `google_account: uchicago`). QofAI email is not read, since QofAI works in Slack.
+Only inboxes with a `google_account` in config.yaml are read: personal (the Calendar token) and UChicago (`uv run scripts/google_auth.py authorize uchicago`, a Gmail-only token; pick the UChicago account in the chooser and click past Google's unverified-app warning). QofAI email is not read, since QofAI works in Slack.
 
 The connector reads Primary-tab inbox threads from the last `email.lookback_days` (at most `email.max_threads`) as metadata only (sender, subject, Gmail's snippet), never bodies. Promotions, Social, Updates and Forums are only counted, as one line.
 
-Every thread where you didn't send the last message goes to Claude (`email.model`, prompt in `prompts/email_triage.md`), which keeps only pressing school, work and internship email and says why, with any deadline. It needs `ANTHROPIC_API_KEY` in `.env`. If the call fails, rules stand in (last message from a real person, no mailing-list or auto-reply headers, no no-reply sender) and those items are marked "(AI filter unavailable)".
+Every thread where you didn't send the last message (and that didn't come from one of your own addresses, like your agents' reports) goes to Claude, in batches of 10, (`email.model`, prompt in `prompts/email_triage.md`), which keeps only pressing school, work and internship email and says why, with any deadline. It needs `ANTHROPIC_API_KEY` in `.env`. If the call fails, rules stand in (last message from a real person, no mailing-list or auto-reply headers, no no-reply sender) and those items are marked "(AI filter unavailable)".
 
 ## Scheduling
 
@@ -95,6 +95,8 @@ tests/
 Write `connectors/<source>.py` with a `fetch(config)` that returns a list of `Item`, register it in `connectors/__init__.py`, and place its items in a card in `dashboard/render.py`.
 
 Agents that already exist plug in without a connector change by writing `agent-reports/<agent>.json` in the contract format (`generated_at`, `status`, `items[]` with `title`, `summary`, `due`, `urgency`, `link`). See `agent-reports/chores.sample.json`.
+
+The chore agent runs on GitHub Actions, so its exporter runs here instead: `~/agents/chores/src/report.py`, scheduled by `python3 scripts/report_launchd.py install --out ~/agents/life-dashboard/agent-reports/chores.json` in that repo (setup in its README, "Report exporter"). It runs at 05:45, before the 6:00 build. A missing report, one older than `agent_report_max_age_hours`, or one with `"status": "error"` shows as an error on the Chores card; the sample file is only used by tests.
 
 ## Roadmap
 

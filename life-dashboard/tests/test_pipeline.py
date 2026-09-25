@@ -3,7 +3,7 @@ import json
 import pytest
 
 from connectors import REGISTRY
-from dashboard.config import load_config
+from dashboard.config import ROOT, load_config
 from dashboard.pipeline import build_brief, save_brief
 from dashboard.render import CARD_ORDER, render, write_page
 from dashboard.schema import AgentReportError, Item, parse_agent_report
@@ -20,6 +20,12 @@ def fake_calendar(_config):
              due="2026-09-25T23:59:00-05:00", urgency_hints=["due_today"]),
         Item(source="calendar.qofai", title="QofAI standup", timestamp="2026-09-25T15:00:00-05:00", section="qofai"),
     ]
+
+
+def fake_chores(_config):
+    """The committed sample report; the real one lives only on the Mac that runs the exporter."""
+    sample = ROOT / "agent-reports" / "chores.sample.json"
+    return parse_agent_report(json.loads(sample.read_text()), agent="chores")
 
 
 def fake_email(_config):
@@ -39,7 +45,7 @@ def config():
 @pytest.fixture
 def registry():
     """Real stubs, fake network connectors: tests never hit the network."""
-    return {**REGISTRY, "weather": fake_weather, "calendar": fake_calendar, "email": fake_email}
+    return {**REGISTRY, "weather": fake_weather, "calendar": fake_calendar, "email": fake_email, "chores": fake_chores}
 
 
 @pytest.fixture

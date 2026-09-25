@@ -138,7 +138,8 @@ def bulk_item(count: int, inbox: dict, me: str, lookback_days: int, capped: bool
     )
 
 
-def _fetch_inbox(inbox: dict, email_cfg: dict, tz: ZoneInfo) -> list[tuple[Item, dict | None]]:
+def _fetch_inbox(inbox: dict, email_cfg: dict, tz: ZoneInfo) -> tuple[str, list[tuple[Item, dict | None]]]:
+    """(this inbox's address, parsed threads)."""
     http = session(inbox["google_account"], GMAIL_READONLY)
     profile = http.get(f"{API}/profile", params={"fields": "emailAddress"}, timeout=20)
     profile.raise_for_status()
@@ -171,22 +172,36 @@ def _fetch_inbox(inbox: dict, email_cfg: dict, tz: ZoneInfo) -> list[tuple[Item,
     bulk = _count_threads(http, f"{window} {ONLY_BULK}")
     if bulk:
         items.append((bulk_item(bulk, inbox, me, email_cfg["lookback_days"], bulk >= BULK_COUNT_LIMIT), None))
-    return items
+    return me, items
 
 
 def fetch(config: dict) -> list[Item]:
     tz = ZoneInfo(config.get("timezone", "America/Chicago"))
-    parsed = []
+    parsed, mine = [], set()
     for inbox in config["inboxes"]:
         if inbox.get("provider") != "gmail" or not inbox.get("google_account"):
-            continue  # not connected yet (UChicago waits on the policy check)
-        parsed.extend(_fetch_inbox(inbox, config["email"], tz))
+            continue  # not connected
+        me, items = _fetch_inbox(inbox, config["email"], tz)
+        mine.add(me)
+        parsed.extend(items)
+    parsed = drop_own_mail(parsed, mine)
     triage_all(parsed, config, datetime.now(tz).date())
     return sorted((item for item, _ in parsed), key=lambda i: i.timestamp or "", reverse=True)
 
 
+def drop_own_mail(parsed: list[tuple[Item, dict | None]], mine: set[str]) -> list[tuple[Item, dict | None]]:
+    """Mail from any of the user's own addresses (e.g. their agents' reports sent from
+    personal Gmail to UChicago) is never pressing here; M7 reads the internship reports."""
+    out = []
+    for item, c in parsed:
+        if c and parseaddr(c["from"])[1].lower() in mine:
+            item.urgency_hints, c = [], None
+        out.append((item, c))
+    return out
+
+
 def triage_all(parsed: list[tuple[Item, dict | None]], config: dict, today, client=None) -> None:
-    """Apply LLM verdicts in place; on failure keep the rule flags and mark them."""
+    """Apply LLM verdicts in place. Where triage fails or skips an email, keep its rule flags and mark it."""
     candidates = {c["id"]: (item, c) for item, c in parsed if c}
     try:
         verdicts = triage.classify([c for _, c in candidates.values()], config["email"]["model"], today, client)
@@ -196,5 +211,12 @@ def triage_all(parsed: list[tuple[Item, dict | None]], config: dict, today, clie
             if item.urgency_hints:
                 item.summary = FALLBACK_NOTE + item.summary
         return
+    skipped = 0
     for tid, (item, c) in candidates.items():
-        apply_triage(item, _sender(c["from"]), verdicts[tid])
+        if tid in verdicts:
+            apply_triage(item, _sender(c["from"]), verdicts[tid])
+        elif item.urgency_hints:
+            skipped += 1
+            item.summary = FALLBACK_NOTE + item.summary
+    if skipped:
+        print(f"email triage skipped {skipped} flagged email(s); using rules for those", file=sys.stderr)

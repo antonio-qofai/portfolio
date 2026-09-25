@@ -146,7 +146,7 @@ def render(brief: dict[str, Any], config: dict) -> str:
     chore_items = [c for c in chores.items if c.section == "personal"]
     chore_card = _card(
         "today-chores", "Chores",
-        _list([_item(c, _hints(c) or _due(c.due)) for c in chore_items],
+        _list([_item(c, " · ".join(filter(None, [_hints(c), _due(c.due)]))) for c in chore_items],
               "No chores due."),
         [chores], "sub",
     )

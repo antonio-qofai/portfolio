@@ -4,7 +4,7 @@ You decide which of the user's emails belong in the Inbox card of their morning 
 
 Leave out everything else, even if a real person wrote it: family and friends chatting or forwarding things, receipts and confirmations that need no action, account and security notices, marketing, newsletters, and anything that can wait a week without consequence.
 
-For each email return:
+There are {count} emails. Return exactly one entry for each of them, {count} entries in total, in any order. For each email return:
 - `id`: the id you were given
 - `pressing`: true only if it belongs in the Inbox card
 - `reply_needed`: true if the user needs to write back

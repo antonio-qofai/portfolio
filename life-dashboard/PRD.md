@@ -60,7 +60,7 @@ Each module is a card on the page, fed by one connector, and summarized to a few
 | Calendar | Today's events from Google Calendar (personal, UChicago, QofAI, Canvas due dates), plus upcoming items surfaced early based on importance | P0 |
 | Email | Across personal Gmail and UChicago: only pressing, time-sensitive school, work and internship email (a reply or action needed soon), 1 line each with why and any deadline, labeled by inbox; everything else collapsed | P0 |
 | QofAI | Everything work-related in one dedicated section: today's QofAI meetings and work deadlines. QofAI email is not read (its communication happens in Slack). Kept out of Pressing actions. | P0 |
-| Chores | My chores due today and overdue, from the chore agent | P0 |
+| Chores | My open chores from the chore agent: overdue, due today, and due in the next 7 days (so a Sunday deadline shows all week); ticked-off chores drop off | P0 |
 | Weather | Now, high/low, rain chance, and a one-line "what to wear for the walk" for Chicago | P0 |
 | Job search | Changes from my internship agent's report email: new applications, status changes, interviews, deadlines, recruiter replies | P1 |
 | News | NYT top stories weighted to tech, business and AI; hard cap of 5 items, 2 lines each | P1 |
@@ -81,9 +81,9 @@ Two inboxes, one calendar, three web sources, and my own agents cover everything
 
 | Module | Source | Access method | Open question |
 | --- | --- | --- | --- |
-| Email | Personal Gmail, UChicago (Google) | Gmail API, read-only OAuth, one connection per inbox | Does UChicago allow third-party Gmail access (policy and admin settings)? |
+| Email | Personal Gmail, UChicago (Google) | Gmail API, read-only OAuth, one connection per inbox | — |
 | Calendar | Google Calendar (personal + subscribed UChicago, QofAI and Canvas feeds) | Google Calendar API, read-only | Subscribed feeds sync every several hours, so same-day changes may lag |
-| Chores | Chore agent | Agent writes a report file to the shared folder; its email stays as backup | — |
+| Chores | Chore agent (runs on GitHub Actions, state in Airtable) | The agent's exporter (`src/report.py` in its repo) runs on this Mac at 05:45 via its own launchd job, reads Airtable with a read-only token, and writes the report file; its email stays as backup | — |
 | Job search | Internship agent's report email | Parse the email from my inbox by sender and subject | Is the email format stable? (check the agent's code in Claude Code) |
 | Weather | Chicago | Free weather API (e.g. Open-Meteo, NWS) | — |
 | News | NYT | NYT Top Stories API (technology, business + home sections) | API key |
@@ -144,7 +144,7 @@ The dashboard touches my inbox, so it stays read-only and local by default.
 
 - Read-only OAuth scopes for both inboxes and Google Calendar in v1; no send, delete or edit permissions until the actions phase.
 - **QofAI:** its email is not read. Work items from Calendar stay labeled so they're easy to exclude.
-- **UChicago account:** check university policy before granting third-party API access.
+- **UChicago account:** connected with read-only Gmail access after I reviewed the policy question; only sender, subject and snippet reach the LLM.
 - API keys and tokens in a `.env` file excluded from git; never in the public repo.
 - Phone access only through Tailscale (private network) or the email digest; the page is never on the open internet.
 - Send the LLM only what it needs (sender, subject, snippet, event title and time), not full email bodies by default.
@@ -159,8 +159,8 @@ The MVP is weather, email, chores, Google Calendar and Pressing actions on one p
 | M0 — Skeleton | Repo scaffold, config file, static page with placeholder cards | Page loads on laptop |
 | M1 — Schedule + weather | Weather connector, 6:00 AM wake + catch-up run | Real Chicago weather ready before 7:00 AM daily |
 | M2 — Calendar | Google Calendar connector; subscribe UChicago, QofAI and Canvas feeds | Today's events match my calendar for 5 straight days |
-| M3 — Email | Personal Gmail, LLM triage to pressing school, work and internship email, then UChicago once its policy is confirmed | Inbox card is accurate (nothing pressing missed, nothing trivial shown) for 5 straight days |
-| M4 — Agent reports | Report-file contract; chore agent writes to it | My due/overdue chores match the agent |
+| M3 — Email | Personal Gmail and UChicago, with LLM triage to pressing school, work and internship email | Inbox card is accurate (nothing pressing missed, nothing trivial shown) for 5 straight days |
+| M4 — Agent reports | Report-file contract; the chore agent's local exporter writes to it daily; a missing or stale report shows as an error | My due/overdue chores match the agent |
 | M5 — Pressing actions | LLM ranking, importance-based lead times, check-off + feedback buttons | Catches everything I'd have acted on for a week |
 | M6 — Phone | 7:00 AM email digest, then Tailscale access | Brief readable on my phone every morning |
 | M7 — Job search | Parse the internship agent's report email | Interviews and deadlines appear without opening Airtable |
@@ -172,6 +172,7 @@ The MVP is weather, email, chores, Google Calendar and Pressing actions on one p
 **Risks**
 
 - **Laptop asleep or away at 6:00 AM:** the run fails. Fallback: catch-up run on wake; move to a cloud server if it happens often.
+- **Chore report depends on the Mac:** the exporter only runs while the laptop is awake, like the build. A report older than 30 hours shows as an error rather than as current chores.
 - **Subscribed calendar lag:** UChicago, QofAI and Canvas feeds sync every several hours, so same-day changes can be missing. Fallback: show "last synced" on the calendar card.
 - **Work data exposure:** QofAI calendar events in a personal tool. Mitigation: QofAI email is never read, and work items stay labeled and out of Pressing actions.
 - **Too much content:** the page grows into another feed. Fallback: hard caps per card (5 news items, 7 actions).
@@ -180,7 +181,7 @@ The MVP is weather, email, chores, Google Calendar and Pressing actions on one p
 **Open questions**
 
 - [x] QofAI email: not read. QofAI runs on Google Workspace, but its communication happens in Slack.
-- [ ] UChicago email: does university policy (and its Google Workspace admin settings) allow a personal agent to read it?
+- [x] UChicago email: its Google Workspace allows the app's read-only Gmail access, and I accepted the policy question (2026-09-25).
 - [ ] Internship agent: is its report email format stable enough to parse? (check in Claude Code)
 
 ## Sources

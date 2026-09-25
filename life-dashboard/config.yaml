@@ -11,8 +11,7 @@ location:
   longitude: -87.6298
 
 # An inbox is fetched only when it names a google_account (token in data/tokens/).
-# UChicago waits on the university policy check. QofAI is not read: its
-# communication happens in Slack.
+# QofAI is not read: its communication happens in Slack.
 inboxes:
   - id: personal
     label: Personal
@@ -23,6 +22,7 @@ inboxes:
     label: UChicago
     provider: gmail
     section: personal
+    google_account: uchicago
 
 # Primary-tab threads in the last lookback_days, at most max_threads per inbox.
 # model triages them (sender, subject, snippet only) down to pressing school,
@@ -74,6 +74,8 @@ actions:
   cap: 7
 
 agent_reports_dir: agent-reports
+# A report older than this shows as an error (the chore exporter runs daily at 05:45).
+agent_report_max_age_hours: 30
 
 # Daily build time (local). launchd also re-runs on wake/login if this was missed.
 # Keep the pmset wake a few minutes earlier (see README, Scheduling).

@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+M4 Agent reports (code complete; waiting on the chore exporter's read-only Airtable token).
+
+### Added
+
+- The chore agent's repo gained a read-only exporter (`src/report.py`) and a launchd job (`scripts/report_launchd.py`) that write `agent-reports/chores.json` daily at 05:45. The chore agent runs on GitHub Actions, so it can't write here itself.
+- `agent_report_max_age_hours` in config.yaml (30): an older report is an error, not current chores.
+- Tests for the chores connector: fresh, missing, stale, agent error status, empty.
+
+### Changed
+
+- The chores connector no longer falls back to `chores.sample.json`; a missing report is an error. Pipeline tests use the sample through a fake connector.
+- Chores card shows urgency and due date together.
+
+M3 Email, UChicago inbox connected.
+
+### Added
+
+- UChicago Gmail inbox (`google_account: uchicago`, Gmail-only read-only token). UChicago's Google Workspace allows the app; the user accepted the policy question.
+- Tests for batching, retrying skipped emails, per-email fallback, and own-address filtering.
+
+### Changed
+
+- Triage sends emails in batches of 10 and tells the model how many verdicts to return; Haiku had returned 10 of 28 on one long list. Emails it skips are retried once, and only those still missing fall back to the rules.
+- Mail sent from any of the user's own inbox addresses (e.g. the internship agent's reports from personal Gmail to UChicago) is never flagged in the Inbox card; M7 reads those reports.
+
 M3 Email, LLM triage (code complete; waiting on ANTHROPIC_API_KEY).
 
 ### Added

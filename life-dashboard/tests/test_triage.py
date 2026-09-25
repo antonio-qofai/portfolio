@@ -6,7 +6,7 @@ from zoneinfo import ZoneInfo
 import anthropic
 import pytest
 
-from connectors.gmail import FALLBACK_NOTE, _parse, triage_all
+from connectors.gmail import FALLBACK_NOTE, _parse, drop_own_mail, triage_all
 from dashboard.config import load_config
 from dashboard.triage import TriageError, build_prompt, classify, parse_response
 
@@ -60,8 +60,7 @@ def test_parse_response_validates():
     out = parse_response(json.dumps({"emails": [verdict("a", True, due="2026-09-30"), verdict("x", True)]}), {"a"})
     assert set(out) == {"a"} and out["a"]["due"] == "2026-09-30"
     assert parse_response(json.dumps({"emails": [verdict("a", True, due="Friday")]}), {"a"})["a"]["due"] is None
-    with pytest.raises(TriageError):
-        parse_response(json.dumps({"emails": []}), {"a"})
+    assert parse_response(json.dumps({"emails": []}), {"a"}) == {}  # missing ids are absent, not an error
     with pytest.raises(TriageError):
         parse_response("not json", {"a"})
 
@@ -94,7 +93,6 @@ def test_triage_sends_metadata_only():
 @pytest.mark.parametrize("client", [
     FakeClient(error=anthropic.APIConnectionError(request=None)),
     FakeClient([], stop="max_tokens"),
-    FakeClient([]),  # verdicts missing
 ])
 def test_triage_failure_falls_back_to_rules(client):
     parsed = parsed_inbox()
@@ -113,3 +111,43 @@ def test_missing_api_key_is_a_triage_error(monkeypatch):
     monkeypatch.setattr("dashboard.triage.load_env", lambda: None)
     with pytest.raises(TriageError, match="ANTHROPIC_API_KEY"):
         classify([{"id": "t1"}], "claude-haiku-4-5", TODAY)
+
+
+class SkippingClient(FakeClient):
+    """Returns verdicts only for ids in `answer`, like Haiku stopping early."""
+
+    def __init__(self, answer):
+        super().__init__()
+        self.answer = answer
+
+    def create(self, **kwargs):
+        prompt = kwargs["messages"][0]["content"]
+        self.prompts.append(prompt)
+        sent = json.loads(prompt.rsplit("<emails>", 1)[1].split("</emails>")[0])
+        out = [verdict(e["id"], False) for e in sent if e["id"] in self.answer]
+        return SimpleNamespace(stop_reason="end_turn", content=[SimpleNamespace(type="text", text=json.dumps({"emails": out}))])
+
+
+def test_batches_and_retries_skipped():
+    emails = [{"id": f"e{n}"} for n in range(23)]
+    client = SkippingClient({f"e{n}" for n in range(23)})
+    assert len(classify(emails, "m", TODAY, client)) == 23
+    assert len(client.prompts) == 3  # 10 + 10 + 3
+    assert "There are 10 emails" in client.prompts[0] and "There are 3 emails" in client.prompts[2]
+
+
+def test_skipped_email_falls_back_alone():
+    parsed = parsed_inbox()
+    client = SkippingClient({"t2", "t3"})  # never answers t1, even on retry
+    triage_all(parsed, load_config(), TODAY, client)
+    items = {i.link.rsplit("/", 1)[1]: i for i, _ in parsed}
+    assert items["t1"].summary.startswith(FALLBACK_NOTE) and items["t1"].urgency_hints == ["reply_needed"]
+    assert items["t2"].urgency_hints == [] and not items["t2"].summary.startswith(FALLBACK_NOTE)
+    assert len(client.prompts) == 2  # first call, then one retry for t1
+
+
+def test_own_addresses_are_never_candidates():
+    uchicago = {"id": "uchicago", "label": "UChicago", "section": "personal"}
+    agent_report = _parse(thread("r1", "tonio <me.personal@example.com>", "Internship URGENT"), uchicago, "me@school.example.edu", TZ)
+    [(item, cand)] = drop_own_mail([agent_report], {"me.personal@example.com", "me@school.example.edu"})
+    assert cand is None and item.urgency_hints == []

@@ -1,21 +1,34 @@
 """Chores from the chore agent's report file (agent report contract, PRD.md).
 
-Reads agent-reports/chores.json. Until the chore agent writes that file (M4),
-falls back to the committed agent-reports/chores.sample.json.
+Reads agent-reports/chores.json, written each morning on this Mac by the
+chore agent's exporter (~/agents/chores, `src/report.py`, run by its own
+launchd job at 05:45). A missing or stale file is an error, so the card never
+shows old chores as current; the pipeline then falls back to the last good
+result with its age.
 """
 
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta
 
+from connectors._time import now
 from dashboard.config import ROOT
 from dashboard.schema import Item, parse_agent_report
 
 
+class ReportMissing(RuntimeError):
+    pass
+
+
 def fetch(config: dict) -> list[Item]:
-    reports = ROOT / config["agent_reports_dir"]
-    path = reports / "chores.json"
+    path = ROOT / config["agent_reports_dir"] / "chores.json"
     if not path.exists():
-        path = reports / "chores.sample.json"
+        raise ReportMissing("no chores report yet; install the chore agent's report job (see README)")
     with open(path) as f:
-        return parse_agent_report(json.load(f), agent="chores")
+        data = json.load(f)
+    items = parse_agent_report(data, agent="chores")
+    age = now(config) - datetime.fromisoformat(data["generated_at"])
+    if age > timedelta(hours=config["agent_report_max_age_hours"]):
+        raise ReportMissing(f"chores report is stale ({int(age.total_seconds() // 3600)} hours old)")
+    return items

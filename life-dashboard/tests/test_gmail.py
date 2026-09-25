@@ -55,9 +55,9 @@ def test_empty_or_draft_only_thread_skipped():
 
 def test_unconnected_inboxes_are_skipped(monkeypatch):
     fetched = []
-    monkeypatch.setattr(gmail, "_fetch_inbox", lambda inbox, _cfg, _tz: fetched.append(inbox["id"]) or [])
+    monkeypatch.setattr(gmail, "_fetch_inbox", lambda inbox, _cfg, _tz: fetched.append(inbox["id"]) or (f"{inbox['id']}@x.com", []))
     gmail.fetch(load_config())
-    assert fetched == ["personal"]  # UChicago and QofAI wait on policy checks
+    assert fetched == ["personal", "uchicago"]
 
 
 def test_config_email_caps():
