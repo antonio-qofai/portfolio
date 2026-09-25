@@ -1051,3 +1051,45 @@ added the delay to the CLAUDE.md mistakes log.
 To check: on Monday Sept 28, `gh run list --workflow scheduler.yml` should
 show a start well before 13:00 UTC, and the log should say "wrote N
 assignments for week 1" and "Digest: sent".
+
+## 21 — Report exporter for the Life Dashboard (Sept 25, 2026, not yet pushed)
+
+The Life Dashboard (another project on the same Mac) shows "my chores due
+and overdue" and reads them from a report file. This agent runs on GitHub
+Actions, so it cannot write that file; the exporter runs locally instead.
+
+Added:
+
+- `src/report.py`: reads Roster and Assignments, keeps one person's rows
+  that are not done and are overdue or due within 7 days, and writes the
+  agent report contract (`generated_at`, `status`, `items[title, summary,
+  due, urgency, link]`). Atomic write; `--dry-run` prints instead. On any
+  failure it writes `"status": "error"` so the reader never shows a stale
+  list as current.
+- `AirtableClient.assignment_rows` and `AssignmentRow`: a read-only view of
+  each Assignments row (label, task, due, done, prep flag, assignee).
+- `scripts/report_launchd.py`: a launchd job at 05:45 daily, through uv
+  (Python 3.12 + requests; the Mac's own python3 is 3.9).
+- `tests/test_report.py`: 14 tests. 403 total, all passing.
+- README section "Report exporter", INDEX lines.
+
+Decisions:
+
+- Credentials in a local, gitignored `.env`, with a separate token scoped
+  to `data.records:read` on this base only. The scheduler's token stays in
+  GitHub secrets.
+- Once a day, because Airtable's free tier meters calls per workspace and
+  the scheduler shares the budget. Two calls per run.
+- Who the report is for comes from `CHORES_REPORT_EMAIL` in `.env`, matched
+  against Roster, so no person is named in code.
+- 7-day horizon, so a Sunday deadline shows all week. Change with
+  `--days-ahead`.
+
+Set up and running on Sept 25: read-only token in `.env`, job installed
+with `--out ~/agents/life-dashboard/agent-reports/chores.json`. First run
+wrote 0 items, which is right: week 1's rows are due Oct 4, 20:00, more
+than 7 days out. They should appear from Monday Sept 28.
+
+To check: on Sept 28, `python3 scripts/report_launchd.py status` should
+show "3 item(s) written" (or however many week 1 gives you), matching
+Airtable.

@@ -31,14 +31,17 @@ One line per file.
 | `src/nudge.py` | Which overdue assignments get a nudge and which kind, and the body for each. Pure functions, no clock |
 | `src/airtable.py` | The HTTP client: reads every table, writes Assignments, reads and writes the nudge log. Validates on read and fails with the record ID |
 | `src/email_sender.py` | Gmail SMTP. Builds a plain text envelope and sends it. Credentials from the environment only |
-| `src/orchestrator.py` | The entry point. The only module that reads a clock, an environment, or argv. Wires the rest together |
+| `src/orchestrator.py` | The scheduler's entry point. Reads the clock, the environment, and argv, and wires the rest together |
+| `src/report.py` | Report exporter entry point: one person's open chores as an agent report JSON file. Read-only on Airtable |
 | `src/inbox.py` | IMAP fetch of the landlord's mail only: read-only, headers checked before any body is loaded, quoted replies cut |
 | `src/extract.py` | The one model call: email text in, proposed items out, every date and excerpt checked against the email |
 | `src/proposals.py` | Turns items into unconfirmed rows, de-duplicates by Message-ID and visit date, and writes them |
 | `src/read_inbox.py` | The inbox reader's entry point. Separate from the orchestrator so it cannot affect the Monday run |
 | `scripts/setup_base.py` | One-time Airtable base setup: creates the tables and fields. Idempotent, safe to re-run |
 | `scripts/send_test_digest.py` | Sends a real digest to addresses given with --to, never to the roster, for testing delivery |
+| `scripts/report_launchd.py` | Installs, checks, or removes the launchd job that runs the report exporter at 05:45 on this Mac |
 | `scripts/setup_inbox_tables.py` | One-time setup for the inbox reader: creates Requests, adds two Cleaner Visits fields. Idempotent |
+| `tests/test_report.py` | Report exporter: contract shape, urgency, filtering, error reports, and `assignment_rows` parsing |
 | `tests/test_rotation.py` | Invariant tests for the engine: quarter totals, per-chore evenness, inactive weeks, a four-person term, and the failure cases |
 | `tests/test_schedule.py` | Tests for the schedule builder: due times, daylight saving, cleaner conversion, and the failure cases |
 | `tests/test_digest.py` | Tests for the digest: the week's split, cleaner weeks, rule activation dates, and that it never mentions who is behind |

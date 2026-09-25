@@ -1,4 +1,5 @@
-"""Entry point. The only module that reads a clock, an environment, or argv.
+"""Scheduler entry point. With src/report.py, one of the two modules that read
+a clock, an environment, or argv.
 
 Everything below it is pure or is a thin client. This file is the wiring: it
 loads the term from config, reads Airtable, builds the schedule, and decides

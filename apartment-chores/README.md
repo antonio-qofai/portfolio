@@ -184,6 +184,32 @@ publicly. The two timestamps are stored on the assignment row itself, in
 Tick `Done` on your own row in the Airtable app. That is the whole thing.
 No form, no login each time, no reconciliation step.
 
+## Report exporter (optional, runs on your own Mac)
+
+`src/report.py` writes one person's open chores to a JSON file for another
+program to read (the Life Dashboard reads it as `agent-reports/chores.json`).
+It only reads Airtable: Roster and Assignments, two API calls per run.
+
+1. Make a second Airtable personal access token with only
+   `data.records:read`, on this base only. Do not reuse the scheduler's token.
+2. Create `.env` in the repo root (gitignored):
+
+   ```
+   AIRTABLE_API_KEY=<the read-only token>
+   AIRTABLE_BASE_ID=<the app... ID>
+   CHORES_REPORT_EMAIL=<your email as it appears in Roster>
+   ```
+
+3. Try it: `uv run --no-project --python 3.12 --with requests python -m src.report --out /tmp/chores.json --dry-run`
+4. Schedule it: `python3 scripts/report_launchd.py install --out <path to the report file>`.
+   It runs at 05:45 daily (and on wake if the Mac slept through it) and logs
+   to `~/Library/Logs/chores-report.log`. `status` and `uninstall` do what
+   they say.
+
+An item is a chore of yours that is not ticked done and is overdue or due in
+the next 7 days (`--days-ahead` changes that). If a run fails, the file gets
+`"status": "error"` so the reader shows an error rather than a stale list.
+
 ## Tests
 
 ```

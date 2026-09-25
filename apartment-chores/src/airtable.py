@@ -1,7 +1,8 @@
 """Airtable client.
 
 Reads Roster, Chores, Rules, Cleaner Visits, and Assignments; writes
-Assignments. Converts raw Airtable records into the shapes the pure modules
+Assignments. `assignment_rows` is read-only and exists for the report
+exporter (src/report.py). Converts raw Airtable records into the shapes the pure modules
 expect, and raises loudly with the record ID and offending field when a row
 is malformed.
 
@@ -65,6 +66,23 @@ class AssignmentSnapshot:
     record_ids: dict
 
 
+@dataclass(frozen=True)
+class AssignmentRow:
+    """One Assignments row as the report exporter needs it.
+
+    Read straight off the row rather than rebuilt from the schedule, because
+    the row is what people tick off: its label, task text, and due time are
+    the ones they see.
+    """
+
+    label: str
+    task: str
+    due: datetime  # aware, UTC
+    done: bool
+    is_prep: bool
+    assignee: object  # Person
+
+
 class AirtableClient:
     """HTTP client for the chore scheduler's Airtable base."""
 
@@ -126,6 +144,38 @@ class AirtableClient:
             nudge_log=tuple(_parse_nudge_log(records, f, by_id)),
             record_ids=_record_ids_by_identity(records, f, by_id),
         )
+
+    def assignment_rows(self, roster):
+        """Return an AssignmentRow for every row whose assignee is on the roster.
+
+        Rows missing an assignee, or assigned to someone no longer on the
+        roster, are skipped, as in `_assignment_identity`. A row with an
+        assignee but no label or a bad due time raises.
+        """
+        f = self._fields.assignments
+        by_id = {p.id: p for p in roster}
+        rows = []
+        for r in self._fetch_all(self._fields.table_assignments):
+            fields = r["fields"]
+            assignee_ids = fields.get(f.assignee, [])
+            person = by_id.get(assignee_ids[0]) if assignee_ids else None
+            if person is None:
+                continue
+            if fields.get(f.due) is None:
+                raise ValueError(
+                    "Assignments record %s: field %r is empty" % (r["id"], f.due)
+                )
+            rows.append(
+                AssignmentRow(
+                    label=_require_str(fields, f.label, r["id"]),
+                    task=str(fields.get(f.task, "")).strip(),
+                    due=_parse_datetime(fields[f.due], r["id"], f.due),
+                    done=bool(fields.get(f.done, False)),
+                    is_prep=bool(fields.get(f.is_prep, False)),
+                    assignee=person,
+                )
+            )
+        return tuple(rows)
 
     def generated_week_numbers(self):
         """Return frozenset of week numbers that already have assignments."""
