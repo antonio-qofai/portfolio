@@ -643,6 +643,34 @@ def test_monthly_budget_pauses_ranking_without_stranding():
     check("the digest footer says ranking is paused", "PAUSED" in body, True)
 
 
+def test_vehicle_employers_keep_tier_1_for_ai():
+    """Added 2026-09-25: at vehicles-autonomy employers only AI work is tier 1."""
+    from agent import ranker
+
+    cfg = rubric.settings()
+    answer = {"fit": 9, "reach": 7, "reason": "x"}
+    def tier(company, title, **extra):
+        return ranker.settle({"company": company, "title": title, **extra},
+                             answer, "stage_c", cfg)
+    check("a non-AI vehicle role is held to tier 2",
+          tier("Kodiak Robotics", "Controls Intern")["tier"], 2)
+    check("and its delivery follows the capped tier",
+          tier("Kodiak Robotics", "Controls Intern")["delivery"],
+          rubric.delivery_for(2, cfg))
+    check("the model's own score is stored unchanged",
+          tier("Kodiak Robotics", "Controls Intern")["fit"], 9)
+    check("an AI role at the same employer stays tier 1",
+          tier("Kodiak Robotics", "AI/ML Intern")["tier"], 1)
+    check("perception counts as AI work",
+          tier("Wayve", "Perception Intern")["tier"], 1)
+    check("'ai' is a whole word, so aircraft is not AI",
+          tier("Motional", "Aircraft Systems Intern")["tier"], 2)
+    check("an employer outside the category is untouched",
+          tier("Waymo", "Controls Intern")["tier"], 1)
+    check("his own fit override is never capped",
+          tier("Kodiak Robotics", "Controls Intern", fit_override=9)["tier"], 1)
+
+
 def main() -> int:
     for fn in [
         test_tier_routing,
@@ -660,6 +688,7 @@ def main() -> int:
         test_send_never_raises,
         test_html_keeps_every_line,
         test_monthly_budget_pauses_ranking_without_stranding,
+        test_vehicle_employers_keep_tier_1_for_ai,
     ]:
         fn()
 

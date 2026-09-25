@@ -596,6 +596,51 @@ ats = "greenhouse"
 token = "nuro"
 category = "robotics"
 
+# ------------------------------------------ vehicles and autonomy
+#
+# Added 2026-09-25 at the owner's instruction, the six boards proposed on
+# 2026-08-15. The category is what `rubric.md` [[tier_cap]] reads: at these
+# employers only an AI or ML role can reach tier 1, and everything else is held
+# to tier 2 at best. The category is data, so moving a company in or out of the
+# cap is an edit here and never in Python (CLAUDE.md rule 2).
+
+[[company]]
+name = "Toyota Research Institute"
+ats = "lever"
+token = "tri"
+category = "vehicles-autonomy"
+
+[[company]]
+name = "Lucid Motors"
+ats = "greenhouse"
+token = "lucidmotors"
+category = "vehicles-autonomy"
+
+[[company]]
+name = "Kodiak Robotics"
+ats = "greenhouse"
+token = "kodiak"
+category = "vehicles-autonomy"
+
+[[company]]
+name = "Motional"
+ats = "greenhouse"
+token = "motional"
+category = "vehicles-autonomy"
+
+[[company]]
+name = "Torc Robotics"
+ats = "greenhouse"
+token = "torcrobotics"
+category = "vehicles-autonomy"
+
+[[company]]
+name = "Wayve"
+ats = "greenhouse"
+token = "wayve"
+category = "vehicles-autonomy"
+notes = "Also answers on ashby:wayve with an overlapping list. Greenhouse chosen on 2026-09-25 as the larger and more recently updated board; polling both would store the same jobs twice."
+
 # ------------------------------------------ defense and space, second wave
 
 [[company]]

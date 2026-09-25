@@ -159,6 +159,11 @@ through this in order and stop at the first line that matches.
 4. Anything else. Score on the bands above, which for solid engineering at a strong technology
    or product employer means 5 to 6.
 
+At the vehicle and autonomy employers added on 2026-09-25 (the `vehicles-autonomy` category in
+`sources/companies.toml`), score the work exactly as above. The agent then holds any role there
+whose title names no AI or ML work to tier 2 at best, by the `[[tier_cap]]` rule below, so do
+not adjust the score to anticipate it.
+
 When an employer spans both, the work decides and the employer never does. A robotics or
 autonomy team inside a bank is step 2. A trading firm's own settlement and accounting
 infrastructure is step 3, whatever else the firm builds.
@@ -278,6 +283,28 @@ delivery = "never"
 # A posting that gets emailed with reach at or below this carries the `reach`
 # flag, which prints as REACH so the stretch is visible before he clicks.
 flag_at_or_below = 4
+
+[[tier_cap]]
+# Added 2026-09-25 at the owner's instruction: at vehicle and autonomy employers,
+# top tier is for AI only. Step 2 of the engineering section scores non-AI
+# vehicle engineering 7 to 8, which reaches tier 1 at 8; this holds those roles
+# to best_tier instead, while an AI or ML role there is judged like any other.
+#
+# Deterministic on purpose, and applied after the model answers, so the model's
+# own score is still stored unchanged and the cap is visible as the only reason
+# the tier differs. The owner's own fit_override is never capped.
+#
+# unless_title is matched against the posting title. Entries of three letters
+# or fewer match as whole words, so "ai" never catches "aircraft"; longer ones
+# match as a word-start prefix, as in sources/prefilter.toml.
+category = "vehicles-autonomy"
+best_tier = 2
+unless_title = [
+    "ai", "ml", "ai/ml", "machine learning", "deep learning",
+    "artificial intelligence", "llm", "nlp", "vlm", "computer vision",
+    "perception", "reinforcement learning", "neural", "foundation model",
+    "embodied", "generative", "data scien",
+]
 
 [routing]
 # Stage B scores every prefilter survivor with the cheap model. A posting goes

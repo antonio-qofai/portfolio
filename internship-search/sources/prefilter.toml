@@ -230,19 +230,31 @@ kill_title = [
     # is the argument for reading what a rule actually killed rather than
     # assuming it worked.
     "contract worker", "contract student worker",
+
+    # Added 2026-09-25 at the owner's instruction: no part-time role and no
+    # internship inside an HR department, including the analytics ones. Part-time
+    # is read from the title only, where employers state it plainly ("Part-Time
+    # Student", "Term-Time, Part-Time"); a description saying hours are flexible
+    # is not enough to kill on. The HR phrases name the department, never a bare
+    # "hr", which as a word-start prefix would also match "hrs/week". "Emerging
+    # Talent" and "Future Talent" are program names for engineering and data
+    # internships and are deliberately NOT here.
+    "part-time", "part time", "term-time",
+    "people analytics", "people operations", "people & culture",
+    "people and culture", "hr technology", "hr intern", "hr co-op",
 ]
 
 # ------------------------------------------------ generalist software roles
 
-# Added 2026-09-20 at the owner's instruction, after he said he has a low
-# probability of success in pure software engineering roles and wants them out.
+# Added 2026-09-20 at the owner's instruction: generalist software engineering
+# internships are out, so the queue concentrates on roles where his background
+# is the point rather than a footnote.
 #
-# He is right about the competition. He is an economics and physics double
-# major; a generalist "Software Engineer Intern" at a large employer is judged
-# against CS majors with three internships already, and he loses that comparison
-# on paper before anyone reads the resume. It is the single largest category in
-# the queue and the one he is least competitive in, which is the worst possible
-# combination.
+# A generalist "Software Engineer Intern" at a large employer screens mostly on
+# CS coursework and prior software internships. His strengths are elsewhere:
+# economics and physics, a CubeSat, quantitative work, and building agents. It is
+# also the single largest category in the queue, so leaving it in buries the
+# roles that fit.
 #
 # This is the only rule in the file with a keep list, and the reason is that a
 # title like "Software Engineer Intern" names the CRAFT and says nothing about

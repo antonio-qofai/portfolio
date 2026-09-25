@@ -1,6 +1,6 @@
 # Internship Opportunity Agent
 
-Watches 174 company job boards and 3 community aggregator feeds on a schedule, stores every
+Watches 180 company job boards and 3 community aggregator feeds on a schedule, stores every
 posting in SQLite, works out what is genuinely new and what has closed, filters out everything
 that cannot apply to the owner, and emails a short digest. Built for the Summer 2027 recruiting
 cycle.
@@ -327,6 +327,13 @@ silent: a band edited to leave a gap means a posting gets scored, lands in no ti
 emailed, and never appears anywhere you would notice.
 
 ## The ranker
+
+One rule sits on top of the model's score. At the vehicle and autonomy employers added on
+2026-09-25 (category `vehicles-autonomy` in `sources/companies.toml`), a role whose title names
+no AI or ML work is held to tier 2 at best, so only their AI roles reach the daily email. The
+rule is the `[[tier_cap]]` block in `rubric.md`; the model's own score is still stored, and your
+own fit override is never capped. To put another employer under the same rule, give it that
+category.
 
 Built 2026-08-12. It scores every posting the filter surfaced, on the two scales above, and
 derives the tier from the settings block. Two stages, because the two questions cost very
@@ -716,7 +723,7 @@ something.
 ## Two kinds of source
 
 A company board is polled directly. It is fast, authoritative, carries the full posting text,
-and updates the moment the company posts. Those live in `sources/companies.toml`, 174 of them
+and updates the moment the company posts. Those live in `sources/companies.toml`, 180 of them
 across four job boards: Greenhouse, Lever, Ashby and Workday.
 
 Workday, added 2026-08-19, works differently enough to be worth knowing about. It hands over 20

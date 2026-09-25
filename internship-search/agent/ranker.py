@@ -37,7 +37,7 @@ wrote one.
 import json
 import random
 
-from . import config, db, rubric
+from . import config, db, rubric, sources
 
 # Emitted on a posting whose scoring call failed outright, so a gap in the
 # scores is visible in the digest instead of looking like a tier 4 posting.
@@ -307,6 +307,24 @@ def estimate_cost(stats: dict) -> float:
 
 # ------------------------------------------------- applying the rubric's rules
 
+_CATEGORIES: dict[str, str] | None = None
+
+
+def company_category(name: str) -> str:
+    """The token map's category for a company, matched the way feeds are, so a
+    feed listing of a mapped company carries the same category as its board."""
+    global _CATEGORIES
+    if _CATEGORIES is None:
+        index: dict[str, str] = {}
+        for c in sources.load_companies():
+            for alias in (c.name, *c.feed_aliases):
+                key = sources.normalize_company(alias)
+                if key and c.category:
+                    index[key] = c.category
+        _CATEGORIES = index
+    return _CATEGORIES.get(sources.normalize_company(name), "")
+
+
 def settle(posting: dict, answer: dict, stage: str, cfg: dict) -> dict:
     """Turn the model's two numbers into what gets stored.
 
@@ -321,17 +339,28 @@ def settle(posting: dict, answer: dict, stage: str, cfg: dict) -> dict:
     reach = answer["reach"] if reach is None else int(reach)
 
     band = rubric.tier_for(fit, cfg)
+    tier = band["number"]
+    delivery = band["delivery"]
+    # The employer-category cap from rubric.md [[tier_cap]]. His own fit
+    # override is his final answer and is never capped.
+    if posting.get("fit_override") is None:
+        capped = rubric.capped_tier(
+            tier, company_category(posting.get("company", "")),
+            posting.get("title", ""), cfg,
+        )
+        if capped != tier:
+            tier, delivery = capped, rubric.delivery_for(capped, cfg)
     flags = ["reach"] if rubric.is_reach(reach, cfg) else []
     return {
         "fit": answer["fit"],
         "reach": answer["reach"],
-        "tier": band["number"],
+        "tier": tier,
         "reason": answer["reason"],
         "flags": db._merge_flags(posting.get("flags"), flags),
         "stage": stage,
         "effective_fit": fit,
         "effective_reach": reach,
-        "delivery": band["delivery"],
+        "delivery": delivery,
     }
 
 

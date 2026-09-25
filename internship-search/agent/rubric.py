@@ -18,6 +18,7 @@ the REACH flag, and which model a posting is worth are derived from these.
 Milestone 6 builds the ranker on top of this. Nothing here makes a model call.
 """
 
+import re
 import tomllib
 
 from . import config
@@ -191,6 +192,30 @@ def tier_for(fit: int, cfg: dict | None = None) -> dict:
     # Unreachable while validate() passes, which requires the lowest band to
     # reach scores.min. Kept so a hand-edited file fails loudly, not silently.
     raise RubricError(f"fit {fit} falls into no tier band")
+
+
+def capped_tier(tier: int, category: str, title: str, cfg: dict | None = None) -> int:
+    """The tier after any `[[tier_cap]]` for this employer's category.
+
+    Lower numbers are better tiers, so a cap raises the number. A title naming
+    any `unless_title` entry is exempt. Short entries match as whole words and
+    longer ones as a word-start prefix, which keeps "ai" off "aircraft".
+    """
+    cfg = cfg or settings()
+    lowered = (title or "").lower()
+    for cap in cfg.get("tier_cap", []) or []:
+        if not category or cap.get("category") != category:
+            continue
+        exempt = False
+        for word in cap.get("unless_title", []) or []:
+            w = re.escape(word.lower())
+            pattern = rf"\b{w}\b" if len(word) <= 3 else rf"\b{w}"
+            if re.search(pattern, lowered):
+                exempt = True
+                break
+        if not exempt:
+            tier = max(tier, int(cap.get("best_tier", tier)))
+    return tier
 
 
 def delivery_for(tier: int, cfg: dict | None = None) -> str:
