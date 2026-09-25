@@ -204,16 +204,19 @@ def publish(name: str, built: Path, sha: str, push: bool) -> bool:
         shutil.rmtree(dest)
     shutil.copytree(built, dest)
     run(["git", "add", "-A", "--", name], cwd=REPO)
-    if not run(["git", "status", "--porcelain", "--", name], cwd=REPO).strip():
+    changed = bool(run(["git", "status", "--porcelain", "--", name], cwd=REPO).strip())
+    if changed:
+        run(["git", "commit", "-q", "-m", f"Sync {name} from {sha}", "--", name], cwd=REPO)
+        print(f"{name}: committed snapshot of {sha}")
+    else:
         print(f"{name}: already current at {sha}")
-        return False
-    run(["git", "commit", "-q", "-m", f"Sync {name} from {sha}", "--", name], cwd=REPO)
-    print(f"{name}: committed snapshot of {sha}")
+    # Push whenever local is ahead, so a push that failed last time is retried.
     if push and has_remote():
         run(["git", "pull", "-q", "--rebase", "--autostash"], cwd=REPO)
-        run(["git", "push", "-q"], cwd=REPO)
-        print(f"{name}: pushed")
-    return True
+        if run(["git", "rev-list", "--count", "@{u}..HEAD"], cwd=REPO).strip() != "0":
+            run(["git", "push", "-q"], cwd=REPO)
+            print(f"{name}: pushed")
+    return changed
 
 
 def has_remote() -> bool:

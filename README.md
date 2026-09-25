@@ -11,7 +11,7 @@ Economics and physics at the University of Chicago, class of 2028.
 
 ### [internship-search](internship-search/)
 
-An agent that watches about 175 company job boards and two aggregator feeds on a schedule,
+An agent that watches about 175 company job boards and three aggregator feeds on a schedule,
 stores every posting in SQLite, works out what is new and what has closed, and filters out
 anything that does not apply. Survivors go through a staged LLM ranker. A cheap model
 scores every posting against a rubric with fixed anchors, and only the strongest go to a
