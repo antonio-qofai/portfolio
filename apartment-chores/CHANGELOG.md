@@ -6,7 +6,7 @@ One entry per push, newest at the bottom.
 
 `PRD.md` v1.1 and `CLAUDE.md`. No code.
 
-## 2 — Rotation and calendar engine (Sept 20, 2026, not yet committed)
+## 2 — Rotation and calendar engine (Sept 20, 2026, committed as 9e71e8e)
 
 The first module. Pure arithmetic: which weeks are active, when a chore
 occurs, and whose turn it is. No Airtable, no email, no network, no Actions.
@@ -57,7 +57,7 @@ Run the tests with:
 
     python3 -m unittest discover -s tests -t .
 
-## 3 — Schedule builder (Sept 20, 2026, not yet committed)
+## 3 — Schedule builder (Sept 20, 2026, committed as 9e71e8e)
 
 Turns bare rotation assignments into records that can be written and emailed:
 task text, due datetime, and cleaner prep conversion. Still pure, still no
@@ -124,7 +124,7 @@ Still open from session 2: the periodic seeds `[0,0,1,1,2,2]` put both of a
 week's `every_3` chores on the same person. `[0,1,1,2,2,0]` spreads it and
 preserves every total. Airtable data, decide when seeding.
 
-## 4 — Digest renderer (Sept 20, 2026, not yet committed)
+## 4 — Digest renderer (Sept 20, 2026, committed as 9e71e8e)
 
 The Monday email body. One shared plain text digest showing the whole week's
 split, plus the house rules in force that week. Pure string building: no
@@ -194,7 +194,7 @@ Still open from session 2: the periodic seeds `[0,0,1,1,2,2]` put both of a
 week's `every_3` chores on the same person. `[0,1,1,2,2,0]` spreads it and
 preserves every total. Airtable data, decide when seeding.
 
-## 5 — Nudge decision logic and body renderer (Sept 20, 2026, not yet committed)
+## 5 — Nudge decision logic and body renderer (Sept 20, 2026, committed as 9e71e8e)
 
 Which open assignments get a nudge and what the email says. Pure functions.
 `now` and the nudge log are arguments, never read from a clock or a file.
@@ -238,7 +238,7 @@ Still open from session 2: the periodic seeds `[0,0,1,1,2,2]` put both of a
 week's `every_3` chores on the same person. `[0,1,1,2,2,0]` spreads it and
 preserves every total. Airtable data, decide when seeding.
 
-## 6 — Airtable client (Sept 20, 2026, not yet committed)
+## 6 — Airtable client (Sept 20, 2026, committed as 9e71e8e)
 
 Reads Roster, Chores, Rules, Cleaner Visits, and Assignments; writes
 Assignments. Converts raw Airtable records into the shapes the pure modules
@@ -295,7 +295,7 @@ Still open from session 2: the periodic seeds `[0,0,1,1,2,2]` put both of a
 week's `every_3` chores on the same person. `[0,1,1,2,2,0]` spreads it and
 preserves every total. Airtable data, decide when seeding.
 
-## 7 — Email, orchestrator, and the cron job (Sept 21, 2026, not yet committed)
+## 7 — Email, orchestrator, and the cron job (Sept 21, 2026, committed as 9e71e8e)
 
 The system now runs end to end. Everything that was pure is still pure; this
 session added the two things that touch the outside world (mail and a clock)
@@ -411,7 +411,7 @@ single week lopsided. A future check could warn when a week's load is more
 uneven than the roster size forces it to be. It belongs in `src/rotation.py`
 as a warning rather than an error, since some roster sizes cannot avoid it.
 
-## 8 — Override Log and the phone views (Sept 22, 2026, not yet committed)
+## 8 — Override Log and the phone views (Sept 22, 2026, committed as 9e71e8e)
 
 Closing the two Airtable gaps found when planning the rest of the build. No
 change to any module under `src/`; the test count is unchanged at 285.
@@ -479,7 +479,7 @@ Item 3 and the roommate conversation on the house rules are the two that
 cannot be done from this repo, and the rules conversation needs to happen
 before Sept 28 rather than after the first dispute.
 
-## 9 — Per-person views and week 1 seeded (Sept 22, 2026, not yet committed)
+## 9 — Per-person views and week 1 seeded (Sept 22, 2026, committed as 9e71e8e)
 
 No code changed. This entry records two changes to live state.
 
@@ -537,7 +537,7 @@ ten-second test the fix is rebuilding Assignments with a text primary field,
 which also touches `src/airtable.py` and `config/airtable_fields.py`. That
 rebuild is cheap while only week 1 exists and gets steadily less so.
 
-## 10 — Sender display name, and the GitHub repo (Sept 22, 2026, not yet pushed)
+## 10 — Sender display name, and the GitHub repo (Sept 22, 2026, committed as 3cdd92e)
 
 Added:
 
@@ -1052,7 +1052,7 @@ To check: on Monday Sept 28, `gh run list --workflow scheduler.yml` should
 show a start well before 13:00 UTC, and the log should say "wrote N
 assignments for week 1" and "Digest: sent".
 
-## 21 — Report exporter for the Life Dashboard (Sept 25, 2026, not yet pushed)
+## 21 — Report exporter for the Life Dashboard (Sept 25, 2026, committed as f5581ce)
 
 The Life Dashboard (another project on the same Mac) shows "my chores due
 and overdue" and reads them from a report file. This agent runs on GitHub
