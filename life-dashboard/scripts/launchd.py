@@ -4,12 +4,14 @@
     uv run scripts/launchd.py uninstall   unload and delete them
     uv run scripts/launchd.py status      show whether each job is loaded
 
-Two jobs:
+Three jobs:
   build   `run.py --catch-up` at the scheduled time (launchd fires a missed
           calendar run on wake), at login, and every 30 minutes as a safety net.
           --catch-up skips when today's brief already exists, so extra
           triggers are cheap.
   serve   `run.py --serve --no-build`, kept alive, localhost only.
+  digest  `run.py --digest` at the digest time, at login, and every 15 minutes.
+          It sends once a day inside the send window, after the day's build.
 
 Waking the Mac itself needs a one-time `sudo pmset repeat ...` (see README).
 """
@@ -38,7 +40,7 @@ def plists(config: dict) -> dict[str, dict]:
         "WorkingDirectory": str(ROOT),
         "EnvironmentVariables": {"PATH": "/usr/bin:/bin:/usr/sbin:/sbin"},
     }
-    sched = config["schedule"]
+    sched, dig = config["schedule"], config["digest"]
     return {
         f"{PREFIX}.build": {
             **base,
@@ -58,6 +60,16 @@ def plists(config: dict) -> dict[str, dict]:
             "KeepAlive": True,
             "StandardOutPath": str(LOG_DIR / "serve.log"),
             "StandardErrorPath": str(LOG_DIR / "serve.log"),
+        },
+        f"{PREFIX}.digest": {
+            **base,
+            "Label": f"{PREFIX}.digest",
+            "ProgramArguments": [str(PYTHON), "run.py", "--digest"],
+            "StartCalendarInterval": [{"Hour": dig["hour"], "Minute": dig["minute"]}],
+            "StartInterval": 900,
+            "RunAtLoad": True,
+            "StandardOutPath": str(LOG_DIR / "digest.log"),
+            "StandardErrorPath": str(LOG_DIR / "digest.log"),
         },
     }
 

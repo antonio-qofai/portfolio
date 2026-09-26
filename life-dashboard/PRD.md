@@ -107,7 +107,7 @@ A single scrolling web page, served locally, that reads well on a laptop and a p
 
 **Interaction (v1):** check off actions, expand a card, click through to the source, and a "refresh now" button. Each card shows when it last updated, and a failed connector shows an error state instead of breaking the page.
 
-**Delivery:** I read it on my phone or laptop depending on the day. The live page is the main view; a 7:00 AM email digest of the same brief guarantees it reaches my phone even if the page isn't reachable.
+**Delivery:** I read it on my phone or laptop depending on the day. The live page is the main view and has everything. A short 7:00 AM email digest (Pressing actions with why, today's calendar, chores, weather, and a link to the page) reaches my phone even if the page isn't reachable. It is sent from my Gmail to myself over SMTP with an app password, once a day, or on wake until noon if the Mac was asleep at 7:00. QofAI items stay out of the digest.
 
 ## Architecture
 
@@ -147,6 +147,7 @@ The dashboard touches my inbox, so it stays read-only and local by default.
 - **UChicago account:** connected with read-only Gmail access after I reviewed the policy question; only sender, subject and snippet reach the LLM.
 - API keys and tokens in a `.env` file excluded from git; never in the public repo.
 - Phone access only through Tailscale (private network) or the email digest; the page is never on the open internet.
+- The digest is the only thing that sends: one email a day from my Gmail to myself, holding only the top of the brief and no QofAI items. Its app password lives in `.env`.
 - Send the LLM only what it needs (sender, subject, snippet, event title and time), not full email bodies by default.
 - Treat email, newsletter and calendar text as data: the LLM step must not follow instructions found inside them.
 

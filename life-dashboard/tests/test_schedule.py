@@ -36,3 +36,6 @@ def test_launchd_plists():
     assert build["RunAtLoad"]
     assert serve["ProgramArguments"][1:] == ["run.py", "--serve", "--no-build"]
     assert serve["KeepAlive"]
+    digest = jobs["com.user.life-dashboard.digest"]
+    assert digest["ProgramArguments"][1:] == ["run.py", "--digest"]
+    assert digest["StartCalendarInterval"] == [{"Hour": 7, "Minute": 0}] and digest["RunAtLoad"]

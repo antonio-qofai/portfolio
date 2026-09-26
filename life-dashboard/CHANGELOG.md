@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+M6 Phone, email digest (code complete; waiting on the Gmail app password). Tailscale comes next.
+
+### Added
+
+- Morning digest (`dashboard/digest.py`, `run.py --digest`): a short plain-text email with Pressing actions and their why, today's personal events, chores, the weather line, any fallback or failed-card notes, and a link to the page (`DASHBOARD_URL`). QofAI items are never included. Read from `data/brief.json`, so it matches the page.
+- Sent from `GMAIL_ADDRESS` to itself over Gmail SMTP with an app password (`GMAIL_APP_PASSWORD`). This is not an OAuth scope; Google access stays read-only.
+- `digest` in config.yaml (7:00, window until 12:00) and a third launchd job that runs at 7:00, at login and every 15 minutes. It sends once a day, only after the day's brief exists, never builds itself, and retries on failure. `data/digests.log` records each attempt.
+- `.env.example`: `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD`, `DASHBOARD_URL`.
+- Tests for the digest body, QofAI exclusion, the send window, once-a-day sending, retry after failure, and missing credentials.
+
+### Changed
+
+- PRD: the digest is a short top-of-brief email with a link, not the whole brief; the page has everything. Privacy section notes the digest is the only thing that sends.
+
 M5 Pressing actions (built; one-week check pending).
 
 ### Added

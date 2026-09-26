@@ -48,18 +48,27 @@ Each action has a check-off box, and each action and Coming up event has "too ea
 
 The buttons only work on the live page, since they post to the local server. It accepts JSON from its own origin only.
 
+## Morning digest
+
+A short plain-text email with Pressing actions and their why, today's calendar, chores, the weather line, and a link to the page (`DASHBOARD_URL`). QofAI items stay out. It goes from `GMAIL_ADDRESS` to itself over Gmail SMTP with an app password (`GMAIL_APP_PASSWORD`; needs 2FA, create it at myaccount.google.com/apppasswords), at `digest.hour`, or on wake until `digest.until_hour`. It sends once a day, only after the day's brief is built, and retries every 15 minutes on failure. `data/digests.log` records each attempt. The subject is always "Morning brief, <day>", so a Gmail filter can label it and skip the inbox.
+
+```sh
+uv run run.py --digest    # send now if it's due and not yet sent today
+```
+
 ## Scheduling
 
-Two launchd jobs keep the brief fresh and the page up.
+Three launchd jobs keep the brief fresh, the page up, and the digest sent.
 
 | Job | What it does |
 | --- | --- |
 | `...life-dashboard.build` | `run.py --catch-up` at 6:00 AM, at login, on wake after a missed 6:00, and every 30 min. Skips if today's brief already exists. |
+| `...life-dashboard.digest` | `run.py --digest` at 7:00, at login, and every 15 min. Sends once a day in the window, after the build. |
 | `...life-dashboard.serve` | `run.py --serve --no-build`, always on, localhost only. Serves `web/` and the check-off and feedback endpoints. Reinstall after changing server code. |
 
 ```sh
 uv sync                                  # creates .venv, which launchd uses
-uv run scripts/launchd.py install        # (re)install both jobs after changing config.yaml
+uv run scripts/launchd.py install        # (re)install all jobs after changing config.yaml
 uv run scripts/launchd.py status
 uv run scripts/launchd.py uninstall
 ```
@@ -92,12 +101,13 @@ dashboard/
   store.py          check-offs and feedback in data/
   api.py            the page's check-off and feedback endpoints
   triage.py         LLM email triage
+  digest.py         morning email digest (the only code that sends)
   render.py         HTML page in PRD layout order
 connectors/         one module per source, each `fetch(config) -> list[Item]`
 agent-reports/      report files written by my other agents (real ones gitignored)
 prompts/            LLM prompts: email triage, lead time, action ranking
 web/                page template; generated index.html is gitignored
-data/               local store, gitignored: brief.json, cache/, checked.json, feedback.jsonl,
+data/               local store, gitignored: brief.json, cache/, checked.json, digests.log, feedback.jsonl,
                     logs/, runs.log, tokens/
 tests/
 ```
@@ -122,7 +132,7 @@ From PRD.md, one milestone at a time.
 | M3 Email | Personal Gmail and UChicago, then QofAI after policy check |
 | M4 Agent reports | Chore agent writes the report file |
 | M5 Pressing actions | LLM ranking, lead times, check-off and feedback buttons (built; week check pending) |
-| M6 Phone | 7:00 AM email digest, then Tailscale |
+| M6 Phone | 7:00 AM email digest (built; needs app password), then Tailscale |
 | M7 Job search | Parse the internship agent's report email |
 | M8 Reading | NYT (cap 5) and AI Daily Brief cards |
 | M9 Actions (v2) | Draft replies and add events, with approval each time |

@@ -5,6 +5,8 @@
     uv run run.py --serve --no-build  serve only (the always-on launchd job)
     uv run run.py --catch-up          build only if the last scheduled run was missed
                                       (the scheduled launchd job)
+    uv run run.py --digest            email today's digest if it's due and not yet sent
+                                      (the digest launchd job)
 """
 
 from __future__ import annotations
@@ -16,7 +18,7 @@ import json
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from dashboard import api
+from dashboard import api, digest
 from dashboard.config import ROOT, load_config
 from dashboard.pipeline import DATA_DIR, build_brief, last_generated_at, save_brief
 from dashboard.render import render, write_page
@@ -114,8 +116,16 @@ def main() -> None:
     parser.add_argument("--serve", action="store_true", help="serve the page on localhost")
     parser.add_argument("--no-build", action="store_true", help="skip building (use with --serve)")
     parser.add_argument("--catch-up", action="store_true", help="build only if the last scheduled run was missed")
+    parser.add_argument("--digest", action="store_true", help="email today's digest if it's due")
     args = parser.parse_args()
     config = load_config()
+
+    if args.digest:
+        # The build job makes the brief; this job only sends, so the two never build twice.
+        now = datetime.now(ZoneInfo(config.get("timezone", "America/Chicago")))
+        current = not needs_run(config, now, last_generated_at())
+        print(f"{now.isoformat(timespec='seconds')} digest: {digest.run(config, now, DATA_DIR, current)}", flush=True)
+        return
 
     if args.catch_up:
         now = datetime.now(ZoneInfo(config.get("timezone", "America/Chicago")))

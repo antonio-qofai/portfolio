@@ -92,6 +92,14 @@ schedule:
   hour: 6
   minute: 0
 
+# Morning email digest: the top of the brief, from and to the user's Gmail
+# (GMAIL_ADDRESS, GMAIL_APP_PASSWORD, and optional DASHBOARD_URL in .env).
+# Sent at hour:minute, or on wake until until_hour; once a day.
+digest:
+  hour: 7
+  minute: 0
+  until_hour: 12
+
 server:
   host: 127.0.0.1   # localhost only; phone access comes via Tailscale in M6
   port: 8000
