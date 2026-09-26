@@ -50,7 +50,7 @@ tests/
 
 - Every connector returns `list[Item]`. Sub-sources go in `source` as `connector.sub` (e.g. `email.uchicago`).
 - A connector failure must never break the page. The pipeline catches it, falls back to the connector's last good result in data/cache/, and the card shows the error and the data's age.
-- Tests never hit the network or write to the real data/. Swap network connectors for fakes in the registry and pass a tmp cache_dir.
+- Tests never hit the network or write to the real data/. Swap network connectors for fakes in the registry, pass a tmp `data_dir` to `build_brief`, and pass a fake Claude client to exercise the LLM path (`tests/conftest.py` blocks the real API).
 - The calendar connector fetches title, time, location and link only (a `fields` filter), never descriptions.
 - Urgency hints are plain strings: `overdue`, `due_today`, `reply_needed`, `deadline`.
 - Caps come from config.yaml (`news.cap`, `actions.cap`), never hardcoded.
