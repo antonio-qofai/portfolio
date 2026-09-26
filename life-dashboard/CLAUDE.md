@@ -54,5 +54,5 @@ tests/
 - The calendar connector fetches title, time, location and link only (a `fields` filter), never descriptions.
 - Urgency hints are plain strings: `overdue`, `due_today`, `reply_needed`, `deadline`.
 - Caps come from config.yaml (`news.cap`, `actions.cap`), never hardcoded.
-- The server binds to 127.0.0.1 and serves only `web/`.
+- The server binds to 127.0.0.1 and serves `web/` plus the check-off and feedback endpoints (`dashboard/api.py`). The endpoints accept same-origin JSON only, and only keys in the current brief.
 - Python 3.12, run through uv. Other agents on this machine use their own environments and talk to this project only through files and email.

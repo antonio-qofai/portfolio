@@ -24,6 +24,7 @@ M5 Pressing actions (built; one-week check pending).
 - The placeholder ranking in `dashboard/pipeline.py` is gone. `build_brief` takes a `data_dir` (check-offs, feedback, cache) and a Claude `client`, so tests use a tmp dir and a fake.
 - Job search stays out of Pressing actions until M7; its stub items had ranked as real actions.
 - Pipeline test fixtures use dates relative to today.
+- CLAUDE.md's server convention now covers the check-off and feedback endpoints.
 
 M4 Agent reports (code complete; waiting on the chore exporter's read-only Airtable token).
 
