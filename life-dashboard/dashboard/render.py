@@ -47,10 +47,10 @@ def _safe_link(url: str) -> str:
     return escape(url) if url.startswith(("https://", "http://")) else ""
 
 
-def _item(item: Item, meta: str = "") -> str:
+def _item(item: Item, meta: str = "", show_summary: bool = True) -> str:
     title = _title(item)
     meta_html = f'<span class="meta">{escape(meta)}</span>' if meta else ""
-    summary = f'<p class="summary">{escape(item.summary)}</p>' if item.summary else ""
+    summary = f'<p class="summary">{escape(item.summary)}</p>' if item.summary and show_summary else ""
     return f"<li>{meta_html}<span class=\"title\">{title}</span>{summary}</li>"
 
 
@@ -180,7 +180,8 @@ def render(brief: dict[str, Any], config: dict) -> str:
     chore_items = [c for c in chores.items if c.section == "personal"]
     chore_card = _card(
         "today-chores", "Chores",
-        _list([_item(c, " · ".join(filter(None, [_hints(c), _due(c.due)]))) for c in chore_items],
+        # Titles only: the chore agent's summaries are full definitions of done.
+        _list([_item(c, " · ".join(filter(None, [_hints(c), _due(c.due)])), show_summary=False) for c in chore_items],
               "No chores due."),
         [chores], "sub",
     )

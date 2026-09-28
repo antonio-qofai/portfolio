@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+Chores card shows titles only.
+
+### Changed
+
+- The Chores card no longer shows each chore's description (the chore agent's full definition of done); title, urgency and due date stay.
+
 M6 Phone, Tailscale access (live; morning check pending).
 
 ### Added

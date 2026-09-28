@@ -86,6 +86,8 @@ def test_stub_pipeline_end_to_end(config, build, tmp_path):
     assert "Coming up" in calendar and "PSet 2 due" in calendar
     assert "PSet 2 due" not in calendar[:calendar.index("Coming up")], "upcoming event listed as today"
     assert saved["upcoming"][0]["item"]["title"] == "PSet 2 due" and saved["actions"][0]["key"]
+    chores = page[page.index('id="today-chores"'):page.index('id="inbox"')]
+    assert "Take out recycling" in chores and "Pickup is tomorrow morning." not in chores
 
 
 def test_failing_connector_shows_error_card(config, registry, build):
