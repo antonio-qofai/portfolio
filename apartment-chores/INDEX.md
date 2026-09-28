@@ -8,6 +8,7 @@ One line per file.
 | `README.md` | How a stranger sets this up and runs it in five minutes |
 | `PRD.md` | The spec |
 | `PRD-v1.1-landlord-reader.md` | Spec for the landlord email reader: proposes items, never confirms them. Built, running in dry-run |
+| `PRD-v1.2-after-cleaner.md` | Spec for the `after_cleaner` cadence: Bathroom clean once per person, 3 weeks after a confirmed visit. Not built |
 | `CHANGELOG.md` | One entry per push, plus the handoff note for the next session |
 | `INDEX.md` | This file |
 | `.github/workflows/scheduler.yml` | The cron job: weekday mornings, checkout, install, run the orchestrator |

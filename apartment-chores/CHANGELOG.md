@@ -1124,3 +1124,32 @@ Decisions:
 
 Ran by hand on Sept 28 after the fix was diagnosed: 3 items written (week 1),
 matching Airtable, which closes entry 21's check.
+
+## 23 - Spec for chores placed after the cleaner (Sept 28, 2026)
+
+The house decided Bathroom clean goes from weekly to once per person per
+quarter, placed 3 weeks after a confirmed cleaner visit. Spec only, no code.
+
+Added:
+
+- `PRD-v1.2-after-cleaner.md`: the `after_cleaner` cadence, placement rule,
+  backstop, and tests. Totals become 57, 19 each.
+- INDEX line.
+
+Stopgap in Airtable, needed before Monday Oct 5 (the week 2
+run): Bathroom clean to `every_3`, offset 0, seed 0, so weeks 2 and 3
+carry none. Floors high traffic prep task gains "and clear the bathroom
+counter", since Bathroom clean will rarely be the chore converting to prep.
+Both written Sept 28 through a new local write token (`AIRTABLE_WRITE_API_KEY`
+in `.env`, chores base only). Simulated afterwards: weeks 2 and 3 split
+2/2/2 with no Bathroom clean, week 4 gives it to Blake.
+
+Decided Sept 28: a 4-week cap between bathroom cleans, and fixed rotation
+order (the owner week 1, then Blake, then Casey). A confirmed Maria visit
+resets the cap, and the cap counts active weeks. The spec is settled.
+
+Handoff: build it. It has
+to be live before Monday Oct 19 07:17 UTC. Under the stopgap, week 4 gives
+Blake Bathroom clean, which lands right after Maria's expected mid-October
+visit. No update email was sent. Week 1 was already generated, so nobody's
+current chores changed, and the Monday digest shows later weeks.
