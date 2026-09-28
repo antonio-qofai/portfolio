@@ -41,6 +41,10 @@ def fake_email(_config):
     ]
 
 
+def fake_job_search(_config):
+    return [Item(source="job_search", title="2 applications with no reply in 21+ days", summary="Acme, Globex")]
+
+
 @pytest.fixture
 def config():
     return load_config()
@@ -49,7 +53,8 @@ def config():
 @pytest.fixture
 def registry():
     """Real stubs, fake network connectors: tests never hit the network."""
-    return {**REGISTRY, "weather": fake_weather, "calendar": fake_calendar, "email": fake_email, "chores": fake_chores}
+    return {**REGISTRY, "weather": fake_weather, "calendar": fake_calendar, "email": fake_email, "chores": fake_chores,
+            "job_search": fake_job_search}
 
 
 @pytest.fixture
@@ -86,6 +91,8 @@ def test_stub_pipeline_end_to_end(config, build, tmp_path):
     assert "Coming up" in calendar and "PSet 2 due" in calendar
     assert "PSet 2 due" not in calendar[:calendar.index("Coming up")], "upcoming event listed as today"
     assert saved["upcoming"][0]["item"]["title"] == "PSet 2 due" and saved["actions"][0]["key"]
+    jobs = page[page.index('id="job-search"'):page.index('id="reading"')]
+    assert "2 applications with no reply" in jobs and "Placeholder" not in jobs
     chores = page[page.index('id="today-chores"'):page.index('id="inbox"')]
     assert "Take out recycling" in chores and "Pickup is tomorrow morning." not in chores
 

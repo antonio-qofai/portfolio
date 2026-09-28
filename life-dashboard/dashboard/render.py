@@ -214,7 +214,8 @@ def render(brief: dict[str, Any], config: dict) -> str:
     # 6. Job search
     job_card = _card(
         "job-search", "Job search",
-        _list([_item(j, _due(j.due)) for j in jobs.items], "No changes since yesterday."),
+        _list([_item(j, " · ".join(filter(None, [_hints(j), _due(j.due)]))) for j in jobs.items],
+              "Nothing new."),
         [jobs],
     )
 

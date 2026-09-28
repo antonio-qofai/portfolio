@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+M7 Job search (built; check pending).
+
+### Added
+
+- Job search card from the internship agent's report file (`agent-reports/internship.json`). Its new read-only exporter (`tools/report.py` in `~/agents/internship-search`, committed there) writes it at the end of each of that agent's four daily runs: offers, interviews and events this week, deadlines on roles marked interested and not applied, status changes in the last 36 hours, and one line for applications with no reply in 21+ days. Missing, stale or error reports are errors, as with chores.
+- `connectors/_report.py`: the shared agent report reader for chores and job search.
+- Tests for the job search connector and for check-offs surviving a regenerated report.
+
+### Changed
+
+- Job search rejoins Pressing actions, and the ranking prompt says what its items are.
+- PRD: M7 reads a report file, not the internship agent's email (suppressed on quiet days, sent at 18:10, redesigned often). Recruiter replies are out of scope; the agent doesn't track them.
+- The Job search card shows urgency with the due date, and "Nothing new." when empty.
+
+### Fixed
+
+- Agent report items took the report's `generated_at` as their timestamp. That is part of the check-off key, so a checked-off chore came back the next day when the report was regenerated, and the ranking prompt showed the export time as the chore's start. Report items now have no timestamp.
+
 Chores card shows titles only.
 
 ### Changed

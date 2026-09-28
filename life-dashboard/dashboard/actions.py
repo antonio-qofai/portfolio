@@ -4,7 +4,7 @@
    start time only) and says how many days ahead it should surface. Events
    inside their lead time appear under Coming up and become candidates.
 2. Ranking: the model picks 3 to `actions.cap` candidates from the personal
-   modules (calendar, pressing email, chores), most pressing first,
+   modules (calendar, pressing email, chores, job search), most pressing first,
    each with a one-line why. QofAI items are never candidates.
 
 Both prompts get the user's recent feedback. Items the user checked off or
@@ -29,8 +29,7 @@ from dashboard.schema import ConnectorResult, Item
 
 LEAD_PROMPT = ROOT / "prompts" / "lead_time.md"
 RANK_PROMPT = ROOT / "prompts" / "rank_actions.md"
-# job_search joins in M7; until then it returns stub items that must not rank.
-CANDIDATE_CONNECTORS = ("calendar", "email", "chores")
+CANDIDATE_CONNECTORS = ("calendar", "email", "chores", "job_search")
 URGENCY_ORDER = {"overdue": 0, "due_today": 1, "reply_needed": 2, "deadline": 3}
 # Without the model, only deadlines this close surface early.
 FALLBACK_LEAD_DAYS = 3

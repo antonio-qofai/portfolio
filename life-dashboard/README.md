@@ -42,7 +42,7 @@ Every thread where you didn't send the last message (and that didn't come from o
 
 ## Pressing actions
 
-Each build makes two Claude calls (`actions.model`, Opus 5.5, at `actions.effort`). First, every personal calendar event in the next `calendar.lookahead_days` (title, calendar and start time only) is rated for importance and lead time (`prompts/lead_time.md`); events inside their lead time show under Coming up on the Calendar card. Then today's personal events, pressing email, chores and those upcoming events are ranked into at most `actions.cap` Pressing actions, each with a one-line why (`prompts/rank_actions.md`). QofAI items never enter either call. Job search joins in M7.
+Each build makes two Claude calls (`actions.model`, Opus 5.5, at `actions.effort`). First, every personal calendar event in the next `calendar.lookahead_days` (title, calendar and start time only) is rated for importance and lead time (`prompts/lead_time.md`); events inside their lead time show under Coming up on the Calendar card. Then today's personal events, pressing email, chores, job search and those upcoming events are ranked into at most `actions.cap` Pressing actions, each with a one-line why (`prompts/rank_actions.md`). QofAI items never enter either call. Chore descriptions are left out of the ranking prompt.
 
 Each action has a check-off box, and each action and Coming up event has "too early / too late / not needed" buttons. The serve job stores clicks in `data/checked.json` and `data/feedback.jsonl`; the last `actions.feedback_limit` feedback entries go into both prompts on the next build. A checked-off or not-needed item stays out of Pressing actions until it changes (new due date, new message in the thread). If a call fails, rules stand in (items with urgency hints, deadlines within 3 days) and the card says so.
 
@@ -132,7 +132,9 @@ Write `connectors/<source>.py` with a `fetch(config)` that returns a list of `It
 
 Agents that already exist plug in without a connector change by writing `agent-reports/<agent>.json` in the contract format (`generated_at`, `status`, `items[]` with `title`, `summary`, `due`, `urgency`, `link`). See `agent-reports/chores.sample.json`.
 
-The chore agent runs on GitHub Actions, so its exporter runs here instead: `~/agents/chores/src/report.py`, scheduled by `python3 scripts/report_launchd.py install --out ~/agents/life-dashboard/agent-reports/chores.json` in that repo (setup in its README, "Report exporter"). It runs at 05:45, before the 6:00 build. A missing report, one older than `agent_report_max_age_hours`, or one with `"status": "error"` shows as an error on the Chores card; the sample file is only used by tests.
+The chore agent runs on GitHub Actions, so its exporter runs here instead: `~/agents/chores/src/report.py`, scheduled by `python3 scripts/report_launchd.py install --out ~/agents/life-dashboard/agent-reports/chores.json` in that repo (setup in its README, "Report exporter"). It runs at 05:45, before the 6:00 build.
+
+The internship agent runs on this Mac too. Its `tools/report.py` (in `~/agents/internship-search`) writes `agent-reports/internship.json` as the last step of each of its scheduled runs (08:10, 12:10, 18:10, 22:10). It reads the agent's local database only, so it makes no Airtable calls and needs no network. The same missing, stale and error rules apply. A missing report, one older than `agent_report_max_age_hours`, or one with `"status": "error"` shows as an error on the Chores card; the sample file is only used by tests.
 
 ## Roadmap
 
@@ -147,6 +149,6 @@ From PRD.md, one milestone at a time.
 | M4 Agent reports | Chore agent writes the report file |
 | M5 Pressing actions | LLM ranking, lead times, check-off and feedback buttons (built; week check pending) |
 | M6 Phone | 7:00 AM email digest and Tailscale access (built; morning check pending) |
-| M7 Job search | Parse the internship agent's report email |
+| M7 Job search | Internship agent's report file (built; check pending) |
 | M8 Reading | NYT (cap 5) and AI Daily Brief cards |
 | M9 Actions (v2) | Draft replies and add events, with approval each time |

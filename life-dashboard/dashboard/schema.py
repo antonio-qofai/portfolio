@@ -109,7 +109,9 @@ def parse_agent_report(data: dict[str, Any], agent: str, section: Section = "per
                 title=str(raw["title"]),
                 summary=str(raw["summary"] or ""),
                 link=str(raw["link"] or ""),
-                timestamp=data["generated_at"],
+                # Not generated_at: that changes on every export, and an item's
+                # timestamp is part of its check-off key (dashboard/store.py).
+                timestamp=None,
                 due=raw["due"],
                 urgency_hints=[raw["urgency"]] if raw["urgency"] else [],
                 section=section,

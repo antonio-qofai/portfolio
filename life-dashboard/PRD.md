@@ -62,7 +62,7 @@ Each module is a card on the page, fed by one connector, and summarized to a few
 | QofAI | Everything work-related in one dedicated section: today's QofAI meetings and work deadlines. QofAI email is not read (its communication happens in Slack). Kept out of Pressing actions. | P0 |
 | Chores | My open chores from the chore agent: overdue, due today, and due in the next 7 days (so a Sunday deadline shows all week); ticked-off chores drop off | P0 |
 | Weather | Now, high/low, rain chance, and a one-line "what to wear for the walk" for Chicago | P0 |
-| Job search | Changes from my internship agent's report email: new applications, status changes, interviews, deadlines, recruiter replies | P1 |
+| Job search | From my internship agent's report file: offers, interviews and events this week, deadlines on roles I marked interested, status changes since yesterday, and applications with no reply in three weeks | P1 |
 | News | NYT top stories weighted to tech, business and AI; hard cap of 5 items, 2 lines each | P1 |
 | AI Daily Brief | 3–5 key items from the AI Daily Brief website, deduplicated against News | P1 |
 | Yesterday recap | What I planned vs. what got done (from actions I checked off) | P2 |
@@ -77,14 +77,14 @@ Each module is a card on the page, fed by one connector, and summarized to a few
 
 ## Data sources and integrations
 
-Two inboxes, one calendar, three web sources, and my own agents cover everything. The chore agent writes a report file; the internship agent is read from the email it already sends me.
+Two inboxes, one calendar, three web sources, and my own agents cover everything. The chore agent and the internship agent each write a report file.
 
 | Module | Source | Access method | Open question |
 | --- | --- | --- | --- |
 | Email | Personal Gmail, UChicago (Google) | Gmail API, read-only OAuth, one connection per inbox | — |
 | Calendar | Google Calendar (personal + subscribed UChicago, QofAI and Canvas feeds) | Google Calendar API, read-only | Subscribed feeds sync every several hours, so same-day changes may lag |
 | Chores | Chore agent (runs on GitHub Actions, state in Airtable) | The agent's exporter (`src/report.py` in its repo) runs on this Mac at 05:45 via its own launchd job, reads Airtable with a read-only token, and writes the report file; its email stays as backup | — |
-| Job search | Internship agent's report email | Parse the email from my inbox by sender and subject | Is the email format stable? (check the agent's code in Claude Code) |
+| Job search | Internship agent (runs on this Mac, state in SQLite, Airtable as its input surface) | Its read-only exporter (`tools/report.py` in its repo) runs as the last step of each of its scheduled runs and writes the report file from its local database; no Airtable calls, no email parsing | — |
 | Weather | Chicago | Free weather API (e.g. Open-Meteo, NWS) | — |
 | News | NYT | NYT Top Stories API (technology, business + home sections) | API key |
 | AI Daily Brief | AI Daily Brief website | No RSS, but the site's agent feed (aidailybrief.ai/agent.json) lists each edition with title, teaser, tags, and markdown/JSON links; also try /e/<today>.json, since the feed can lag the homepage by a day | — |
@@ -164,7 +164,7 @@ The MVP is weather, email, chores, Google Calendar and Pressing actions on one p
 | M4 — Agent reports | Report-file contract; the chore agent's local exporter writes to it daily; a missing or stale report shows as an error | My due/overdue chores match the agent |
 | M5 — Pressing actions | LLM ranking, importance-based lead times, check-off + feedback buttons | Catches everything I'd have acted on for a week |
 | M6 — Phone | 7:00 AM email digest, then Tailscale access | Brief readable on my phone every morning |
-| M7 — Job search | Parse the internship agent's report email | Interviews and deadlines appear without opening Airtable |
+| M7 — Job search | The internship agent writes a report file; job search joins Pressing actions | Interviews and deadlines appear without opening Airtable |
 | M8 — Reading | NYT (capped at 5) + AI Daily Brief cards | I stop opening NYT and the AI Daily Brief site separately |
 | M9 — Actions (v2) | Draft replies, add events, with my approval each time | Used 5+ days a week for a month first |
 
@@ -183,7 +183,7 @@ The MVP is weather, email, chores, Google Calendar and Pressing actions on one p
 
 - [x] QofAI email: not read. QofAI runs on Google Workspace, but its communication happens in Slack.
 - [x] UChicago email: its Google Workspace allows the app's read-only Gmail access, and I accepted the policy question (2026-09-25).
-- [ ] Internship agent: is its report email format stable enough to parse? (check in Claude Code)
+- [x] Internship agent: its email is not parsed. It is suppressed on quiet days, sent at 18:10, and redesigned often, so the agent writes a report file instead (2026-09-28). Recruiter replies are left out: the agent doesn't track them (its inbox reader is shelved).
 
 ## Sources
 
