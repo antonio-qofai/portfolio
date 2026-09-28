@@ -878,6 +878,25 @@ Finally, put it on a schedule, or it only ever runs when you remember to run it:
     .venv/bin/python -m tools.schedule --dry-run
     .venv/bin/python -m tools.schedule --install
 
+## The Life Dashboard report
+
+    .venv/bin/python -m tools.report --dry-run                  # print it, write nothing
+    .venv/bin/python -m tools.report --out <path>               # write it
+    .venv/bin/python -m tools.test_report                       # 24 checks
+
+The Life Dashboard (`~/agents/life-dashboard`, a separate project) shows a Job search card each
+morning and reads it from `~/agents/life-dashboard/agent-reports/internship.json`. The `report`
+step in `sources/schedule.toml` writes that file at the end of every scheduled run, so it is
+never more than a few hours old. It carries offers, interviews and events this week (from
+`next_event_at`), deadlines within a week on roles marked interested and not applied, Applied
+status moves from the last 36 hours, and one line naming applications silent three weeks.
+
+It only reads. It opens `state.db` with `PRAGMA query_only`, writes no stamp, calls no API and
+sends nothing. To notice a status move it keeps the last statuses it saw in
+`build/report_state.json`; delete that file and the next run starts a fresh baseline with no
+moves reported. The step is optional, so a failure here never stops a run, and on an error it
+writes `"status": "error"` so the other page says so instead of showing an old list.
+
 ## What lives where
 
     agent/run.py         one polling cycle, the entry point
@@ -906,6 +925,7 @@ Finally, put it on a schedule, or it only ever runs when you remember to run it:
     tools/               one-off commands run by hand
     tools/scheduled_run.py  one scheduled run: watcher, then both syncs. What launchd starts
     tools/schedule.py    installs and removes the launchd agents
+    tools/report.py      the Life Dashboard's Job search file. Read-only
     tools/rubric_check.py   parses rubric.md and prints what the ranker will apply
     agent/ranker.py      Stage B and Stage C. Scores postings against rubric.md
     tools/rank_report.py what the ranker would do and what it decided. Read-only unless --run

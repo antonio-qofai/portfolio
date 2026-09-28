@@ -107,6 +107,8 @@ Things run by hand or by the scheduler, never part of the polling cycle.
 | `test_health.py` | 13 cases on the failure alert. Mutation-tested, because a silent monitor looks healthy. |
 | `test_actions.py` | 33 cases on the YOUR MOVE block, the applied date and the owner's own closure. |
 | `test_workday.py` | 23 cases on the Workday fetcher, against a fake board. No network. |
+| `report.py` | Writes the Life Dashboard's Job search file. A scheduled step; read-only on `state.db`, never a stamp. |
+| `test_report.py` | 24 checks on the report: it cannot write, stamps nothing, and keeps status moves for 36 hours. |
 | `probe_workday.py` | Is a Workday board addable? Prints the employer's own job types and answers outright. |
 | `health.py` | Is the agent alive? Reads the heartbeat and the run log. Exits non-zero when something is wrong. |
 | `reconcile_identity.py` | Merges postings split across rows. Read-only unless `--apply`, which backs up first. |

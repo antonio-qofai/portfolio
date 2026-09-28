@@ -231,3 +231,20 @@ timeout_seconds = 120
 # Not required, on the spine rule in PRD section 4: a page that failed to render
 # must never stop the watcher that fills it. The consequence of a failure here
 # is a stale page, and a stale page still says when it was built.
+
+[[steps]]
+name = "report"
+module = "tools.report"
+args = ["--out", "~/agents/life-dashboard/agent-reports/internship.json"]
+required = false
+timeout_seconds = 60
+# Added 2026-09-28. Writes the Job search card's file for the Life Dashboard
+# (~/agents/life-dashboard, a separate project), in its agent report contract:
+# offers, interviews and events this week, deadlines on roles marked interested,
+# Applied status moves, and silent applications. See tools/report.py.
+#
+# Same reasoning as the dashboard step: local, read-only, no network, no quota,
+# so it runs on every job and the file is at most a few hours old when the Life
+# Dashboard builds at 06:00. Not required: that project's card going stale must
+# never stop the watcher. The path is the other project's folder; change it here
+# if that folder moves.
