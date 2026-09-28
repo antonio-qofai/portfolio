@@ -4,17 +4,20 @@
     python3 scripts/report_launchd.py status               is it loaded, and the last lines of its log
     python3 scripts/report_launchd.py uninstall            unload and delete it
 
-The job runs `python -m src.report --out PATH` at 05:45 local time (launchd
-runs a missed time once when the Mac wakes) and once at load. It runs through
-uv, which supplies Python 3.12 and requests, so the Mac's own python3 does not
+The job runs scripts/report_job.sh at 05:45 local time (launchd runs a missed
+time once when the Mac wakes), at load, and every 30 minutes. That script
+waits for the network, then runs `python -m src.report --out PATH` through uv,
+which supplies Python 3.12 and requests, so the Mac's own python3 does not
 matter. Credentials come from .env in the repo root; see README.
 
 Once a day is deliberate: Airtable's free tier meters API calls per month
 across the workspace, and the scheduler on GitHub Actions shares that budget.
-Each run makes two reads.
+Each export makes two reads. The 30-minute triggers are retries: the script
+exits at once when today's report is already written.
 """
 
 import getpass
+import re
 import os
 import plistlib
 import shutil
@@ -28,17 +31,22 @@ LABEL = "com.%s.chores.report" % getpass.getuser()
 PLIST = Path.home() / "Library" / "LaunchAgents" / (LABEL + ".plist")
 LOG = Path.home() / "Library" / "Logs" / "chores-report.log"
 HOUR, MINUTE = 5, 45
+RETRY_SECONDS = 1800
+
+
+def policy_timezone():
+    """The due policy's timezone, read as text: this script runs on the Mac's python3 (3.9)."""
+    text = (ROOT / "config" / "due_policy.py").read_text()
+    return re.search(r'^TIMEZONE\s*=\s*"([^"]+)"', text, re.M).group(1)
 
 
 def plist(uv, out):
     return {
         "Label": LABEL,
         "WorkingDirectory": str(ROOT),
-        "ProgramArguments": [
-            uv, "run", "--no-project", "--python", "3.12", "--with", "requests",
-            "python", "-m", "src.report", "--out", str(out),
-        ],
+        "ProgramArguments": ["/bin/sh", str(ROOT / "scripts" / "report_job.sh"), uv, str(out), policy_timezone()],
         "StartCalendarInterval": [{"Hour": HOUR, "Minute": MINUTE}],
+        "StartInterval": RETRY_SECONDS,
         "RunAtLoad": True,
         "EnvironmentVariables": {"PATH": "/usr/bin:/bin:/usr/sbin:/sbin"},
         "StandardOutPath": str(LOG),

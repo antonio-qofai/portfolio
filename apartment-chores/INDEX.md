@@ -39,9 +39,11 @@ One line per file.
 | `src/read_inbox.py` | The inbox reader's entry point. Separate from the orchestrator so it cannot affect the Monday run |
 | `scripts/setup_base.py` | One-time Airtable base setup: creates the tables and fields. Idempotent, safe to re-run |
 | `scripts/send_test_digest.py` | Sends a real digest to addresses given with --to, never to the roster, for testing delivery |
-| `scripts/report_launchd.py` | Installs, checks, or removes the launchd job that runs the report exporter at 05:45 on this Mac |
+| `scripts/report_launchd.py` | Installs, checks, or removes the launchd job that runs the report exporter at 05:45 on this Mac, retrying every 30 minutes |
+| `scripts/report_job.sh` | The job's entry point: skips if today's report is written, waits for the network, then runs the exporter |
 | `scripts/setup_inbox_tables.py` | One-time setup for the inbox reader: creates Requests, adds two Cleaner Visits fields. Idempotent |
 | `tests/test_report.py` | Report exporter: contract shape, urgency, filtering, error reports, and `assignment_rows` parsing |
+| `tests/test_report_job.py` | Job script: once-a-day skip, export when stale or errored, and the launchd plist |
 | `tests/test_rotation.py` | Invariant tests for the engine: quarter totals, per-chore evenness, inactive weeks, a four-person term, and the failure cases |
 | `tests/test_schedule.py` | Tests for the schedule builder: due times, daylight saving, cleaner conversion, and the failure cases |
 | `tests/test_digest.py` | Tests for the digest: the week's split, cleaner weeks, rule activation dates, and that it never mentions who is behind |

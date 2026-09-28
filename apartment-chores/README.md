@@ -202,9 +202,12 @@ It only reads Airtable: Roster and Assignments, two API calls per run.
 
 3. Try it: `uv run --no-project --python 3.12 --with requests python -m src.report --out /tmp/chores.json --dry-run`
 4. Schedule it: `python3 scripts/report_launchd.py install --out <path to the report file>`.
-   It runs at 05:45 daily (and on wake if the Mac slept through it) and logs
-   to `~/Library/Logs/chores-report.log`. `status` and `uninstall` do what
-   they say.
+   It runs at 05:45 daily (and on wake if the Mac slept through it), then
+   every 30 minutes until that day's report is written, so Airtable still gets
+   one export a day. Each run first waits up to 2 minutes for the network,
+   since a scheduled wake can start it before Wi-Fi is back. It logs to
+   `~/Library/Logs/chores-report.log`. `status` and `uninstall` do what they
+   say. Reinstall after pulling a change to the job.
 
 An item is a chore of yours that is not ticked done and is overdue or due in
 the next 7 days (`--days-ahead` changes that). If a run fails, the file gets

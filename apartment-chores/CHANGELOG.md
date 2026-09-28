@@ -1093,3 +1093,34 @@ than 7 days out. They should appear from Monday Sept 28.
 To check: on Sept 28, `python3 scripts/report_launchd.py status` should
 show "3 item(s) written" (or however many week 1 gives you), matching
 Airtable.
+
+## 22 — Report exporter survives a wake without Wi-Fi (Sept 28, 2026)
+
+The exporter wrote nothing on Sept 26, 27 and 28. At 05:45 the Mac had just
+woken for the Life Dashboard's build and Wi-Fi was not back, so `uv run`
+failed to reach PyPI before the exporter started, and the job had no retry.
+The report went 60 hours stale and the dashboard showed it as an error.
+
+Added:
+
+- `scripts/report_job.sh`: the job's new entry point. It exits at once if
+  the report file already holds an ok report from today (in the due
+  policy's timezone), waits up to 2 minutes for DNS, and only then runs the
+  exporter through uv. With no network it exits without touching the file.
+- `tests/test_report_job.py`: 5 tests. 408 total, all passing.
+
+Changed:
+
+- `scripts/report_launchd.py`: the plist runs the job script, and adds a
+  30-minute `StartInterval` as a retry. The once-a-day skip keeps Airtable
+  at one export (two reads) a day.
+
+Decisions:
+
+- The wait lives in a shell script because the failure happens in uv,
+  before any Python in this repo runs.
+- A report with `"status": "error"` from today does not count as done, so a
+  failed Airtable call is retried on the next trigger.
+
+Ran by hand on Sept 28 after the fix was diagnosed: 3 items written (week 1),
+matching Airtable, which closes entry 21's check.
