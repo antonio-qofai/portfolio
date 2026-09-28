@@ -1125,7 +1125,7 @@ Decisions:
 Ran by hand on Sept 28 after the fix was diagnosed: 3 items written (week 1),
 matching Airtable, which closes entry 21's check.
 
-## 23 - Spec for chores placed after the cleaner (Sept 28, 2026)
+## 23 - Spec for chores placed after the cleaner (Sept 28, 2026, committed as a532a27)
 
 The house decided Bathroom clean goes from weekly to once per person per
 quarter, placed 3 weeks after a confirmed cleaner visit. Spec only, no code.
@@ -1154,7 +1154,7 @@ Blake Bathroom clean, which lands right after Maria's expected mid-October
 visit. No update email was sent. Week 1 was already generated, so nobody's
 current chores changed, and the Monday digest shows later weeks.
 
-## 24 - Build the after_cleaner cadence (Sept 28, 2026)
+## 24 - Build the after_cleaner cadence (Sept 28, 2026, committed as 03468df)
 
 Builds `PRD-v1.2-after-cleaner.md`. Bathroom clean stops being a fixed
 rotation and becomes one turn per person per term, placed from confirmed
@@ -1189,18 +1189,37 @@ Checked against live Airtable, with Bathroom clean switched to
 The owner week 1, Blake week 5, Casey week 10. With a confirmed Oct 15
 visit, Blake week 6 and Casey week 10. No week puts 4 chores on anyone.
 
-Not yet deployed. Order matters:
+Deployed Sept 28 in this order: pushed first, so Actions ran the new code
+while Airtable was still on `every_3`, then Bathroom clean's Cadence set to
+`after_cleaner` through the API with `typecast`, which created the select
+option. Setting the cadence before the push would have made the Monday run
+fail on an unknown cadence. A dry run against live Airtable afterwards read
+57 assignments, 19 each, and left week 1 untouched.
 
-1. Push, so Actions runs this code. With Airtable still on `every_3` it
-   behaves exactly as before.
-2. Then set Bathroom clean's Cadence to `after_cleaner` in Airtable. The
-   option does not exist yet. The API cannot add a select choice through a
-   field update, so either add it in the Airtable UI or write the row with
-   `typecast`. Doing this before the push makes the Monday run fail on an
-   unknown cadence.
-3. Both before Monday Oct 19, 07:17 UTC, or week 4 gives Blake Bathroom
-   clean under the stopgap.
+The one open question, a cap turn landing in a confirmed cleaner week, was
+decided the same day. See entry 25.
 
-Open, not blocking: a cap turn can land in a week the cleaner is confirmed
-for, since the spec counts only visits before the week. That turn becomes
-prep and still uses up the person's turn.
+## 25 - A cleaner visit cancels a forced bathroom turn; PRD brought up to date (Sept 28, 2026)
+
+Decided after entry 24: if the 4-week cap would force a turn into a week the
+cleaner is confirmed for, her visit counts as that week's clean and no turn
+is placed. Before, the turn became prep and used up the person's one clean.
+
+Changed:
+
+- `src/placement.py`: the cap counts confirmed visits in the week itself,
+  not only before it. An end-of-term turn can still share a week with her.
+- `tests/test_placement.py`: 2 tests, a confirmed visit in the cap week
+  cancels the turn and an unconfirmed one does not. 437 total, all passing.
+- `PRD-v1.2-after-cleaner.md`: step 4, §5, §9, and the tests list.
+- `PRD.md`, now v1.3: the chore list in §4.3 is the live base (5 weekly,
+  3 `every_3`, 1 `after_cleaner`), with the Sept 22 and Sept 28 changes
+  recorded. Totals, SC1, SC2, the cadence table, seeds in §5.3, a note in
+  §5.5 on visits placing the bathroom turn, open question 3, and the repo
+  file list. It had still described the scoping list and 72 assignments.
+- CHANGELOG entries 23 and 24 marked with their commits, and entry 24's
+  deploy section rewritten now that it is live.
+
+Handoff: nothing pending on the bathroom change. On Monday Oct 5, check that
+week 2 lands before 08:00 with no Bathroom clean. When Pat's email arrives,
+confirm the visit and look at the dry run to see where the next turn lands.

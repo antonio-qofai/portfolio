@@ -1,6 +1,6 @@
 # PRD v1.2 - Chores placed after the cleaner
 
-**Status:** built Sept 28 2026, not yet deployed. See CHANGELOG entry 24
+**Status:** built and live Sept 28 2026. See CHANGELOG entries 24 and 25
 **Date:** September 28, 2026
 **Deadline:** live before the week 4 run, Monday Oct 19 2026, 07:17 UTC
 **Depends on:** v1 (`PRD.md`) and the Cleaner Visits table
@@ -49,9 +49,10 @@ never revisits a week already written. For week W:
 3. Drop a target if another confirmed visit falls inside that target week.
    Maria is there that week, so the turn waits for the target of that later
    visit instead.
-4. Cap: find the most recent clean before W, either a roommate turn or a
-   confirmed visit (§9). If W is the last active week still within the cap of
-   it, W gets a turn.
+4. Cap: find the most recent clean, either a roommate turn before W or a
+   confirmed visit before or in W (§9). If W is the last active week still
+   within the cap of it, W gets a turn. A visit in W itself cancels the
+   forced turn, because the cleaner does the work that week.
 5. End of term: if the number of people still owed is at least the number of
    active weeks left, counting W, then W gets a turn. This is what places the
    last turn when the cap would reach past the end of the term.
@@ -68,8 +69,8 @@ then Blake, then Casey.
 ## 5. Due date and cleaner weeks
 
 Ordinary due date, Sunday 20:00 Central. A visit-driven turn can never share a
-week with a confirmed visit, because step 3 prevents it. A cap or end-of-term
-turn can. In that case the chore's `convert_to_prep` behaviour applies as it
+week with a confirmed visit, because step 3 prevents it, and neither can a cap
+turn, because step 4 prevents it. Only an end-of-term turn can. In that case the chore's `convert_to_prep` behaviour applies as it
 does today, with the same assignee, prep text, and a due time of 11:00 on the
 visit date. The turn still counts.
 
@@ -125,6 +126,9 @@ Settled Sept 28 2026:
   three roommate turns cannot cover the quarter within a 4-week cap.
 - The cap counts active weeks. Inactive weeks (9 and 11) do not use it up, so
   from a clean in week 5 the next is due by week 10.
+- A confirmed visit in the week the cap would force cancels that turn
+  (decided Sept 28 2026, after the build). Before this, the turn became prep
+  and used up the person's clean.
 
 ## 10. Tests
 
@@ -136,6 +140,8 @@ Settled Sept 28 2026:
 - Unconfirmed visits place nothing.
 - The cap forces a turn with no visits, and never leaves more than 4 weeks
   between cleans.
+- A confirmed visit in the cap week cancels the forced turn. An unconfirmed
+  one does not.
 - Turns follow roster order from the seed. Week 1's existing assignment counts
   as turn 0.
 - Never two turns of the same chore in one week.

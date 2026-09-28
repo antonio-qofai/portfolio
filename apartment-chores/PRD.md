@@ -1,10 +1,14 @@
 # PRD — Apartment Chore Agent
 
-**Version:** v1.1 (pre-build)
-**Date:** September 20, 2026
+**Version:** v1.3
+**Date:** September 20, 2026, updated September 28, 2026
 **Changed in v1.1:** cleaner handling made event-driven with her real scope and
 prep list; per-chore prep tasks added; completion logging simplified to the
 Airtable app
+**Changed in v1.3 (Sept 28, 2026):** chore list, totals, and success criteria
+brought in line with the live base. Dust, Supply run, and Bathroom deep were
+dropped on Sept 22. Bathroom clean moved from weekly to the `after_cleaner`
+cadence on Sept 28 (`PRD-v1.2-after-cleaner.md`)
 **Apartment:** 123 Example St, Chicago, IL
 **Household:** 3 roommates, move-in Saturday September 26, 2026
 **Scope period:** UChicago Autumn Quarter 2026 — Monday Sept 28 through Friday Dec 11
@@ -70,18 +74,32 @@ Only cadences whose occurrence count divides by 3 are permitted:
 |---|---|---|
 | `weekly` | 9 | exactly 3 |
 | `every_3` (every 3rd active week) | 3 | exactly 1 |
+| `after_cleaner` (placed around confirmed cleaner visits) | 3 | exactly 1 |
+
+`after_cleaner` gives one turn per person by construction, so it always
+divides. Its weeks come from Cleaner Visits rather than an offset: 21 days
+after a confirmed visit, never more than 4 active weeks after the last clean,
+with a visit counting as a clean. The full rule is in
+`PRD-v1.2-after-cleaner.md`.
 
 **Biweekly is forbidden.** Over 9 active weeks it yields 5 occurrences and breaks
 evenness. If a chore feels like it needs biweekly, make it weekly or `every_3`.
 
 ### Expected totals
 
-- 6 weekly chores × 9 weeks = 54 assignments
-- 6 `every_3` chores × 3 occurrences = 18 assignments
-- **Total 72 → exactly 24 per person**
+- 5 weekly chores × 9 weeks = 45 assignments
+- 3 `every_3` chores × 3 occurrences = 9 assignments
+- 1 `after_cleaner` chore × 3 turns = 3 assignments
+- **Total 57, exactly 19 per person**
 
-With 6 weekly chores and 3 people, each person does exactly 2 weekly chores every
-week. The schedule is visibly balanced at a glance, not just in aggregate.
+History: 72 and 24 each at scoping, 63 and 21 after Sept 22, 57 and 19 since
+Sept 28. The numbers change with the chore list. The rule that every chore's
+occurrence count divides by the roster size does not.
+
+With 5 weekly chores and 3 people, each week one person has 1 weekly chore and
+the other two have 2. One `every_3` chore lands each week, and the bathroom
+turn lands in 3 weeks of the quarter, so a week is uneven by a chore or so
+while the quarter is exactly even.
 
 ---
 
@@ -91,8 +109,8 @@ These are the bar the build is judged against. Each is verifiable.
 
 | # | Criterion | How it's verified |
 |---|---|---|
-| SC1 | By 8:00 CT Monday of each active week, the week's assignments exist in Airtable — 6 weekly plus whichever `every_3` chores are due. No chore unassigned. | Query Assignments for that week |
-| SC2 | At quarter end, each roommate has exactly 24 assignments; each weekly chore appears exactly 3× per person, each `every_3` chore exactly 1× per person | Group-by query on Assignments |
+| SC1 | By 8:00 CT Monday of each active week, the week's assignments exist in Airtable: 5 weekly, plus whichever `every_3` chore is due, plus the `after_cleaner` turn if it lands that week. No chore unassigned. | Query Assignments for that week |
+| SC2 | At quarter end, each roommate has exactly 19 assignments; each weekly chore appears exactly 3× per person, each `every_3` and `after_cleaner` chore exactly 1× per person | Group-by query on Assignments |
 | SC3 | Monday digest email delivered to all 3 addresses on all 9 active weeks | Send log / inbox check |
 | SC4 | A completion can be logged from a phone in under 10 seconds, without logging in | Time it with a stopwatch, on a roommate's phone, not yours |
 | SC5 | A chore open past its due date generates exactly one nudge to its assignee, and at most one follow-up. Never nudges anyone else about it. | Inspect nudge log for one overdue case |
@@ -143,34 +161,47 @@ Stated explicitly because each was considered and deliberately rejected:
 
 ### 4.3 The chore list
 
-**Weekly — 6 chores, 2 per person per week, 3× each per quarter**
+The live base as of Sept 28, 2026. Airtable holds the full definition of done
+for each chore. These are summaries.
 
-| # | Chore | Area | Definition of done | Cleaner behavior | Prep task |
-|---|---|---|---|---|---|
-| 1 | Dishwasher duty | Kitchen | Own the dishwasher for the week — empty it whenever it's clean, however many cycles that is | `normal` | — |
-| 2 | Bathroom clean | Bathroom | Toilet, shower, sink, mirror | `convert_to_prep` | Clear the bathroom counter and floor — nothing left on surfaces |
-| 3 | Bathroom restock & bin | Bathroom | TP, hand soap, empty the bin | `normal` | — |
-| 4 | Kitchen surfaces | Kitchen | Counters, stovetop, microwave exterior, sink basin | `convert_to_prep` | Clear the counters and stovetop, run or empty the dishwasher, sink empty |
-| 5 | Floors — high traffic | Kitchen / Bath / Entry | Sweep, then wet Swiffer | `convert_to_prep` | Pick up everything off the kitchen, bathroom, and entry floors |
-| 6 | Common reset | Living / Dining | Dining table cleared, living room tidy, entryway clear | `normal` | — |
+**Weekly, 5 chores, 3× each per person per quarter**
 
-**Every 3 active weeks — 6 chores, 1 each per person per quarter**
-
-| # | Chore | Area | Offset | Definition of done | Cleaner behavior | Prep task |
+| # | Chore | Area | Seed | Definition of done | Cleaner behavior | Prep task |
 |---|---|---|---|---|---|---|
-| 7 | Floors — low traffic | Living / Dining | 0 | Sweep, then wet Swiffer | `convert_to_prep` | Pick up everything off the living and dining floors |
-| 8 | Dust | All common | 0 | Shelves, sills, TV, baseboards, radiators, fixtures | `convert_to_prep` | Clear the shelves and sills of clutter so surfaces are reachable |
-| 9 | Fridge purge | Kitchen | 1 | Toss expired, wipe one shelf | `normal` | — |
-| 10 | Appliance care | Kitchen | 1 | Microwave interior, oven wipe, descale kettle/coffee maker, disposal | `normal` | — |
-| 11 | Supply run | Shared | 2 | TP, paper towels, dish soap, trash bags, sponges, Swiffer pads + solution | `normal` | — |
-| 12 | Bathroom deep | Bathroom | 2 | Grout, drain, behind the toilet, wash bath mat and hand towels | `convert_to_prep` | Take garbage and recycling down, wash bath mat and hand towels |
+| 1 | Dishwasher duty | Kitchen | 0 | Own the dishwasher for the week. Run it when full, empty it when clean, however many cycles that takes. Not hand-washing anyone's dishes | `normal` | none |
+| 2 | Kitchen surfaces | Kitchen | 1 | Counters and stovetop cleared and wiped, microwave door and handle, sink basin rinsed | `convert_to_prep` | Clear the counters and stovetop, run or empty the dishwasher, sink empty. Take the garbage and recycling down |
+| 3 | Bathroom restock & bin | Bathroom | 1 | TP and hand soap checked and replaced, bin out | `normal` | none |
+| 4 | Floors — high traffic | Kitchen / Bath / Entry | 2 | Pick up, sweep, wet Swiffer if it needs it | `convert_to_prep` | Pick up everything off the kitchen, bathroom, and entry floors, and clear the bathroom counter |
+| 5 | Common reset | Living / Dining | 2 | Dining table clear, living room tidy, entryway free of shoes and bags | `normal` | none |
+
+**Every 3 active weeks, 3 chores, 1× each per person per quarter**
+
+| # | Chore | Area | Offset | Seed | Definition of done | Cleaner behavior | Prep task |
+|---|---|---|---|---|---|---|---|
+| 6 | Floors — low traffic | Living / Dining | 0 | 0 | Pick up, sweep including under the couch and table, wet Swiffer if it needs it | `convert_to_prep` | Pick up everything off the living and dining floors |
+| 7 | Fridge purge | Kitchen | 1 | 1 | Toss the expired and abandoned, wipe one shelf, rotating shelves over the quarter | `normal` | none |
+| 8 | Appliance care | Kitchen | 2 | 2 | Microwave inside, oven wipe, descale kettle and coffee maker, run the disposal clear | `normal` | none |
 
 Offset 0 lands on active weeks 1/4/7 → calendar weeks 1, 4, 7.
 Offset 1 lands on active weeks 2/5/8 → calendar weeks 2, 5, 8.
 Offset 2 lands on active weeks 3/6/9 → calendar weeks 3, 6, 10.
 
-Two `every_3` chores land per week, so weekly load is 6 weekly + 2 periodic = 8
-assignments across 3 people. Uneven within a given week, exactly even across the quarter.
+One `every_3` chore per offset, so exactly one lands each week.
+
+**After the cleaner, 1 chore, 1× each per person per quarter**
+
+| # | Chore | Area | Seed | Definition of done | Cleaner behavior | Prep task |
+|---|---|---|---|---|---|---|
+| 9 | Bathroom clean | Bathroom | 0 | Toilet, shower, sink and taps, mirror. Bath mat and hand towels in the wash. Grout, drains, and behind the toilet are Maria's | `convert_to_prep` | Clear the bathroom counter and floor, nothing left on surfaces |
+
+Placed per `PRD-v1.2-after-cleaner.md`, in rotation order from the seed:
+The owner (week 1, generated before the change and counted as his turn), then
+Blake, then Casey.
+
+**Dropped from the scoping list.** Dust, Supply run, and Bathroom deep were
+removed on Sept 22, 2026 once the cleaner's real scope was known: she dusts and
+does the bathroom deep work, and supplies are covered by the restock chore and
+the group-chat rule. Bathroom clean was weekly until Sept 28, 2026.
 
 **One-offs — not part of the rotation, assigned individually**
 
@@ -267,8 +298,13 @@ assignee = roster[(s_c + k) % len(roster)]
 Occurrence index is **per chore**, not calendar-derived, so each chore advances on
 its own clock.
 
-Seeds are staggered `[0,0,1,1,2,2]` across the 6 weekly chores so that week 1 is
-already balanced at 2 chores per person, and likewise across the 6 `every_3` chores.
+Seeds are staggered `[0,1,1,2,2]` across the 5 weekly chores, so every week one
+person has 1 weekly chore and the others 2, and the `every_3` chores take seeds
+0, 1, and 2 at offsets 0, 1, and 2.
+
+`after_cleaner` chores use the same formula, with `k` counting turns taken this
+term rather than weeks elapsed. Which week a turn lands in comes from
+`PRD-v1.2-after-cleaner.md`, not from the calendar.
 
 Because both 9 and 3 are divisible by 3, every chore lands exactly evenly with no
 rebalancing pass required.
@@ -314,6 +350,12 @@ morning of the visit**, derived from the Cleaner Visits row — not the usual
 end-of-week. Prep completed after she arrives is worthless. Do not hardcode a day
 of the week; read the date off the row.
 
+**Visits also place `after_cleaner` chores.** A confirmed visit sets when the
+next Bathroom clean turn falls (21 days later) and resets the 4-week cap. A
+visit in the week the cap would force a turn cancels that turn, since she does
+the bathroom that week. Projected rows place nothing, as above. See
+`PRD-v1.2-after-cleaner.md`.
+
 **A visit landing in an inactive week** (9 or 11) has no rotation to convert. Prep
 still has to happen, so fold it into that week's one-off task. For week 11 this is
 natural — the winter-break shutdown already clears the fridge and takes out trash.
@@ -352,7 +394,7 @@ only for names and definitions of done.
 
 | Dependency | Status | Note |
 |---|---|---|
-| Airtable account + API key + base ID | To set up | Free tier: 1,000 records/base. Expected usage ~72 assignments + completions — comfortable |
+| Airtable account + API key + base ID | To set up | Free tier: 1,000 records/base. Expected usage ~57 assignments a quarter — comfortable |
 | Gmail account for sending | To set up | **Must be a personal Gmail, not Workspace.** App passwords are unavailable on Workspace accounts, so the UChicago address cannot be the sender. Create a throwaway personal Gmail, enable 2FA, generate an app password, store as an Actions secret |
 | GitHub repo + Actions | To set up | Free |
 | Roommate email addresses | Resolved | Blake `roommate-b@example.edu`, Casey `roommate-c@example.edu`, plus your own |
@@ -432,6 +474,8 @@ data about where mess actually accumulates.
 | `CLAUDE.md` | Standing rules: never hardcode chores/people/rooms, ask before pushing, ask questions instead of assuming, keep it reusable for any apartment |
 | `README.md` | How a stranger runs this in five minutes — setup, secrets, how to trigger |
 | `PRD.md` | This document |
+| `PRD-v1.1-landlord-reader.md` | Spec for the landlord email reader |
+| `PRD-v1.2-after-cleaner.md` | Spec for the `after_cleaner` cadence |
 | `CHANGELOG.md` | One entry per push. This PRD is entry 1 |
 | `INDEX.md` | One line per file |
 
@@ -444,9 +488,10 @@ Carry these into v1; none blocks the build starting.
 1. **Your own name and email** for the roster. Blake and Casey are set.
 2. **Roommate buy-in on the House Rules** — the override rules only work if all
    three agreed to them. Do this before Sept 28, not after the first dispute.
-3. **Overlap with the cleaner.** She does floors, kitchen, bathroom, and dusting
-   monthly. Chores 7, 8, and 12 may now be specced thicker than they need to be.
-   Revisit at the week 5 review with real data rather than trimming them up front.
+3. **Overlap with the cleaner.** Partly resolved. Dust and Bathroom deep were
+   dropped on Sept 22, and Bathroom clean moved to `after_cleaner` on Sept 28.
+   Floors low traffic still overlaps her floor work. Revisit at the week 5 review
+   with real data.
 4. **LLM layer** — decide by early November whether v1.1 happens.
 5. **Reusability target** — this is specced for 3 people and 9 active weeks. The
    rotation math generalizes to any roster size, but *perfect* evenness requires

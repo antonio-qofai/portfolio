@@ -25,7 +25,9 @@ A turn lands in week W when any of these holds:
               delay, rolled forward past inactive weeks, and no other
               confirmed visit falls in W.
   cap         the last clean, a roommate turn or a confirmed visit, was
-              cap_active_weeks or more active weeks before W.
+              cap_active_weeks or more active weeks before W. A confirmed
+              visit in W itself is that week's clean, so it cancels the
+              forced turn.
   end of term the people still owed a turn are at least as many as the
               active weeks left, counting W.
 
@@ -100,8 +102,10 @@ def _place_one(chore, cadence, roster, active, visit_positions, targets, written
         if owed == 0:
             continue
 
+        # <= so a visit in W counts: the cleaner does it that week, and a
+        # forced turn would only become prep and waste the person's turn.
         last_clean = max(
-            (last_turn,) + tuple(p for p in visit_positions if p < position)
+            (last_turn,) + tuple(p for p in visit_positions if p <= position)
         )
         due = (
             position in targets

@@ -110,6 +110,19 @@ class TestCap(unittest.TestCase):
         with_visit = turns(place([visit(date(2026, 10, 15))]))
         self.assertNotIn(5, [week for week, _ in with_visit])
 
+    def test_visit_in_the_cap_week_cancels_the_forced_turn(self):
+        # From week 1 the cap would force week 5. The cleaner comes Oct 29,
+        # in week 5, so no turn there. Her visit targets Nov 19, week 8.
+        self.assertEqual(
+            turns(place([visit(date(2026, 10, 29))])),
+            [(1, "A"), (8, "B"), (10, "C")],
+        )
+
+    def test_unconfirmed_visit_in_the_cap_week_does_not_cancel(self):
+        self.assertIn(
+            (5, "B"), turns(place([visit(date(2026, 10, 29), confirmed=False)]))
+        )
+
     def test_cap_counts_active_weeks(self):
         # From a turn in week 5, four active weeks on is week 10 because
         # week 9 does not count. Calendar weeks would say week 9 or 8.
