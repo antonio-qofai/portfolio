@@ -80,8 +80,13 @@ def build(
     policy,
     behaviours,
     cleaner_visits=(),
+    placed=(),
 ):
     """Return the full schedule for the term, in week then chore order.
+
+    placed is assignments for chores the rotation engine does not place,
+    from src/placement.py. They get the same task text, due time, and
+    cleaner handling as everything else. chores must not include them.
 
     Pure and deterministic: the same inputs always produce the same output, so
     regenerating a week that already exists yields identical records rather
@@ -89,9 +94,15 @@ def build(
     """
     zone = ZoneInfo(policy.timezone)
     confirmed = _confirmed_visits_by_week(term, cleaner_visits)
+    # sorted is stable, so within a week the rotation's chore order is kept
+    # and placed chores follow it.
+    assignments = sorted(
+        rotation.generate(term, chores, roster, cadences) + tuple(placed),
+        key=lambda a: a.week.number,
+    )
 
     scheduled = []
-    for assignment in rotation.generate(term, chores, roster, cadences):
+    for assignment in assignments:
         detail = _detail_for(assignment.chore, details)
         behaviour = _behaviour_for(assignment.chore, detail, behaviours)
         visit = confirmed.get(assignment.week.number)
@@ -132,13 +143,14 @@ def build_week(
     policy,
     behaviours,
     cleaner_visits=(),
+    placed=(),
 ):
     """Return the schedule for a single calendar week of the term."""
     return tuple(
         item
         for item in build(
             term, chores, roster, cadences, details, policy, behaviours,
-            cleaner_visits,
+            cleaner_visits, placed,
         )
         if item.week.number == week_number
     )

@@ -1153,3 +1153,54 @@ to be live before Monday Oct 19 07:17 UTC. Under the stopgap, week 4 gives
 Blake Bathroom clean, which lands right after Maria's expected mid-October
 visit. No update email was sent. Week 1 was already generated, so nobody's
 current chores changed, and the Monday digest shows later weeks.
+
+## 24 - Build the after_cleaner cadence (Sept 28, 2026)
+
+Builds `PRD-v1.2-after-cleaner.md`. Bathroom clean stops being a fixed
+rotation and becomes one turn per person per term, placed from confirmed
+cleaner visits.
+
+Added:
+
+- `src/placement.py`: pure placement. A turn lands 21 days after a confirmed
+  visit (rolled past inactive weeks, skipped if the cleaner is back that
+  week), or when 4 active weeks have passed since the last clean, a visit
+  counting as a clean, or when the people still owed equal the active weeks
+  left. Rotation order from the seed. Written weeks are read back from
+  Assignments as history and never re-decided.
+- `PlacedCadence` and `PLACED_CADENCES` in `config/cadences.py`: the delay
+  and the cap, as data.
+- `tests/test_placement.py`: 24 tests. Four orchestrator tests with a placed
+  chore. 435 total, all passing.
+
+Changed:
+
+- `src/schedule.py`: `build` takes the placed assignments and gives them the
+  usual task text, due time, and cleaner conversion.
+- `src/orchestrator.py`: reads Assignments before building, so placement
+  sees history. Still one read of the table per run.
+- `tests/test_rotation.py`: the live shape is now 5 weekly and 3 `every_3`,
+  54 and 18 each before the placed chore.
+- CLAUDE.md totals and invariants, README chore section and totals line,
+  `scripts/setup_base.py` Cadence choices, INDEX.
+
+Checked against live Airtable, with Bathroom clean switched to
+`after_cleaner` in memory only: 57 assignments, 19 each. With no visits,
+The owner week 1, Blake week 5, Casey week 10. With a confirmed Oct 15
+visit, Blake week 6 and Casey week 10. No week puts 4 chores on anyone.
+
+Not yet deployed. Order matters:
+
+1. Push, so Actions runs this code. With Airtable still on `every_3` it
+   behaves exactly as before.
+2. Then set Bathroom clean's Cadence to `after_cleaner` in Airtable. The
+   option does not exist yet. The API cannot add a select choice through a
+   field update, so either add it in the Airtable UI or write the row with
+   `typecast`. Doing this before the push makes the Monday run fail on an
+   unknown cadence.
+3. Both before Monday Oct 19, 07:17 UTC, or week 4 gives Blake Bathroom
+   clean under the stopgap.
+
+Open, not blocking: a cap turn can land in a week the cleaner is confirmed
+for, since the spec counts only visits before the week. That turn becomes
+prep and still uses up the person's turn.

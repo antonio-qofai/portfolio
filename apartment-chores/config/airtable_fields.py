@@ -22,7 +22,7 @@ class _RosterFields:
 @dataclass(frozen=True)
 class _ChoreFields:
     name: str               # Text
-    cadence: str            # Single select: "weekly" or "every_3"
+    cadence: str            # Single select: "weekly", "every_3", or "after_cleaner"
     offset: str             # Number (integer, 0-based) — optional, defaults to 0
     seed: str               # Number (integer, 0-based) — optional, defaults to 0
     task: str               # Long text — definition of done in a normal week

@@ -61,15 +61,22 @@ and flag it rather than working around it.
   does every chore the same number of times. Do not add a cadence whose occurrence
   count is not divisible by the roster size.
 - **Biweekly is forbidden.** It yields 5 occurrences over 9 active weeks.
-- **Expected totals:** 6 weekly × 9 = 54, plus 3 `every_3` × 3 = 9. Total 63,
-  exactly 21 per person. If a run produces different numbers, something is wrong —
-  fail, don't correct silently. (Was 72 and 24 until Sept 22, 2026, when Dust,
-  Bathroom deep, and Supply run were dropped. The principle is the arithmetic,
-  not the specific numbers: recompute this line whenever the chore list changes.)
+- **Expected totals:** 5 weekly × 9 = 45, plus 3 `every_3` × 3 = 9, plus 1
+  `after_cleaner` × 3 = 3. Total 57, exactly 19 per person. If a run produces
+  different numbers, something is wrong — fail, don't correct silently. (Was 72
+  and 24 until Sept 22, 2026, when Dust, Bathroom deep, and Supply run were
+  dropped, then 63 and 21 until Sept 28, 2026, when Bathroom clean moved from
+  weekly to `after_cleaner`. The principle is the arithmetic, not the specific
+  numbers: recompute this line whenever the chore list changes.)
 - **One `every_3` chore per offset.** With three of them at offsets 0, 1, and 2,
-  every week carries 6 weekly plus 1 periodic and splits 3/2/2. Two chores sharing
-  an offset land on the same person if they also share a seed, which makes that
-  week 4/2/2. Quarter totals survive it; the week does not.
+  every week carries exactly one periodic. Two chores sharing an offset land on
+  the same person if they also share a seed, which puts two extra chores on one
+  person that week. Quarter totals survive it; the week does not.
+- **`after_cleaner` is one turn per person per term.** Its weeks come from
+  confirmed Cleaner Visits (21 days after a visit, a 4 active week cap between
+  cleans, a visit counts as a clean), not from an offset. Spec in
+  `PRD-v1.2-after-cleaner.md`. Its written weeks are read back as history and
+  never re-decided.
 - **Rotation:** `assignee = roster[(seed + occurrence_index) % len(roster)]`.
   Occurrence index is per chore, not derived from the calendar.
 - **Generate forward, never rewrite.** Edits affect future weeks only. Never
@@ -152,8 +159,9 @@ In a **confirmed** cleaner week (a row in Cleaner Visits with `Confirmed` checke
 The rotation math is the thing most worth testing and the thing least likely to
 fail loudly if wrong. Cover:
 
-- A full 9-week generation produces exactly 24 assignments per person.
-- Each weekly chore appears exactly 3× per person; each `every_3` chore exactly 1×.
+- A full 9-week generation produces the expected per-person total (19 now).
+- Each weekly chore appears exactly 3× per person; each `every_3` and
+  `after_cleaner` chore exactly 1×.
 - Adding a chore mid-quarter does not change any already-generated week.
 - A cleaner week converts the right chores, keeps assignees, and preserves counts.
 - Inactive weeks (9 and 11) generate no rotation assignments.

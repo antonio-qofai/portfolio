@@ -70,7 +70,11 @@ def main():
                     "name": "Cadence",
                     "type": "singleSelect",
                     "options": {
-                        "choices": [{"name": "weekly"}, {"name": "every_3"}]
+                        "choices": [
+                            {"name": "weekly"},
+                            {"name": "every_3"},
+                            {"name": "after_cleaner"},
+                        ]
                     },
                 },
                 {

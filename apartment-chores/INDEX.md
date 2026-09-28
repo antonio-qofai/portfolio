@@ -8,13 +8,13 @@ One line per file.
 | `README.md` | How a stranger sets this up and runs it in five minutes |
 | `PRD.md` | The spec |
 | `PRD-v1.1-landlord-reader.md` | Spec for the landlord email reader: proposes items, never confirms them. Built, running in dry-run |
-| `PRD-v1.2-after-cleaner.md` | Spec for the `after_cleaner` cadence: Bathroom clean once per person, 3 weeks after a confirmed visit. Not built |
+| `PRD-v1.2-after-cleaner.md` | Spec for the `after_cleaner` cadence: Bathroom clean once per person, 3 weeks after a confirmed visit. Built, not deployed |
 | `CHANGELOG.md` | One entry per push, plus the handoff note for the next session |
 | `INDEX.md` | This file |
 | `.github/workflows/scheduler.yml` | The cron job: weekday mornings, checkout, install, run the orchestrator |
 | `.github/workflows/read_inbox.yml` | The landlord inbox reader's cron job: daily, its own install step, starts in dry-run |
 | `config/calendar.py` | The `Term` shape and Autumn Quarter 2026 as data: start date, week count, inactive weeks |
-| `config/cadences.py` | The `Cadence` shape and the cadence registry, mapping a name to an interval in active weeks |
+| `config/cadences.py` | The `Cadence` shape and the cadence registry, mapping a name to an interval in active weeks, plus `PlacedCadence` for `after_cleaner`: delay and cap |
 | `config/cleaner.py` | The `CleanerBehaviour` shape and the registry of what a chore does in a confirmed cleaner week |
 | `config/due_policy.py` | Timezone and due times: ordinary chores Sunday 20:00 Central, cleaner prep 11:00 on the visit date |
 | `config/rules.py` | The `RuleCategory` shape and the override / standing registry, with each category's heading and order |
@@ -28,6 +28,7 @@ One line per file.
 | `config/airtable_fields.py` | Every Airtable table and field name. Rename a field in Airtable by changing one string here |
 | `src/rotation.py` | The rotation and calendar engine: active weeks, occurrence indexes, whose turn it is. Pure functions, no I/O |
 | `src/schedule.py` | The schedule builder: task text, due datetimes, cleaner prep conversion. Pure functions, no I/O |
+| `src/placement.py` | Placement for `after_cleaner` chores: which week each turn lands in, from confirmed visits and written history. Pure functions, no I/O |
 | `src/digest.py` | The weekly digest renderer: one shared plain text body plus the house rules in force. Pure functions, no I/O |
 | `src/nudge.py` | Which overdue assignments get a nudge and which kind, and the body for each. Pure functions, no clock |
 | `src/airtable.py` | The HTTP client: reads every table, writes Assignments, reads and writes the nudge log. Validates on read and fails with the record ID |
@@ -47,6 +48,7 @@ One line per file.
 | `tests/test_report_job.py` | Job script: once-a-day skip, export when stale or errored, and the launchd plist |
 | `tests/test_rotation.py` | Invariant tests for the engine: quarter totals, per-chore evenness, inactive weeks, a four-person term, and the failure cases |
 | `tests/test_schedule.py` | Tests for the schedule builder: due times, daylight saving, cleaner conversion, and the failure cases |
+| `tests/test_placement.py` | Tests for placement: visit targets, the cap, end of term, rotation order, history, and the 57 / 19 totals |
 | `tests/test_digest.py` | Tests for the digest: the week's split, cleaner weeks, rule activation dates, and that it never mentions who is behind |
 | `tests/test_nudge.py` | Tests for the nudge rules: one first, one follow-up at 48h, never a third, never before the due date |
 | `tests/test_airtable.py` | Tests for the record parsers, the assignment identity tuple, and the nudge log round trip. No HTTP |
@@ -54,4 +56,4 @@ One line per file.
 | `tests/test_inbox.py` | The allowlist, and proof that only the landlord's genuine mail is fetched past its headers (L6) |
 | `tests/test_extract.py` | The model request's shape, and every check on the model's answer, against hand-written answers |
 | `tests/test_read_inbox.py` | The inbox reader end to end against fakes: L2 through L7, the Airtable budget, dry-run |
-| `tests/test_orchestrator.py` | End-to-end tests against a fake client: 72 assignments, idempotent generation, digest recipients, nudge routing |
+| `tests/test_orchestrator.py` | End-to-end tests against a fake client: 72 assignments (75 with a placed chore), idempotent generation, digest recipients, nudge routing |

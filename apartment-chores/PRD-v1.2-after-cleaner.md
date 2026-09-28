@@ -1,6 +1,6 @@
 # PRD v1.2 - Chores placed after the cleaner
 
-**Status:** spec settled Sept 28 2026, not built
+**Status:** built Sept 28 2026, not yet deployed. See CHANGELOG entry 24
 **Date:** September 28, 2026
 **Deadline:** live before the week 4 run, Monday Oct 19 2026, 07:17 UTC
 **Depends on:** v1 (`PRD.md`) and the Cleaner Visits table

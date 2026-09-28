@@ -34,3 +34,28 @@ CADENCES = {
         Cadence(name="every_3", interval=3),
     )
 }
+
+
+@dataclass(frozen=True)
+class PlacedCadence:
+    """A chore placed around confirmed cleaner visits, not on a fixed interval.
+
+    Each person gets exactly one turn per term, so the occurrence count is the
+    roster size by construction and always divides evenly. Which week a turn
+    lands in comes from the visits: delay_days after a confirmed visit, and
+    never more than cap_active_weeks active weeks after the last clean, where
+    a confirmed visit counts as a clean. Inactive weeks do not use up the cap.
+    See PRD-v1.2-after-cleaner.md.
+    """
+
+    name: str
+    delay_days: int
+    cap_active_weeks: int
+
+
+PLACED_CADENCES = {
+    cadence.name: cadence
+    for cadence in (
+        PlacedCadence(name="after_cleaner", delay_days=21, cap_active_weeks=4),
+    )
+}

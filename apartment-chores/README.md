@@ -59,9 +59,12 @@ rename a field in Airtable, change the string there and nowhere else.
 Enter these by hand in Airtable. `PRD.md` section 4.3 has a chore list and
 section 4.4 has a set of house rules you can copy.
 
-**Chores.** One row per chore. `Cadence` is `weekly` or `every_3`. `Seed` is
-0, 1, or 2 and sets who does the first occurrence. `Offset` only applies to
-`every_3` and picks which of the three weeks it lands on. `Cleaner behaviour`
+**Chores.** One row per chore. `Cadence` is `weekly`, `every_3`, or
+`after_cleaner`. `Seed` is 0, 1, or 2 and sets who does the first occurrence.
+`Offset` only applies to `every_3` and picks which of the three weeks it lands
+on. An `after_cleaner` chore gets one turn per person per term, placed 3 weeks
+after a confirmed cleaner visit and never more than 4 active weeks after the
+last clean (see `PRD-v1.2-after-cleaner.md`). `Cleaner behaviour`
 is `normal` or `convert_to_prep`; anything set to `convert_to_prep` must also
 have a `Prep task`.
 
@@ -71,7 +74,8 @@ makes that week lopsided. Quarter totals come out even either way, which is
 why nothing catches this for you.
 
 The arithmetic has to divide. Over 9 active weeks with 3 people, `weekly`
-gives 9 occurrences and `every_3` gives 3 — both divide by 3, so everyone
+gives 9 occurrences, `every_3` gives 3, and `after_cleaner` gives one per
+person by construction — all divide by 3, so everyone
 does everything the same number of times. A cadence that does not divide by
 the roster size is rejected at generation time rather than rounded off.
 
@@ -137,7 +141,8 @@ A dry run reads Airtable, prints the whole term's totals, prints the
 assignments it would write and the emails it would send, and changes nothing.
 It needs the Airtable secrets but not the Gmail ones.
 
-Check the totals line. With 3 people it should read 72 assignments, 24 each.
+Check the totals line. With the live chore list and 3 people it should read
+57 assignments, 19 each.
 If it does not, the seeded chores do not divide evenly and the digest is not
 the thing to fix.
 

@@ -648,6 +648,69 @@ class TestClientConstruction(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             orchestrator._client()
 
+class PlacedFakeClient(FakeClient):
+    """The fixture plus one after_cleaner chore, as Bathroom clean is live."""
+
+    def chores(self):
+        return make_chores() + [
+            (
+                Chore(key="recAC", cadence="after_cleaner", seed=0),
+                ChoreDetail(
+                    name="Placed chore",
+                    task="Do the placed thing",
+                    cleaner_behaviour="convert_to_prep",
+                    prep_task="Prep for the placed chore",
+                ),
+            )
+        ]
+
+
+class TestPlacedChore(OrchestratorCase):
+    """PRD-v1.2 wired through the orchestrator: history in, one turn each."""
+
+    # Week 1 already written, with PEOPLE[0] holding the placed chore.
+    HISTORY = {(1, "recAC", PEOPLE[0]): "recHist"}
+
+    def client(self, visits=()):
+        return PlacedFakeClient(visits=visits, generated={1}, record_ids=self.HISTORY)
+
+    def placed(self, context):
+        return [
+            (item.week.number, item.assignee)
+            for item in context.scheduled
+            if item.chore.key == "recAC"
+        ]
+
+    def test_seventy_five_and_twenty_five_each(self):
+        context = self.load(self.client())
+        self.assertEqual(len(context.scheduled), 75)
+        for person in PEOPLE:
+            count = sum(1 for item in context.scheduled if item.assignee == person)
+            self.assertEqual(count, 25, "%s has %d" % (person, count))
+
+    def test_history_counts_and_cap_places_the_rest(self):
+        context = self.load(self.client())
+        self.assertEqual(
+            self.placed(context), [(1, PEOPLE[0]), (5, PEOPLE[1]), (10, PEOPLE[2])]
+        )
+
+    def test_confirmed_visit_moves_the_turn(self):
+        visits = [CleanerVisit(visit_date=date(2026, 10, 15), confirmed=True)]
+        context = self.load(self.client(visits))
+        self.assertEqual(
+            self.placed(context), [(1, PEOPLE[0]), (6, PEOPLE[1]), (10, PEOPLE[2])]
+        )
+
+    def test_generating_the_target_week_writes_it(self):
+        visits = [CleanerVisit(visit_date=date(2026, 10, 15), confirmed=True)]
+        client = self.client(visits)
+        context = self.load(client)
+        week = next(w for w in context.weeks if w.number == 6)
+        self.run_quietly(orchestrator._generate, context, week, False)
+        placed = [item for item in client.written if item.chore.key == "recAC"]
+        self.assertEqual([(i.week.number, i.assignee) for i in placed], [(6, PEOPLE[1])])
+        self.assertFalse(placed[0].is_prep)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -194,19 +194,20 @@ class TestGenerateForwardNeverRewrite(unittest.TestCase):
 
 
 class TestLiveApartmentShape(unittest.TestCase):
-    """The configuration actually in Airtable: 6 weekly, 3 every_3.
+    """The rotation part of the live base: 5 weekly, 3 every_3.
 
     Dust, Bathroom deep, and Supply run were dropped in Sept 2026 once the
-    cleaner's real scope was known. The totals changed from 72 and 24 each
-    to 63 and 21 each, which is fine because the invariant is that every
-    chore's occurrence count divides by the roster, not that the total is
-    any particular number. These tests pin the new arithmetic so a future
-    edit cannot quietly break it.
+    cleaner's real scope was known, taking the totals from 72 and 24 each to
+    63 and 21. On Sept 28 2026 Bathroom clean left the rotation for the
+    after_cleaner cadence (PRD-v1.2), which adds one turn each on top of
+    what is pinned here: 57 and 19 each, tested in tests/test_placement.py.
+    The invariant is that every chore's occurrence count divides by the
+    roster, not that the total is any particular number.
     """
 
     WEEKLY = tuple(
         Chore(key="w%d" % i, cadence="weekly", offset=0, seed=seed)
-        for i, seed in enumerate((0, 0, 1, 1, 2, 2))
+        for i, seed in enumerate((0, 1, 1, 2, 2))
     )
     # One per offset, so every week carries exactly one periodic chore.
     PERIODIC = tuple(
@@ -218,12 +219,12 @@ class TestLiveApartmentShape(unittest.TestCase):
     def generate(self):
         return rotation.generate(AUTUMN_2026, self.CHORES, ROSTER, CADENCES)
 
-    def test_sixty_three_assignments(self):
-        self.assertEqual(len(self.generate()), 63)
+    def test_fifty_four_assignments(self):
+        self.assertEqual(len(self.generate()), 54)
 
-    def test_twenty_one_each(self):
+    def test_eighteen_each(self):
         counts = Counter(a.assignee for a in self.generate())
-        self.assertEqual(set(counts.values()), {21})
+        self.assertEqual(set(counts.values()), {18})
 
     def test_each_weekly_chore_three_times_per_person(self):
         assignments = self.generate()
@@ -241,27 +242,20 @@ class TestLiveApartmentShape(unittest.TestCase):
             )
             self.assertEqual(set(counts.values()), {1}, chore.key)
 
-    def test_every_week_carries_seven_chores(self):
+    def test_every_week_carries_six_chores(self):
         by_week = Counter(a.week.number for a in self.generate())
-        self.assertEqual(set(by_week.values()), {7})
-
-    def test_every_week_splits_three_two_two(self):
-        """One periodic per offset is what buys this. Two would make it 4/2/2."""
-        assignments = self.generate()
-        for week in rotation.active_weeks(AUTUMN_2026):
-            counts = Counter(
-                a.assignee for a in assignments if a.week.number == week.number
-            )
-            self.assertEqual(
-                sorted(counts.values(), reverse=True), [3, 2, 2], week.number
-            )
+        self.assertEqual(set(by_week.values()), {6})
 
     def test_the_plan_validates(self):
         rotation.validate_plan(AUTUMN_2026, self.CHORES, ROSTER, CADENCES)
 
     def test_two_periodics_on_one_offset_and_seed_skews_a_week(self):
         """Why the offsets are spread. Totals survive; the week does not."""
-        clashing = self.WEEKLY + (
+        six_weekly = tuple(
+            Chore(key="w%d" % i, cadence="weekly", offset=0, seed=seed)
+            for i, seed in enumerate((0, 0, 1, 1, 2, 2))
+        )
+        clashing = six_weekly + (
             Chore(key="p0", cadence="every_3", offset=0, seed=0),
             Chore(key="p1", cadence="every_3", offset=0, seed=0),
         )

@@ -27,7 +27,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from config.cadences import CADENCES
+from config.cadences import CADENCES, PLACED_CADENCES
 from config.calendar import AUTUMN_2026
 from config.cleaner import CLEANER_BEHAVIOURS
 from config.digest_copy import DEFAULT_DIGEST_COPY
@@ -36,7 +36,7 @@ from config.nudge_copy import DEFAULT_NUDGE_COPY
 from config.digest_style import DEFAULT_DIGEST_STYLE
 from config.rules import RULE_CATEGORIES
 from config.sender import SENDER_NAME
-from src import digest, nudge, rotation, schedule
+from src import digest, nudge, placement, rotation, schedule
 from src.airtable import AirtableClient
 from src.email_sender import send_email
 
@@ -141,13 +141,24 @@ def _load(client):
             "the roster has no active people; there is nobody to assign to"
         )
     pairs = client.chores()
-    chores = tuple(chore for chore, _ in pairs)
     details = {chore.key: detail for chore, detail in pairs}
+    fixed = tuple(c for c, _ in pairs if c.cadence not in PLACED_CADENCES)
+    follows_cleaner = tuple(c for c, _ in pairs if c.cadence in PLACED_CADENCES)
     rules = tuple(client.rules())
     visits = tuple(client.cleaner_visits())
+    # One read of Assignments for the whole run. Taken before anything
+    # is written, which is safe because the only week a run writes is
+    # the current one and nothing in it can be overdue yet. Placed chores
+    # need it up front: their written weeks are history, not recomputed.
+    assignments = client.assignments(roster)
 
+    placed = placement.place(
+        TERM, follows_cleaner, roster, PLACED_CADENCES, visits,
+        assignments.week_numbers, tuple(assignments.record_ids),
+    )
     scheduled = schedule.build(
-        TERM, chores, roster, CADENCES, details, POLICY, CLEANER_BEHAVIOURS, visits
+        TERM, fixed, roster, CADENCES, details, POLICY, CLEANER_BEHAVIOURS,
+        visits, placed,
     )
     _report_totals(scheduled, roster)
 
@@ -164,10 +175,7 @@ def _load(client):
         rules=rules,
         scheduled=scheduled,
         weeks=rotation.weeks(TERM),
-        # One read of Assignments for the whole run. Taken before anything
-        # is written, which is safe because the only week a run writes is
-        # the current one and nothing in it can be overdue yet.
-        assignments=client.assignments(roster),
+        assignments=assignments,
     )
 
 
