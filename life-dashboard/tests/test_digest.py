@@ -115,3 +115,11 @@ def test_run_needs_credentials(config, tmp_path, monkeypatch):
     monkeypatch.delenv("GMAIL_APP_PASSWORD", raising=False)
     out = digest.run(config, t(7), tmp_path, True, lambda *_: pytest.fail("sent without credentials"))
     assert "GMAIL_APP_PASSWORD" in out
+
+
+def test_test_send_is_marked_and_not_counted(config, tmp_path, env):
+    brief(tmp_path)
+    sent = []
+    assert digest.send_test(tmp_path, lambda msg, *_: sent.append(msg["Subject"])) == "test sent to me@example.com"
+    assert sent == ["[Test] Morning brief, Sat Sep 26"]
+    assert digest.last_sent(tmp_path) is None

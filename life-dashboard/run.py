@@ -7,6 +7,7 @@
                                       (the scheduled launchd job)
     uv run run.py --digest            email today's digest if it's due and not yet sent
                                       (the digest launchd job)
+    uv run run.py --digest-test       email the current brief now, marked [Test]
 """
 
 from __future__ import annotations
@@ -15,6 +16,8 @@ import argparse
 import functools
 import http.server
 import json
+import socket
+import time
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -33,6 +36,24 @@ def last_scheduled_time(config: dict, now: datetime) -> datetime:
 
 def needs_run(config: dict, now: datetime, last: datetime | None) -> bool:
     return last is None or last < last_scheduled_time(config, now)
+
+
+# After a scheduled wake the Mac can run jobs before Wi-Fi is back; every
+# connector then fails DNS. Wait for it, and skip the build if it never comes.
+NETWORK_HOST = "oauth2.googleapis.com"
+NETWORK_WAIT_SECONDS = 120
+
+
+def network_up(host: str = NETWORK_HOST, wait: float = NETWORK_WAIT_SECONDS, step: float = 5) -> bool:
+    deadline = time.monotonic() + wait
+    while True:
+        try:
+            socket.getaddrinfo(host, 443)
+            return True
+        except OSError:
+            if time.monotonic() >= deadline:
+                return False
+            time.sleep(step)
 
 
 def build(config: dict, trigger: str) -> None:
@@ -117,8 +138,13 @@ def main() -> None:
     parser.add_argument("--no-build", action="store_true", help="skip building (use with --serve)")
     parser.add_argument("--catch-up", action="store_true", help="build only if the last scheduled run was missed")
     parser.add_argument("--digest", action="store_true", help="email today's digest if it's due")
+    parser.add_argument("--digest-test", action="store_true", help="email the current brief now, marked [Test]")
     args = parser.parse_args()
     config = load_config()
+
+    if args.digest_test:
+        print(digest.send_test(DATA_DIR), flush=True)
+        return
 
     if args.digest:
         # The build job makes the brief; this job only sends, so the two never build twice.
@@ -129,10 +155,17 @@ def main() -> None:
 
     if args.catch_up:
         now = datetime.now(ZoneInfo(config.get("timezone", "America/Chicago")))
-        if needs_run(config, now, last_generated_at()):
-            build(config, trigger="scheduled")
+        stamp = now.isoformat(timespec="seconds")
+        if not needs_run(config, now, last_generated_at()):
+            print(f"{stamp} brief is current, skipping", flush=True)
+        elif not network_up():
+            # No brief is written, so the next launchd trigger tries again.
+            print(f"{stamp} no network after {NETWORK_WAIT_SECONDS}s, will retry", flush=True)
+            DATA_DIR.mkdir(exist_ok=True)
+            with open(DATA_DIR / "runs.log", "a") as log:
+                log.write(f"{stamp}\tscheduled\tskipped=no_network\n")
         else:
-            print(f"{now.isoformat(timespec='seconds')} brief is current, skipping", flush=True)
+            build(config, trigger="scheduled")
     elif not args.no_build:
         build(config, trigger="manual")
 

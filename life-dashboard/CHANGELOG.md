@@ -14,7 +14,12 @@ M6 Phone, email digest (code complete; waiting on the Gmail app password). Tails
 - Sent from `GMAIL_ADDRESS` to itself over Gmail SMTP with an app password (`GMAIL_APP_PASSWORD`). This is not an OAuth scope; Google access stays read-only.
 - `digest` in config.yaml (7:00, window until 12:00) and a third launchd job that runs at 7:00, at login and every 15 minutes. It sends once a day, only after the day's brief exists, never builds itself, and retries on failure. `data/digests.log` records each attempt.
 - `.env.example`: `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD`, `DASHBOARD_URL`.
-- Tests for the digest body, QofAI exclusion, the send window, once-a-day sending, retry after failure, and missing credentials.
+- `run.py --digest-test`: send the current brief now, marked [Test], without counting as the day's digest.
+- Tests for the digest body, QofAI exclusion, the send window, once-a-day sending, retry after failure, missing credentials, and test sends.
+
+### Fixed
+
+- Scheduled builds ran right after the 5:55 wake, before Wi-Fi was back, so every network connector and both Claude calls failed DNS on Sep 26, 27 and 28. The build still wrote a brief, so catch-up considered the day done and never retried. A scheduled build now waits up to 2 minutes for DNS; if the network never comes, it writes no brief and logs `skipped=no_network` in `data/runs.log`, and the next 30-minute trigger tries again.
 
 ### Changed
 

@@ -39,3 +39,23 @@ def test_launchd_plists():
     digest = jobs["com.user.life-dashboard.digest"]
     assert digest["ProgramArguments"][1:] == ["run.py", "--digest"]
     assert digest["StartCalendarInterval"] == [{"Hour": 7, "Minute": 0}] and digest["RunAtLoad"]
+
+
+def test_network_up_waits_then_gives_up(monkeypatch):
+    import socket
+
+    import run
+
+    calls = []
+
+    def dns(host, port):
+        calls.append(host)
+        if len(calls) < 3:
+            raise socket.gaierror(8, "nodename nor servname provided")
+
+    monkeypatch.setattr(socket, "getaddrinfo", dns)
+    monkeypatch.setattr(run.time, "sleep", lambda _: None)
+    assert run.network_up(wait=60) and len(calls) == 3
+
+    monkeypatch.setattr(socket, "getaddrinfo", lambda *_: (_ for _ in ()).throw(socket.gaierror(8, "down")))
+    assert not run.network_up(wait=0)

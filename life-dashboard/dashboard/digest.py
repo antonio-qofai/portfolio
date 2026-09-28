@@ -147,6 +147,20 @@ def _log(data_dir: Path, now: datetime, status: str) -> None:
         f.write(f"{now.isoformat(timespec='seconds')}\t{status}\n")
 
 
+def _prepare(data_dir: Path) -> tuple[EmailMessage, str, str]:
+    brief = json.loads((data_dir / "brief.json").read_text())
+    address, password = credentials()
+    return compose(brief, address, os.environ.get("DASHBOARD_URL", "").strip()), address, password
+
+
+def send_test(data_dir: Path, sender: Any = None) -> str:
+    """Send the current brief now, marked [Test]. Doesn't count as the day's digest."""
+    msg, address, password = _prepare(data_dir)
+    msg.replace_header("Subject", "[Test] " + msg["Subject"])
+    (sender or send)(msg, address, password)
+    return f"test sent to {address}"
+
+
 def run(config: dict, now: datetime, data_dir: Path, brief_current: bool, sender: Any = None) -> str:
     """Send today's digest if it's due. Returns what happened, for the job log.
 
@@ -159,10 +173,8 @@ def run(config: dict, now: datetime, data_dir: Path, brief_current: bool, sender
     if not brief_current:
         return "today's brief isn't built yet; will retry"
     try:
-        brief = json.loads((data_dir / "brief.json").read_text())
-        address, password = credentials()
-        link = os.environ.get("DASHBOARD_URL", "").strip()
-        (sender or send)(compose(brief, address, link), address, password)
+        msg, address, password = _prepare(data_dir)
+        (sender or send)(msg, address, password)
     except (DigestError, OSError, ValueError, KeyError) as e:
         _log(data_dir, now, f"failed: {e}")
         return f"failed, will retry: {e}"

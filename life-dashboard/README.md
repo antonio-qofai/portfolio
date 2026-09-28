@@ -53,7 +53,8 @@ The buttons only work on the live page, since they post to the local server. It 
 A short plain-text email with Pressing actions and their why, today's calendar, chores, the weather line, and a link to the page (`DASHBOARD_URL`). QofAI items stay out. It goes from `GMAIL_ADDRESS` to itself over Gmail SMTP with an app password (`GMAIL_APP_PASSWORD`; needs 2FA, create it at myaccount.google.com/apppasswords), at `digest.hour`, or on wake until `digest.until_hour`. It sends once a day, only after the day's brief is built, and retries every 15 minutes on failure. `data/digests.log` records each attempt. The subject is always "Morning brief, <day>", so a Gmail filter can label it and skip the inbox.
 
 ```sh
-uv run run.py --digest    # send now if it's due and not yet sent today
+uv run run.py --digest       # send now if it's due and not yet sent today
+uv run run.py --digest-test  # send the current brief now, marked [Test]; doesn't count as today's
 ```
 
 ## Scheduling
