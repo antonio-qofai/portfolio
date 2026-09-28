@@ -293,3 +293,9 @@ def test_allowed_origins_from_dashboard_url():
     origins = run.allowed_origins("127.0.0.1", 8000, "https://mac.example.ts.net/")
     assert origins["mac.example.ts.net"] == "https://mac.example.ts.net"
     assert len(run.allowed_origins("127.0.0.1", 8000, "not a url")) == 2
+
+
+def test_chore_summaries_stay_out_of_ranking():
+    chore = Item(**{**CHORE.to_dict(), "summary": "Scrub the sink, then the taps"})
+    [p] = actions.candidate_payload([actions.surfaced(chore)])
+    assert p["title"] == "Take out recycling" and p["summary"] == ""

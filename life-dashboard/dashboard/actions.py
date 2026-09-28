@@ -246,7 +246,8 @@ def candidate_payload(cands: list[Surfaced]) -> list[dict]:
             "id": f"c{n}",
             "source": c.item.source,
             "title": c.item.title,
-            "summary": c.why or c.item.summary,
+            # Chore summaries are long definitions of done; the title and due date suffice.
+            "summary": c.why or ("" if c.item.source == "chores" else c.item.summary),
             when: c.item.timestamp,
             "due": c.item.due,
             "hints": c.item.urgency_hints,

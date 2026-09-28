@@ -11,6 +11,7 @@ Chores card shows titles only.
 ### Changed
 
 - The Chores card no longer shows each chore's description (the chore agent's full definition of done); title, urgency and due date stay.
+- The ranking prompt no longer gets chore descriptions either; it ranks chores by title, due date and urgency.
 
 M6 Phone, Tailscale access (live; morning check pending).
 
