@@ -57,6 +57,19 @@ uv run run.py --digest       # send now if it's due and not yet sent today
 uv run run.py --digest-test  # send the current brief now, marked [Test]; doesn't count as today's
 ```
 
+## Phone access (Tailscale)
+
+`tailscale serve` proxies `https://<mac>.<tailnet>.ts.net` to the server on 127.0.0.1:8000, reachable only from devices signed into your tailnet, never the open internet. The server stays bound to localhost. Put that address in `.env` as `DASHBOARD_URL`: the digest links to it, and the server accepts check-offs and feedback from it. The page is reachable only while the Mac is awake and online.
+
+One-time setup: install the Tailscale app on the Mac and the phone and sign in with the same account; enable Serve for the tailnet when `tailscale serve` asks; then
+
+```sh
+/Applications/Tailscale.app/Contents/MacOS/Tailscale serve --bg --https=443 http://127.0.0.1:8000
+/Applications/Tailscale.app/Contents/MacOS/Tailscale serve status
+```
+
+The serve setting persists across restarts. Keep the Tailscale app set to open at login.
+
 ## Scheduling
 
 Three launchd jobs keep the brief fresh, the page up, and the digest sent.
@@ -65,7 +78,7 @@ Three launchd jobs keep the brief fresh, the page up, and the digest sent.
 | --- | --- |
 | `...life-dashboard.build` | `run.py --catch-up` at 6:00 AM, at login, on wake after a missed 6:00, and every 30 min. Skips if today's brief already exists. |
 | `...life-dashboard.digest` | `run.py --digest` at 7:00, at login, and every 15 min. Sends once a day in the window, after the build. |
-| `...life-dashboard.serve` | `run.py --serve --no-build`, always on, localhost only. Serves `web/` and the check-off and feedback endpoints. Reinstall after changing server code. |
+| `...life-dashboard.serve` | `run.py --serve --no-build`, always on, localhost only (Tailscale proxies to it). Serves `web/` and the check-off and feedback endpoints. Reinstall after changing server code or `DASHBOARD_URL`. |
 
 ```sh
 uv sync                                  # creates .venv, which launchd uses
@@ -133,7 +146,7 @@ From PRD.md, one milestone at a time.
 | M3 Email | Personal Gmail and UChicago, then QofAI after policy check |
 | M4 Agent reports | Chore agent writes the report file |
 | M5 Pressing actions | LLM ranking, lead times, check-off and feedback buttons (built; week check pending) |
-| M6 Phone | 7:00 AM email digest (built; needs app password), then Tailscale |
+| M6 Phone | 7:00 AM email digest and Tailscale access (built; morning check pending) |
 | M7 Job search | Parse the internship agent's report email |
 | M8 Reading | NYT (cap 5) and AI Daily Brief cards |
 | M9 Actions (v2) | Draft replies and add events, with approval each time |

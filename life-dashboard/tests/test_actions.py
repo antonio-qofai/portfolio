@@ -251,7 +251,10 @@ def server(config, tmp_path, monkeypatch):
     monkeypatch.setattr(run, "DATA_DIR", tmp_path)
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), run.DashboardHandler)
     port = httpd.server_address[1]
-    monkeypatch.setattr(run.DashboardHandler, "allowed_hosts", {f"127.0.0.1:{port}"})
+    monkeypatch.setattr(run.DashboardHandler, "allowed_origins", {
+        f"127.0.0.1:{port}": f"http://127.0.0.1:{port}",
+        "mac.example.ts.net": "https://mac.example.ts.net",
+    })
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     yield port
     httpd.shutdown()
@@ -275,3 +278,18 @@ def test_server_accepts_same_origin_json_only(server, tmp_path):
     assert not (tmp_path / "checked.json").exists()
     assert post(server, body, {**json_type, "Origin": f"http://127.0.0.1:{server}"}) == 200
     assert store.item_key(MAIL) in store.load_checked(tmp_path)
+
+
+def test_server_accepts_the_tailscale_origin(server, tmp_path):
+    body = {"key": store.item_key(MAIL), "done": True}
+    ts = {"Content-Type": "application/json", "Host": "mac.example.ts.net"}
+    assert post(server, body, {**ts, "Origin": "http://mac.example.ts.net"}) == 403  # wrong scheme
+    assert post(server, body, {**ts, "Origin": "https://mac.example.ts.net"}) == 200
+
+
+def test_allowed_origins_from_dashboard_url():
+    assert run.allowed_origins("127.0.0.1", 8000, "") == {
+        "127.0.0.1:8000": "http://127.0.0.1:8000", "localhost:8000": "http://localhost:8000"}
+    origins = run.allowed_origins("127.0.0.1", 8000, "https://mac.example.ts.net/")
+    assert origins["mac.example.ts.net"] == "https://mac.example.ts.net"
+    assert len(run.allowed_origins("127.0.0.1", 8000, "not a url")) == 2

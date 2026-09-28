@@ -6,7 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-M6 Phone, email digest (code complete; waiting on the Gmail app password). Tailscale comes next.
+M6 Phone, Tailscale access (live; morning check pending).
+
+### Added
+
+- Phone access through Tailscale: `tailscale serve` proxies the tailnet-only HTTPS address to the server on 127.0.0.1:8000. The server stays bound to localhost.
+- The server accepts check-offs and feedback from the Tailscale origin, read from `DASHBOARD_URL` in `.env` so the tailnet name stays out of committed files. Other hosts and origins are still refused.
+- Tests for the Tailscale origin (right host and scheme only) and for building the allowed origins from `DASHBOARD_URL`.
+
+M6 Phone, email digest (live since Sep 28; the Gmail app password is in `.env`).
 
 ### Added
 

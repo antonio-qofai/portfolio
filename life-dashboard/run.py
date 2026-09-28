@@ -16,13 +16,15 @@ import argparse
 import functools
 import http.server
 import json
+import os
 import socket
 import time
 from datetime import datetime, timedelta
+from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
 from dashboard import api, digest
-from dashboard.config import ROOT, load_config
+from dashboard.config import ROOT, load_config, load_env
 from dashboard.pipeline import DATA_DIR, build_brief, last_generated_at, save_brief
 from dashboard.render import render, write_page
 
@@ -79,14 +81,15 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
 class DashboardHandler(NoCacheHandler):
     """Static files from web/, plus the check-off and feedback endpoints (dashboard/api.py)."""
 
-    allowed_hosts: set[str] = set()
+    # Host header -> the page's origin on that host (localhost, and Tailscale if configured).
+    allowed_origins: dict[str, str] = {}
     timezone = "America/Chicago"
 
     def _same_origin(self) -> bool:
         # Host check blocks DNS rebinding; Origin check blocks other sites posting here.
         host = self.headers.get("Host", "")
         origin = self.headers.get("Origin")
-        return host in self.allowed_hosts and (origin is None or origin == f"http://{host}")
+        return host in self.allowed_origins and (origin is None or origin == self.allowed_origins[host])
 
     def _api(self, method: str) -> None:
         if not self._same_origin():
@@ -118,9 +121,25 @@ class DashboardHandler(NoCacheHandler):
         self._api("POST")
 
 
+def allowed_origins(host: str, port: int, dashboard_url: str | None = None) -> dict[str, str]:
+    """Localhost, plus the Tailscale address from DASHBOARD_URL in .env (kept out of config.yaml).
+
+    `tailscale serve` proxies https://<mac>.<tailnet>.ts.net to this server
+    with the original Host header, so that host and origin are accepted too.
+    """
+    origins = {f"{h}:{port}": f"http://{h}:{port}" for h in (host, "localhost")}
+    if dashboard_url is None:
+        load_env()
+        dashboard_url = os.environ.get("DASHBOARD_URL", "")
+    url = urlsplit(dashboard_url.strip())
+    if url.scheme in ("http", "https") and url.netloc:
+        origins[url.netloc] = f"{url.scheme}://{url.netloc}"
+    return origins
+
+
 def serve(config: dict) -> None:
     host, port = config["server"]["host"], config["server"]["port"]
-    DashboardHandler.allowed_hosts = {f"{host}:{port}", f"localhost:{port}"}
+    DashboardHandler.allowed_origins = allowed_origins(host, port)
     DashboardHandler.timezone = config.get("timezone", "America/Chicago")
     # Serve only web/, never the repo root (which holds .env and data/).
     handler = functools.partial(DashboardHandler, directory=str(ROOT / "web"))
