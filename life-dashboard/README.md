@@ -150,5 +150,5 @@ From PRD.md, one milestone at a time.
 | M5 Pressing actions | LLM ranking, lead times, check-off and feedback buttons (built; week check pending) |
 | M6 Phone | 7:00 AM email digest and Tailscale access (built; morning check pending) |
 | M7 Job search | Internship agent's report file (built; check pending) |
-| M8 Reading | NYT (cap 5) and AI Daily Brief cards |
+| M8 Reading | NYT (cap 5) and AI Daily Brief cards (AI Daily Brief live; NYT needs an API key) |
 | M9 Actions (v2) | Draft replies and add events, with approval each time |

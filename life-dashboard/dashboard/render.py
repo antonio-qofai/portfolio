@@ -73,6 +73,12 @@ def _status(results: list[ConnectorResult]) -> str:
     return "".join(parts)
 
 
+def _episode_day(items: list[Item]) -> str:
+    """' · Sun Sep 27': which episode the AI Daily Brief items come from."""
+    day = items[0].timestamp if items else None
+    return f" · {escape(datetime.fromisoformat(day).strftime('%a %b %-d'))}" if day else ""
+
+
 def _stamp_day(iso: str | None) -> str:
     """'Tue Sep 29' or 'Tue Sep 29, 2:00 PM' for upcoming events."""
     if not iso:
@@ -224,7 +230,7 @@ def render(brief: dict[str, Any], config: dict) -> str:
     aib_items = aib.items[: config["ai_daily_brief"]["cap"]]
     reading_body = (
         "<h3>NYT</h3>" + _list([_item(n) for n in nyt_items], "No stories.")
-        + "<h3>AI Daily Brief</h3>" + _list([_item(a) for a in aib_items], "No items.")
+        + f"<h3>AI Daily Brief{_episode_day(aib_items)}</h3>" + _list([_item(a) for a in aib_items], "No items.")
     )
     reading = _card("reading", "Reading", reading_body, [nyt, aib])
 

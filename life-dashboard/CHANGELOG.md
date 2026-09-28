@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+M8 Reading, AI Daily Brief half (live). NYT waits on an API key.
+
+### Added
+
+- AI Daily Brief connector: the latest episode from the site's agent feed, trying today's edition (`/e/<today>.json`) first because the feed can lag a day. Up to `ai_daily_brief.cap` items chosen by rule, no model call: the episode's thesis, then the headlines roundup, then main-segment insights in episode order; quotes and takes are skipped. Summaries are trimmed to whole sentences, about two lines. Each item links to the episode page.
+- The Reading card names the episode day ("AI Daily Brief · Sun Sep 27"), so an older episode is obvious.
+- Tests for item selection, the cap, the feed fallback, and HTTP errors. Pipeline tests use a fake.
+
 M7 Job search (built; check pending).
 
 ### Added

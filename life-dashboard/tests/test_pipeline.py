@@ -41,6 +41,11 @@ def fake_email(_config):
     ]
 
 
+def fake_aib(_config):
+    return [Item(source="ai_daily_brief", title="Agents move into the real world", summary="One idea.",
+                 link="https://aidailybrief.ai/e/2026-09-24", timestamp="2026-09-24")]
+
+
 def fake_job_search(_config):
     return [Item(source="job_search", title="2 applications with no reply in 21+ days", summary="Acme, Globex")]
 
@@ -54,7 +59,7 @@ def config():
 def registry():
     """Real stubs, fake network connectors: tests never hit the network."""
     return {**REGISTRY, "weather": fake_weather, "calendar": fake_calendar, "email": fake_email, "chores": fake_chores,
-            "job_search": fake_job_search}
+            "job_search": fake_job_search, "ai_daily_brief": fake_aib}
 
 
 @pytest.fixture
@@ -91,6 +96,8 @@ def test_stub_pipeline_end_to_end(config, build, tmp_path):
     assert "Coming up" in calendar and "PSet 2 due" in calendar
     assert "PSet 2 due" not in calendar[:calendar.index("Coming up")], "upcoming event listed as today"
     assert saved["upcoming"][0]["item"]["title"] == "PSet 2 due" and saved["actions"][0]["key"]
+    reading = page[page.index('id="reading"'):]
+    assert "AI Daily Brief · Thu Sep 24" in reading and "Agents move into the real world" in reading
     jobs = page[page.index('id="job-search"'):page.index('id="reading"')]
     assert "2 applications with no reply" in jobs and "Placeholder" not in jobs
     chores = page[page.index('id="today-chores"'):page.index('id="inbox"')]
