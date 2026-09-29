@@ -27,6 +27,13 @@ def _all_day(iso: str | None) -> bool:
     return bool(iso) and len(iso) == 10  # "YYYY-MM-DD"
 
 
+def _greeting(t: datetime) -> str:
+    """By the build's hour; the page script updates it to the reader's clock."""
+    if 4 <= t.hour < 12:
+        return "Good morning"
+    return "Good afternoon" if 12 <= t.hour < 17 else "Good evening"
+
+
 def _time(iso: str | None) -> str:
     if not iso:
         return ""
@@ -179,18 +186,25 @@ def render(brief: dict[str, Any], config: dict) -> str:
         + (f'<span class="detail">{escape(w.summary)}</span>' if w.summary else "") + "</p>"
         if w else '<p class="weather"><span class="detail">Weather unavailable.</span></p>'
     )
+    # The first timed event that hasn't started ("Next up" once the day is underway).
     timed = [e for e in events if not _all_day(e.timestamp)]
-    first = (timed or events or [None])[0]
-    first_html = (
-        f'<p class="first"><span class="label">First up</span>'
-        f"{escape(_time(first.timestamp))} · {escape(first.title)}</p>"
-        if first else '<p class="first"><span class="label">First up</span>Nothing on the calendar</p>'
-    )
+    ahead = [e for e in timed if datetime.fromisoformat(e.timestamp) >= now]
+    label = "Next up" if len(ahead) < len(timed) else "First up"
+    first = ahead[0] if ahead else None if timed else (events or [None])[0]
+    if first:
+        when = _time(first.timestamp)
+        first_html = f'<p class="first"><span class="label">{label}</span>{escape(when)} · {escape(first.title)}</p>'
+    else:
+        rest = "Nothing else today" if timed else "Nothing on the calendar"
+        first_html = f'<p class="first"><span class="label">{label}</span>{rest}</p>'
     header = (
         f'<header class="hero" id="header">'
         f'<div class="hero-top"><span class="date">{escape(now.strftime("%A, %B %-d"))}</span>'
-        f'<span class="stamp">Updated {escape(_time(brief["generated_at"]))}</span></div>'
-        f'<h1>Good morning, {escape(config.get("owner_name", ""))}.</h1>'
+        f'<span class="stamp"><span id="stamp-text">Updated {escape(_time(brief["generated_at"]))}</span>'
+        f'<button type="button" id="refresh" aria-label="Refresh now" title="Refresh now">'
+        f'<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/>'
+        f'<path d="M12.5 1.5v3h-3"/></svg></button></span></div>'
+        f'<h1><span id="greeting">{_greeting(now)}</span>, {escape(config.get("owner_name", ""))}.</h1>'
         f'<div class="facts">{weather_html}{first_html}</div>'
         f"{_status([weather, cal])}</header>"
     )

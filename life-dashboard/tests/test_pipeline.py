@@ -90,7 +90,8 @@ def test_stub_pipeline_end_to_end(config, build, tmp_path):
     saved = json.loads((tmp_path / "brief.json").read_text())
     assert set(saved["results"]) == set(REGISTRY)
 
-    page = write_page(render(brief, config), tmp_path / "index.html").read_text()
+    morning = {**brief, "generated_at": at(config, 6)}  # the header's "First up" depends on the build time
+    page = write_page(render(morning, config), tmp_path / "index.html").read_text()
     positions = [page.index(f'id="{card}"') for card in CARD_ORDER]
     assert positions == sorted(positions), "cards out of PRD layout order"
     assert "failed to load" not in page
@@ -108,6 +109,14 @@ def test_stub_pipeline_end_to_end(config, build, tmp_path):
     assert "2 applications with no reply" in jobs and "Placeholder" not in jobs
     chores = page[page.index('id="today-chores"'):page.index('id="inbox"')]
     assert "Take out recycling" in chores and "Pickup is tomorrow morning." not in chores
+
+
+def test_header_shows_the_next_event_later_in_the_day(config, build):
+    brief = build()
+    header = lambda hour: (lambda p: p[:p.index('id="actions"')])(render({**brief, "generated_at": at(config, hour)}, config))
+    assert "First up</span>9:30 AM · CMSC 14100" in header(6)
+    assert "Next up</span>3:00 PM · QofAI standup" in header(12)
+    assert "Next up</span>11:59 PM · PSet 1 due" in header(16)
 
 
 def test_failing_connector_shows_error_card(config, registry, build):
@@ -134,7 +143,7 @@ def test_failure_falls_back_to_last_good_result(config, registry, build):
     assert weather.stale and weather.error == "TimeoutError: timed out"
     assert weather.items[0].title == "60°F, overcast"
 
-    page = render(brief, config)
+    page = render({**brief, "generated_at": at(config, 6)}, config)
     assert "60°F, overcast" in page
     assert "9:30 AM · CMSC 14100" in page
     assert "Showing last good result from" in page

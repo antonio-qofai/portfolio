@@ -8,6 +8,7 @@
     uv run run.py --digest            email today's digest if it's due and not yet sent
                                       (the digest launchd job)
     uv run run.py --digest-test       email the current brief now, marked [Test]
+    uv run run.py --trigger refresh   build, logged as a page refresh (the "refresh now" button)
 """
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ from zoneinfo import ZoneInfo
 from dashboard import api, digest
 from dashboard.config import ROOT, load_config, load_env
 from dashboard.pipeline import DATA_DIR, build_brief, last_generated_at, save_brief
+from dashboard.refresh import Refresher
 from dashboard.render import render, write_page
 
 
@@ -84,6 +86,7 @@ class DashboardHandler(NoCacheHandler):
     # Host header -> the page's origin on that host (localhost, and Tailscale if configured).
     allowed_origins: dict[str, str] = {}
     timezone = "America/Chicago"
+    refresher = Refresher()
 
     def _same_origin(self) -> bool:
         # Host check blocks DNS rebinding; Origin check blocks other sites posting here.
@@ -103,7 +106,7 @@ class DashboardHandler(NoCacheHandler):
             else:
                 body = self.rfile.read(length) if length else b""
                 now = datetime.now(ZoneInfo(self.timezone))
-                status, payload = api.handle(method, self.path, body, DATA_DIR, now)
+                status, payload = api.handle(method, self.path, body, DATA_DIR, now, self.refresher)
         data = json.dumps(payload).encode()
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
@@ -158,6 +161,7 @@ def main() -> None:
     parser.add_argument("--catch-up", action="store_true", help="build only if the last scheduled run was missed")
     parser.add_argument("--digest", action="store_true", help="email today's digest if it's due")
     parser.add_argument("--digest-test", action="store_true", help="email the current brief now, marked [Test]")
+    parser.add_argument("--trigger", default="manual", choices=["manual", "refresh"], help="how runs.log labels a build")
     args = parser.parse_args()
     config = load_config()
 
@@ -186,7 +190,7 @@ def main() -> None:
         else:
             build(config, trigger="scheduled")
     elif not args.no_build:
-        build(config, trigger="manual")
+        build(config, trigger=args.trigger)
 
     if args.serve:
         serve(config)

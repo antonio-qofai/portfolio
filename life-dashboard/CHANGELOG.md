@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+Refresh now.
+
+### Added
+
+- A refresh button in the header (the PRD's "refresh now"). It starts `run.py --trigger refresh` as a child process through `POST /api/refresh`, same-origin only like the other endpoints, one build at a time, killed after 5 minutes. The page polls `GET /api/refresh`, then reloads, or says the refresh failed and keeps the last brief. runs.log labels these builds `refresh`.
+- Tests for the refresher, the endpoint, and the greeting.
+
+### Changed
+
+- The greeting follows the time of day (morning, afternoon, evening), by the reader's clock.
+- The header shows the next event that hasn't started ("Next up") instead of the day's first one, which had often already happened by an afternoon refresh.
+
 M8 Reading, NYT half (live).
 
 ### Added

@@ -73,6 +73,17 @@
     box-shadow: 0 8px 28px rgba(128, 0, 0, .18);
   }
   .hero-top { display: flex; justify-content: space-between; gap: 12px; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--hero-muted); }
+  .stamp { display: inline-flex; align-items: center; gap: 6px; }
+  #refresh {
+    border: none; background: transparent; color: inherit; cursor: pointer; padding: 0;
+    width: 26px; height: 26px; margin: -5px -6px -5px 0; border-radius: 8px; display: grid; place-items: center;
+  }
+  #refresh:hover { background: rgba(255, 255, 255, .14); color: #fff; }
+  #refresh:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+  #refresh svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  #refresh.spin svg { animation: spin 1s linear infinite; }
+  #refresh:disabled { cursor: default; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   .hero h1 { font: 600 2rem/1.15 var(--serif); margin: 10px 0 18px; letter-spacing: -.01em; }
   .facts { display: grid; gap: 10px; }
   @media (min-width: 640px) { .facts { grid-template-columns: 1fr 1fr; } }
@@ -231,6 +242,40 @@ $body
       });
     });
   });
+  var greeting = document.getElementById("greeting");
+  if (greeting) {
+    var h = new Date().getHours();
+    greeting.textContent = h >= 4 && h < 12 ? "Good morning" : h >= 4 && h < 17 ? "Good afternoon" : "Good evening";
+  }
+
+  // Refresh now: start a rebuild, poll until it finishes, then reload.
+  var refresh = document.getElementById("refresh");
+  var stampText = document.getElementById("stamp-text");
+  function busy(on) {
+    refresh.classList.toggle("spin", on);
+    refresh.disabled = on;
+    if (on) stampText.textContent = "Refreshing…";
+  }
+  function failed(message) {
+    busy(false);
+    stampText.textContent = "Refresh failed";
+    say(message);
+  }
+  function waitForBuild() {
+    fetch("/api/refresh").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (s) {
+        if (s.running) return setTimeout(waitForBuild, 2000);
+        if (s.failed) return failed("Refresh failed; showing the last brief");
+        location.reload();
+      })
+      .catch(function () { failed("Couldn't reach the server"); });
+  }
+  if (refresh) refresh.addEventListener("click", function () {
+    busy(true);
+    post("/api/refresh", {}).then(function () { setTimeout(waitForBuild, 2000); })
+      .catch(function () { failed("Couldn't start a refresh"); });
+  });
+
   fetch("/api/state").then(function (r) { return r.ok ? r.json() : null; }).then(function (state) {
     if (!state) return;
     rows().forEach(function (row) {

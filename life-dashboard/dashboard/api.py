@@ -3,6 +3,8 @@
 GET  /api/state     which items in the current brief are checked, and their feedback
 POST /api/check     {"key": str, "done": bool}
 POST /api/feedback  {"key": str, "feedback": "too_early" | "too_late" | "not_needed"}
+POST /api/refresh   start a rebuild (no body); one at a time
+GET  /api/refresh   {"running": bool, "failed": bool} for the last rebuild
 
 Keys must belong to the current data/brief.json; item details come from the
 brief, never from the request.
@@ -16,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from dashboard import store
+from dashboard.refresh import Refresher
 
 MAX_BODY = 1024
 
@@ -27,7 +30,14 @@ def _brief(data_dir: Path) -> dict[str, Any]:
         return {}
 
 
-def handle(method: str, path: str, body: bytes, data_dir: Path, now: datetime) -> tuple[int, dict]:
+def handle(
+    method: str, path: str, body: bytes, data_dir: Path, now: datetime, refresher: Refresher | None = None,
+) -> tuple[int, dict]:
+    if path == "/api/refresh" and refresher is not None:
+        if method == "POST":
+            return 202, refresher.start()
+        if method == "GET":
+            return 200, refresher.status()
     brief = _brief(data_dir)
     if method == "GET" and path == "/api/state":
         return 200, store.page_state(data_dir, brief)

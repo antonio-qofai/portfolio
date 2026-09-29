@@ -287,6 +287,26 @@ def test_server_accepts_the_tailscale_origin(server, tmp_path):
     assert post(server, body, {**ts, "Origin": "https://mac.example.ts.net"}) == 200
 
 
+def test_server_refresh_is_same_origin_only(server, monkeypatch):
+    started = []
+    class FakeRefresher:
+        def start(self):
+            started.append(True)
+            return {"running": True, "started": True}
+    monkeypatch.setattr(run.DashboardHandler, "refresher", FakeRefresher())
+    def refresh(headers):
+        req = urllib.request.Request(f"http://127.0.0.1:{server}/api/refresh", b"{}", headers, method="POST")
+        try:
+            return urllib.request.urlopen(req).status
+        except urllib.error.HTTPError as e:
+            return e.code
+    json_type = {"Content-Type": "application/json"}
+    assert refresh({**json_type, "Origin": "https://evil.example.com"}) == 403
+    assert refresh({"Content-Type": "text/plain"}) == 415
+    assert not started
+    assert refresh({**json_type, "Origin": f"http://127.0.0.1:{server}"}) == 202 and started
+
+
 def test_allowed_origins_from_dashboard_url():
     assert run.allowed_origins("127.0.0.1", 8000, "") == {
         "127.0.0.1:8000": "http://127.0.0.1:8000", "localhost:8000": "http://localhost:8000"}

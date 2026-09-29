@@ -63,7 +63,7 @@ Each module is a card on the page, fed by one connector, and summarized to a few
 | Chores | My open chores from the chore agent: overdue, due today, and due in the next 7 days (so a Sunday deadline shows all week); ticked-off chores drop off | P0 |
 | Weather | Now, high/low, rain chance, and a one-line "what to wear for the walk" for Chicago | P0 |
 | Job search | From my internship agent's report file: offers, interviews and events this week, deadlines on roles I marked interested, status changes since yesterday, and applications with no reply in three weeks | P1 |
-| News | NYT top stories weighted to tech, business and AI; hard cap of 5 items, 2 lines each | P1 |
+| News | NYT top stories, led by up to 3 stories for my macro classes this quarter; hard cap of 5 items, 2 lines each | P1 |
 | AI Daily Brief | 3–5 key items from the AI Daily Brief website, deduplicated against News | P1 |
 | Yesterday recap | What I planned vs. what got done (from actions I checked off) | P2 |
 
@@ -86,7 +86,7 @@ Two inboxes, one calendar, three web sources, and my own agents cover everything
 | Chores | Chore agent (runs on GitHub Actions, state in Airtable) | The agent's exporter (`src/report.py` in its repo) runs on this Mac at 05:45 via its own launchd job, reads Airtable with a read-only token, and writes the report file; its email stays as backup | — |
 | Job search | Internship agent (runs on this Mac, state in SQLite, Airtable as its input surface) | Its read-only exporter (`tools/report.py` in its repo) runs as the last step of each of its scheduled runs and writes the report file from its local database; no Airtable calls, no email parsing | — |
 | Weather | Chicago | Free weather API (e.g. Open-Meteo, NWS) | — |
-| News | NYT | NYT Top Stories API (technology, business + home sections) | API key |
+| News | NYT | NYT Top Stories API (home, business and Upshot sections); class stories matched on NYT's topic tags against lists in config.yaml | — |
 | AI Daily Brief | AI Daily Brief website | No RSS, but the site's agent feed (aidailybrief.ai/agent.json) lists each edition with title, teaser, tags, and markdown/JSON links; also try /e/<today>.json, since the feed can lag the homepage by a day | — |
 
 **Agent report contract.** Each personal agent writes `agent-reports/<agent>.json` with `generated_at`, `status`, and `items[]` (title, summary, due date, urgency, link). Any future agent (e.g. the trading agent) plugs in by writing the same file.
