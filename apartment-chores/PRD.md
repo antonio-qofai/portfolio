@@ -195,8 +195,9 @@ One `every_3` chore per offset, so exactly one lands each week.
 | 9 | Bathroom clean | Bathroom | 0 | Toilet, shower, sink and taps, mirror. Bath mat and hand towels in the wash. Grout, drains, and behind the toilet are Maria's | `convert_to_prep` | Clear the bathroom counter and floor, nothing left on surfaces |
 
 Placed per `PRD-v1.2-after-cleaner.md`, in rotation order from the seed:
-The owner (week 1, generated before the change and counted as his turn), then
-Blake, then Casey.
+The owner, then Blake, then Casey. Week 1's turn, generated before the
+change, was deleted by hand on Sept 29, 2026, because the bathroom was clean
+at move-in.
 
 **Dropped from the scoping list.** Dust, Supply run, and Bathroom deep were
 removed on Sept 22, 2026 once the cleaner's real scope was known: she dusts and

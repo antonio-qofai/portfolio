@@ -1223,3 +1223,35 @@ Changed:
 Handoff: nothing pending on the bathroom change. On Monday Oct 5, check that
 week 2 lands before 08:00 with no Bathroom clean. When Pat's email arrives,
 confirm the visit and look at the dry run to see where the next turn lands.
+
+## 26 - Week 1's Bathroom clean removed by hand (Sept 29, 2026)
+
+A one-time exception to "never rewrite a started week", approved by the owner
+in session. No code changed.
+
+Monday's run on Sept 28 wrote week 1 under the old `every_3` rotation, hours
+before `after_cleaner` went live, and entry 24 counted that row as the owner's
+turn. The new rule would not have placed a turn in week 1. The bathroom was
+clean at move-in, and the cap counts from just before the term. The owner
+deleted the row (`rec2UmAkXBc6norTx`) in Airtable himself, because the local
+`.env` token got a 403 on delete. It had not been nudged or marked done.
+
+Checked against live Airtable after the delete: still 57 assignments, 19
+each. Week 1 still counts as generated, so nothing re-fills it. Bathroom clean
+now projects to the owner week 4, Blake week 8, Casey week 10, with no one
+above 3 chores in a week.
+
+Open: if the Oct 15 visit is confirmed, the owner's turn moves to week 6, where
+he already has 3 chores, so that week he has 4. Entry 24's "no week puts 4
+chores on anyone" held only while week 1 counted as his turn.
+
+Changed:
+
+- `PRD-v1.2-after-cleaner.md`: step 1, §4, the worked example in §6 and its
+  no-visit line recomputed, and the tests list.
+- `PRD.md` §4.3: the note under Bathroom clean.
+- CLAUDE.md mistakes log.
+
+Handoff: when Pat's email arrives and the visit is confirmed, look at the
+dry run for the week 6 load and decide whether 4 chores in a week is
+acceptable.

@@ -40,8 +40,10 @@ Placement is decided only for the week being generated, on its Monday, and
 never revisits a week already written. For week W:
 
 1. Turns taken: the assignments of this chore anywhere in this term's
-   Assignments. Week 1's Bathroom clean (the owner, generated Sept 28 under the
-   old weekly cadence) is turn 0. If every person has had a turn, stop.
+   Assignments. If every person has had a turn, stop. (Week 1's Bathroom
+   clean, generated Sept 28 under the old cadence, was first counted as turn
+   0. It was deleted by hand on Sept 29 because the bathroom was clean at
+   move-in, so Autumn 2026 starts with no turns taken. See CHANGELOG 26.)
 2. Visit targets: for each confirmed visit in the term, add the delay to its
    date and take the active week containing that day. If that week is inactive,
    roll forward to the next active week. If there is none, the visit gives no
@@ -63,8 +65,8 @@ never revisits a week already written. For week W:
 
 Fixed order, the same rotation formula as every other chore:
 `roster[(seed + k) % len(roster)]`, where k is the number of turns already
-taken this term. With Bathroom clean's seed of 0, that is the owner (week 1),
-then Blake, then Casey.
+taken this term. With Bathroom clean's seed of 0, that is the owner, then
+Blake, then Casey.
 
 ## 5. Due date and cleaner weeks
 
@@ -81,18 +83,24 @@ her visit counts as a clean for the cap (§9).
 
 | Step | Result |
 |---|---|
-| Week 1 | The owner, already generated. Turn 0 |
+| Weeks 1 and 2 | No turn. The cap counts from just before week 1 |
 | Visit Oct 15 | In week 3. It resets the cap, so the next turn is due by week 7 |
 | Visit plus 21 days | Nov 5, in week 6 (Nov 2 to 8) |
-| Week 6 turn | Blake. His week goes from 2 chores to 3 |
+| Week 6 turn | The owner. His week goes from 3 chores to 4 |
 | Cap from week 6 | Would be the fourth active week after it, which is past the term (weeks 7, 8, 10 are all that is left) |
+| Week 8 turn | Blake, from the end-of-term rule (2 owed, 2 weeks left). His week goes from 1 chore to 2 |
 | Week 10 turn | Casey, from the end-of-term rule (1 owed, 1 week left). His week goes from 1 chore to 2 |
 
 If a second visit is confirmed for Nov 12, its target is Dec 3, also in week
 10, so the result is the same.
 
-With no visits at all, the cap alone gives the owner week 1, Blake week 5, and
-Casey week 10.
+With no visits at all, the cap gives the owner week 4 and Blake week 8, and
+the end-of-term rule gives Casey week 10. No one has more than 3 chores in any
+week.
+
+This example was recomputed Sept 29 after week 1's turn was deleted. With week
+1 counted as the owner's turn, the Oct 15 case put Blake in week 6 and no one
+above 3 chores.
 
 ## 7. Data and config changes
 
@@ -142,8 +150,8 @@ Settled Sept 28 2026:
   between cleans.
 - A confirmed visit in the cap week cancels the forced turn. An unconfirmed
   one does not.
-- Turns follow roster order from the seed. Week 1's existing assignment counts
-  as turn 0.
+- Turns follow roster order from the seed. Turns already written this term
+  count as taken.
 - Never two turns of the same chore in one week.
 - Full term: 57 assignments, 19 each, one bathroom turn each.
 - Re-running an existing week is a no-op. A visit added later leaves written

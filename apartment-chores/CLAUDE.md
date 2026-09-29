@@ -202,3 +202,8 @@ Append fixes here so they don't recur. One line each, newest at the bottom.
   deadline. Moved to `17 7 * * 1-5`. Check actual start times in
   `gh run list`, not the cron line. Do not add a backup cron: the digest
   has no sent-already guard, so a second Monday run emails everyone twice.
+- Sept 29, 2026. When Bathroom clean moved to `after_cleaner`, week 1's row
+  from the old rotation was counted as the owner's turn without anyone asking
+  whether the new rule would have placed it. It would not have, and the row
+  was deleted by hand. When a rule changes mid-term, check the already
+  written weeks against the new rule and ask before treating them as history.
