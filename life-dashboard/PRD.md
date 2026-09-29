@@ -105,7 +105,7 @@ A single scrolling web page, served locally, that reads well on a laptop and a p
 6. **Job search:** changes since yesterday.
 7. **Reading:** NYT and AI brief cards, each 3–5 items.
 
-**Interaction (v1):** check off actions, expand a card, click through to the source, and a "refresh now" button. Each card shows when it last updated, and a failed connector shows an error state instead of breaking the page.
+**Interaction (v1):** check off actions, expand a card, click through to the source, and a "refresh now" button. The header shows when the brief was built. A failed connector shows an error on its card, with the age of the last good data it falls back to, instead of breaking the page.
 
 **Delivery:** I read it on my phone or laptop depending on the day. The live page is the main view and has everything. A short 7:00 AM email digest (Pressing actions with why, today's calendar, chores, weather, and a link to the page) reaches my phone even if the page isn't reachable. It is sent from my Gmail to myself over SMTP with an app password, once a day, or on wake until noon if the Mac was asleep at 7:00. QofAI items stay out of the digest.
 

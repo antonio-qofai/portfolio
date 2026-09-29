@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+Page redesign.
+
+### Changed
+
+- New look: a UChicago maroon header with the date, greeting, weather and first event; white cards with small uppercase titles and item counts; a serif greeting; full dark mode.
+- Less text. "Updated" shows once in the header instead of on every card, and cards show only connector errors. Links are no longer underlined. Calendar rows show the time in a left column without the calendar name. Chores show a short due date. The "Everything else" inbox list shows subjects only. The QofAI card collapses to one line when empty.
+- Pressing actions use round check-offs, and the feedback buttons sit behind a "⋯" toggle per row. Save messages appear as a brief toast.
+- The actions card no longer repeats every connector's error, only the ranking note.
+- QofAI and Job search sit side by side on wide screens, as do NYT and the AI Daily Brief. Long summaries clamp to two lines.
+- PRD: the brief's build time shows once in the header; a card shows a time only when its connector failed and it falls back to older data.
+
 M8 Reading, AI Daily Brief half (live). NYT waits on an API key.
 
 ### Added

@@ -89,7 +89,7 @@ def test_stub_pipeline_end_to_end(config, build, tmp_path):
     assert positions == sorted(positions), "cards out of PRD layout order"
     assert "failed to load" not in page
     assert "60°F, overcast" in page
-    assert "First up: 9:30 AM CMSC 14100" in page
+    assert "9:30 AM · CMSC 14100" in page
     inbox = page[page.index('id="inbox"'):page.index('id="qofai"')]
     assert "Coffee Friday?" in inbox and "Everything else (1)" in inbox
     calendar = page[page.index('id="today-calendar"'):page.index('id="today-chores"')]
@@ -130,7 +130,7 @@ def test_failure_falls_back_to_last_good_result(config, registry, build):
 
     page = render(brief, config)
     assert "60°F, overcast" in page
-    assert "First up: 9:30 AM CMSC 14100" in page
+    assert "9:30 AM · CMSC 14100" in page
     assert "Showing last good result from" in page
 
 

@@ -47,11 +47,28 @@ def _safe_link(url: str) -> str:
     return escape(url) if url.startswith(("https://", "http://")) else ""
 
 
-def _item(item: Item, meta: str = "", show_summary: bool = True) -> str:
-    title = _title(item)
+def _item(item: Item, meta: str = "", show_summary: bool = True, lead: str = "", pills: str = "") -> str:
+    """A row: optional lead column (a time), the title, muted meta on the right, summary below."""
+    lead_html = f'<span class="lead">{escape(lead)}</span>' if lead else ""
     meta_html = f'<span class="meta">{escape(meta)}</span>' if meta else ""
     summary = f'<p class="summary">{escape(item.summary)}</p>' if item.summary and show_summary else ""
-    return f"<li>{meta_html}<span class=\"title\">{title}</span>{summary}</li>"
+    cls = ' class="timed"' if lead else ""
+    return (
+        f'<li{cls}>{lead_html}<div class="main"><div class="line">'
+        f'<span class="title">{_title(item)}</span>{pills}{meta_html}</div>{summary}</div></li>'
+    )
+
+
+def _pills(item: Item) -> str:
+    """Urgency hints as small tags: 'overdue', 'due today', ..."""
+    return "".join(
+        f'<span class="pill {escape(h)}">{escape(h.replace("_", " "))}</span>' for h in item.urgency_hints
+    )
+
+
+def _short_due(iso: str | None) -> str:
+    """'Sun Oct 4' for chores and deadlines; the time rarely matters at a glance."""
+    return datetime.fromisoformat(iso).strftime("%a %b %-d") if iso else ""
 
 
 def _list(items: list[str], empty: str = "Nothing here.") -> str:
@@ -61,11 +78,8 @@ def _list(items: list[str], empty: str = "Nothing here.") -> str:
 
 
 def _status(results: list[ConnectorResult]) -> str:
-    """'Updated 6:02 AM' footer plus an error line per failed connector."""
+    """An error line per failed connector. Fresh data is as old as the brief, stamped once in the header."""
     parts = []
-    stamps = [r.last_updated for r in results if r.last_updated and not r.error]
-    if stamps:
-        parts.append(f'<p class="updated">Updated {escape(_time(max(stamps)))}</p>')
     for r in results:
         if r.error:
             note = f" Showing last good result from {_stamp(r.last_updated)}." if r.stale else ""
@@ -94,11 +108,14 @@ def _stamp(iso: str | None) -> str:
     return datetime.fromisoformat(iso).strftime("%a %b %-d, %-I:%M %p")
 
 
-def _card(card_id: str, title: str, body: str, results: list[ConnectorResult], extra_class: str = "") -> str:
+def _card(
+    card_id: str, title: str, body: str, results: list[ConnectorResult], extra_class: str = "", count: int = 0,
+) -> str:
     cls = f"card {extra_class}".strip()
+    count_html = f'<span class="count">{count}</span>' if count else ""
     return (
         f'<section class="{cls}" id="{card_id}">'
-        f"<h2>{escape(title)}</h2>{body}{_status(results)}</section>"
+        f"<h2>{escape(title)}{count_html}</h2>{body}{_status(results)}</section>"
     )
 
 
@@ -116,17 +133,21 @@ def _feedback_buttons() -> str:
     return f'<span class="feedback">{buttons}</span>'
 
 
-def _surfaced(entry: Any, meta: str, checkbox: bool) -> str:
-    """A Pressing action or Coming up event, with feedback buttons (and a check-off box for actions)."""
-    title = f'<span class="title">{_title(entry.item)}</span>'
-    if checkbox:
-        title = f'<label><input type="checkbox" class="check"> {title}</label>'
-    why = f'<span class="why">{escape(" · ".join(filter(None, [entry.why, meta])))}</span>'
-    return f'<li class="surfaced" data-key="{escape(entry.key)}">{title}{why}{_feedback_buttons()}</li>'
-
-
-def _hints(item: Item) -> str:
-    return ", ".join(h.replace("_", " ") for h in item.urgency_hints)
+def _surfaced(entry: Any, meta: str, checkbox: bool, lead: str = "") -> str:
+    """A Pressing action or Coming up event, with feedback buttons behind a toggle (and a check-off box for actions)."""
+    first = (
+        '<input type="checkbox" class="check" aria-label="Done">' if checkbox
+        else f'<span class="lead">{escape(lead)}</span>'
+    )
+    why = " · ".join(filter(None, [entry.why, meta]))
+    why_html = f'<span class="why">{escape(why)}</span>' if why else ""
+    return (
+        f'<li class="surfaced" data-key="{escape(entry.key)}">{first}'
+        f'<div class="main"><span class="title">{_title(entry.item)}</span>{why_html}{_feedback_buttons()}</div>'
+        f'<button type="button" class="more" aria-label="Rate this suggestion" title="Rate this suggestion">'
+        f'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.4"/><circle cx="8" cy="8" r="1.4"/>'
+        f'<circle cx="13" cy="8" r="1.4"/></svg></button></li>'
+    )
 
 
 def _label(item: Item) -> str:
@@ -149,37 +170,42 @@ def render(brief: dict[str, Any], config: dict) -> str:
 
     # 1. Header
     w = weather.items[0] if weather.items else None
-    weather_line = f"{w.title}. {w.summary}" if w else "Weather unavailable."
+    weather_html = (
+        f'<p class="weather"><span class="temp">{escape(w.title)}</span>'
+        + (f'<span class="detail">{escape(w.summary)}</span>' if w.summary else "") + "</p>"
+        if w else '<p class="weather"><span class="detail">Weather unavailable.</span></p>'
+    )
     timed = [e for e in events if not _all_day(e.timestamp)]
     first = (timed or events or [None])[0]
-    first_line = f"First up: {_time(first.timestamp)} {first.title}" if first else "No events today."
+    first_html = (
+        f'<p class="first"><span class="label">First up</span>'
+        f"{escape(_time(first.timestamp))} · {escape(first.title)}</p>"
+        if first else '<p class="first"><span class="label">First up</span>Nothing on the calendar</p>'
+    )
     header = (
-        f'<header class="card header" id="header">'
-        f'<p class="date">{escape(now.strftime("%A, %B %-d"))}</p>'
+        f'<header class="hero" id="header">'
+        f'<div class="hero-top"><span class="date">{escape(now.strftime("%A, %B %-d"))}</span>'
+        f'<span class="stamp">Updated {escape(_time(brief["generated_at"]))}</span></div>'
         f'<h1>Good morning, {escape(config.get("owner_name", ""))}.</h1>'
-        f'<p>{escape(weather_line)}</p><p>{escape(first_line)}</p>'
+        f'<div class="facts">{weather_html}{first_html}</div>'
         f"{_status([weather, cal])}</header>"
     )
 
-    # 2. Pressing actions
-    actions = [
-        _surfaced(a, " · ".join(filter(None, [_label(a.item), _due(a.item.due)])), checkbox=True)
-        for a in brief["actions"]
-    ]
+    # 2. Pressing actions. Connector errors show on their own cards, so only the ranking note shows here.
+    actions = [_surfaced(a, _due(a.item.due), checkbox=True) for a in brief["actions"]]
     note = brief.get("actions_note")
     actions_body = (
-        (f'<p class="error">{escape(note)}</p>' if note else "")
+        (f'<p class="note warn">{escape(note)}</p>' if note else "")
         + (f'<ol class="actions">{"".join(actions)}</ol>' if actions else '<p class="empty">Nothing pressing.</p>')
-        + '<p class="note" id="save-status"></p>'
     )
-    actions_card = _card("actions", "Pressing actions", actions_body, list(r.values()))
+    actions_card = _card("actions", "Pressing actions", actions_body, [], "primary", count=len(actions))
 
     # 3. Today: calendar + chores side by side
     upcoming = [
-        _surfaced(u, f"{_stamp_day(u.item.timestamp)} · {_label(u.item)}", checkbox=False)
+        _surfaced(u, "", checkbox=False, lead=_stamp_day(u.item.timestamp))
         for u in brief.get("upcoming", [])
     ]
-    cal_body = _list([_item(e, f"{_time(e.timestamp)} · {_label(e)}") for e in personal_events], "No events.")
+    cal_body = _list([_item(e, lead=_time(e.timestamp)) for e in personal_events], "No events.")
     if upcoming:
         cal_body += f'<h3>Coming up</h3><ul>{"".join(upcoming)}</ul>'
     cal_card = _card("today-calendar", "Calendar", cal_body, [cal], "sub")
@@ -187,59 +213,61 @@ def render(brief: dict[str, Any], config: dict) -> str:
     chore_card = _card(
         "today-chores", "Chores",
         # Titles only: the chore agent's summaries are full definitions of done.
-        _list([_item(c, " · ".join(filter(None, [_hints(c), _due(c.due)])), show_summary=False) for c in chore_items],
+        _list([_item(c, _short_due(c.due), show_summary=False, pills=_pills(c)) for c in chore_items],
               "No chores due."),
         [chores], "sub",
     )
-    today = f'<section class="card today" id="today"><h2>Today</h2><div class="split">{cal_card}{chore_card}</div></section>'
+    today = (
+        f'<section class="card today" id="today"><div class="split">{cal_card}{chore_card}</div></section>'
+    )
 
     # 4. Inbox (personal inboxes only): pressing school, work and internship email
     personal_mail = [m for m in email.items if m.section == "personal"]
     pressing = [m for m in personal_mail if {"reply_needed", "deadline"} & set(m.urgency_hints)]
     rest = [m for m in personal_mail if m not in pressing]
     inbox_body = _list(
-        [_item(m, " · ".join(filter(None, [_label(m), _hints(m), _due(m.due)]))) for m in pressing],
+        [_item(m, _short_due(m.due) or _label(m), pills=_pills(m)) for m in pressing],
         "Nothing pressing.",
     )
     if rest:
         inbox_body += (
             f"<details><summary>Everything else ({len(rest)})</summary>"
-            f"{_list([_item(m, _label(m)) for m in rest])}</details>"
+            f"{_list([_item(m, _label(m), show_summary=False) for m in rest])}</details>"
         )
-    inbox = _card("inbox", "Inbox", inbox_body, [email])
+    inbox = _card("inbox", "Inbox", inbox_body, [email], count=len(pressing))
 
     # 5. QofAI (kept separate from personal items). Its email lives in Slack, so no inbox here.
     q_events = [e for e in events if e.section == "qofai" and not e.due]
     q_due = [i for res in r.values() for i in res.items if i.section == "qofai" and i.due]
-    qofai_body = (
-        "<h3>Meetings</h3>" + _list([_item(e, _time(e.timestamp)) for e in q_events], "No work meetings.")
-        + "<h3>Deadlines</h3>" + _list([_item(i, _due(i.due)) for i in q_due], "No work deadlines.")
-    )
+    if q_events or q_due:
+        qofai_body = (
+            (_list([_item(e, lead=_time(e.timestamp)) for e in q_events]) if q_events else "")
+            + ("<h3>Deadlines</h3>" + _list([_item(i, _short_due(i.due)) for i in q_due]) if q_due else "")
+        )
+    else:
+        qofai_body = '<p class="empty">No meetings or deadlines today.</p>'
     qofai = _card("qofai", "QofAI", qofai_body, [cal], "work")
 
     # 6. Job search
     job_card = _card(
         "job-search", "Job search",
-        _list([_item(j, " · ".join(filter(None, [_hints(j), _due(j.due)]))) for j in jobs.items],
-              "Nothing new."),
+        _list([_item(j, _short_due(j.due), pills=_pills(j)) for j in jobs.items], "Nothing new."),
         [jobs],
     )
 
-    # 7. Reading
+    # 7. Reading: NYT and the AI Daily Brief side by side on wide screens
     nyt_items = nyt.items[: config["news"]["cap"]]
     aib_items = aib.items[: config["ai_daily_brief"]["cap"]]
     reading_body = (
-        "<h3>NYT</h3>" + _list([_item(n) for n in nyt_items], "No stories.")
-        + f"<h3>AI Daily Brief{_episode_day(aib_items)}</h3>" + _list([_item(a) for a in aib_items], "No items.")
+        '<div class="split">'
+        "<div><h3>NYT</h3>" + _list([_item(n) for n in nyt_items], "No stories.") + "</div>"
+        + f"<div><h3>AI Daily Brief{_episode_day(aib_items)}</h3>"
+        + _list([_item(a) for a in aib_items], "No items.") + "</div></div>"
     )
     reading = _card("reading", "Reading", reading_body, [nyt, aib])
 
-    body = header + actions_card + today + inbox + qofai + job_card + reading
-    return Template(TEMPLATE.read_text()).substitute(
-        title="Life Dashboard",
-        body=body,
-        generated_at=escape(_time(brief["generated_at"])),
-    )
+    body = header + actions_card + today + inbox + f'<div class="pair">{qofai}{job_card}</div>' + reading
+    return Template(TEMPLATE.read_text()).substitute(title="Life Dashboard", body=body)
 
 
 def write_page(html: str, path: Path | None = None) -> Path:
