@@ -66,6 +66,10 @@ def _pills(item: Item) -> str:
     )
 
 
+def _course_pill(label: str) -> str:
+    return f'<span class="pill course">{escape(label)}</span>'
+
+
 def _short_due(iso: str | None) -> str:
     """'Sun Oct 4' for chores and deadlines; the time rarely matters at a glance."""
     return datetime.fromisoformat(iso).strftime("%a %b %-d") if iso else ""
@@ -255,12 +259,20 @@ def render(brief: dict[str, Any], config: dict) -> str:
         [jobs],
     )
 
-    # 7. Reading: NYT and the AI Daily Brief side by side on wide screens
+    # 7. Reading: stories for my classes, then NYT headlines and the AI Daily Brief side by side
+    course_labels = {c["id"]: c["label"] for c in config["news"].get("courses", {}).get("list", [])}
     nyt_items = nyt.items[: config["news"]["cap"]]
+    class_items = [n for n in nyt_items if n.source.split(".", 1)[-1] in course_labels]
+    top_items = [n for n in nyt_items if n not in class_items]
     aib_items = aib.items[: config["ai_daily_brief"]["cap"]]
     reading_body = (
-        '<div class="split">'
-        "<div><h3>NYT</h3>" + _list([_item(n) for n in nyt_items], "No stories.") + "</div>"
+        (
+            "<h3>For your classes</h3>"
+            + _list([_item(n, pills=_course_pill(course_labels[n.source.split(".", 1)[1]])) for n in class_items])
+            if class_items else ""
+        )
+        + '<div class="split">'
+        "<div><h3>NYT</h3>" + _list([_item(n) for n in top_items], "No stories.") + "</div>"
         + f"<div><h3>AI Daily Brief{_episode_day(aib_items)}</h3>"
         + _list([_item(a) for a in aib_items], "No items.") + "</div></div>"
     )

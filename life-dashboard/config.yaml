@@ -66,9 +66,55 @@ calendars:
 calendar:
   lookahead_days: 14
 
+# NYT Top Stories. `home` (the headlines) is always fetched; `sections` adds
+# the feeds searched for course stories. cap counts all NYT items together.
 news:
-  sections: [technology, business, home]
+  sections: [business, upshot]
   cap: 5
+  # Stories for my macro classes, matched on NYT's topic tags (des_facet and
+  # org_facet, exact names, any case). Courses take turns, newest first.
+  courses:
+    cap: 3
+    max_age_hours: 48
+    list:
+      - id: money_banking
+        label: Money & Banking
+        topics:
+          - Federal Reserve System
+          - Interest Rates
+          - Inflation (Economics)
+          - Consumer Price Index
+          - Banking and Financial Institutions
+          - Banks and Banking
+          - Bank Failures
+          - Currency
+          - Dollar (US)
+          - Virtual Currency
+          - Credit and Debt
+          - Mortgages
+          - Treasury Bonds
+          - European Central Bank
+          - Bank of England
+          - Bank of Japan
+          - Federal Deposit Insurance Corp
+      - id: econ_policy
+        label: Econ Policy
+        topics:
+          - United States Economy
+          - Economic Conditions and Trends
+          - Recession and Depression
+          - Customs (Tariff)
+          - International Trade and World Market
+          - Federal Taxes (US)
+          - Federal Budget (US)
+          - National Debt (US)
+          - Government Shutdowns (US)
+          - Labor and Jobs
+          - Unemployment
+          - Wages and Salaries
+          - Minimum Wage
+          - Social Security (US)
+          - Economics (Theory and Philosophy)
 
 ai_daily_brief:
   feed_url: https://aidailybrief.ai/agent.json

@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+M8 Reading, NYT half (live).
+
+### Added
+
+- NYT connector on the Top Stories API (`NYT_API_KEY` in `.env`): the home feed plus `news.sections` (business, upshot), three calls per build. Up to `news.cap` stories in all, chosen by rule, no model call.
+- Stories for my macro classes lead the list, up to `news.courses.cap`: a story from the last 48 hours qualifies when one of its first 3 NYT topic tags is on a course's list in config.yaml (Fed, rates, inflation, banking and currency for Money & Banking; the economy, tariffs and trade, taxes, the budget and labor for Econ Policy). Courses take turns so one busy topic can't fill the list. The Reading card shows them under "For your classes" with the course name.
+- Tests for class matching, taking turns, the cap, the age cutoff, duplicates across sections, and a missing key or HTTP error. Pipeline tests use a fake.
+
 Page redesign.
 
 ### Changed

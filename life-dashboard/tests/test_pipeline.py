@@ -46,6 +46,12 @@ def fake_aib(_config):
                  link="https://aidailybrief.ai/e/2026-09-24", timestamp="2026-09-24")]
 
 
+def fake_nyt(_config):
+    """One class story, then more headlines than the cap on purpose; the page enforces it."""
+    return [Item(source="nyt.money_banking", title="Fed holds rates steady", link="https://www.nytimes.com/a.html")] + [
+        Item(source="nyt.top", title=f"Headline {n}", link=f"https://www.nytimes.com/{n}.html") for n in range(1, 7)]
+
+
 def fake_job_search(_config):
     return [Item(source="job_search", title="2 applications with no reply in 21+ days", summary="Acme, Globex")]
 
@@ -59,7 +65,7 @@ def config():
 def registry():
     """Real stubs, fake network connectors: tests never hit the network."""
     return {**REGISTRY, "weather": fake_weather, "calendar": fake_calendar, "email": fake_email, "chores": fake_chores,
-            "job_search": fake_job_search, "ai_daily_brief": fake_aib}
+            "job_search": fake_job_search, "nyt": fake_nyt, "ai_daily_brief": fake_aib}
 
 
 @pytest.fixture
@@ -143,8 +149,8 @@ def test_caps_and_qofai_kept_out_of_actions(config, build):
 
     page = render(brief, config)
     reading = page[page.index('id="reading"'):]
-    assert reading.count("Placeholder") <= config["news"]["cap"] + config["ai_daily_brief"]["cap"]
-    assert "story 6" not in reading  # NYT stub returns 7; cap is 5
+    assert "For your classes" in reading and "Fed holds rates steady" in reading and "Money &amp; Banking" in reading
+    assert "Headline 4" in reading and "Headline 5" not in reading  # fake returns 7; cap is 5 in all
 
 
 def test_agent_report_contract():

@@ -103,7 +103,7 @@ A single scrolling web page, served locally, that reads well on a laptop and a p
 4. **Inbox:** pressing school, work and internship email, then a collapsed "everything else" section.
 5. **QofAI:** today's work meetings and deadlines, kept separate from personal items.
 6. **Job search:** changes since yesterday.
-7. **Reading:** NYT and AI brief cards, each 3–5 items.
+7. **Reading:** NYT and AI brief cards, each 3–5 items. NYT leads with up to 3 stories for my macro classes this quarter (Money and Banking, Economic Policy Analysis), matched on NYT's own topic tags, then fills with top headlines.
 
 **Interaction (v1):** check off actions, expand a card, click through to the source, and a "refresh now" button. The header shows when the brief was built. A failed connector shows an error on its card, with the age of the last good data it falls back to, instead of breaking the page.
 

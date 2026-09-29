@@ -94,6 +94,8 @@
   h3 { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--faint); margin: 18px 0 2px; }
   .split > div > h3:first-child, .split > .card > h2 + ul { margin-top: 0; }
   .split { display: grid; gap: 22px; }
+  #reading > h3:first-of-type { margin-top: 4px; }
+  #reading ul + .split { margin-top: 6px; }
   @media (min-width: 700px) { .split { grid-template-columns: 1fr 1fr; gap: 32px; } }
   .pair { display: grid; gap: 16px; }
   @media (min-width: 700px) { .pair { grid-template-columns: 1fr 1fr; align-items: start; } }
@@ -113,6 +115,7 @@
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
   .pill { flex: none; font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding: 2px 7px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+  .pill.course { background: transparent; border: 1px solid var(--line); color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 500; font-size: .72rem; }
   .empty { margin: 4px 0 0; font-size: .9rem; color: var(--faint); }
   .note { font-size: .82rem; color: var(--muted); margin: 0 0 8px; }
   .note.warn { background: var(--warn-bg); color: var(--warn-text); padding: 8px 12px; border-radius: 10px; }
