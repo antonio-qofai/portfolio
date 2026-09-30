@@ -558,7 +558,13 @@ You edit six fields and nothing else. Label, Applied status, Label reason, Fit o
 Reach override, and Closed. Everything else is agent-written and gets overwritten on the next
 sync.
 
-Two views, and they are different jobs.
+Three views, and they are different jobs.
+
+`New` is where to start each day. It holds every posting you have not applied to, newest first
+by First seen, best tier first within a day. Applying early is the point, so work from the top;
+flip Applied status and the row leaves the view. Airtable decides row order per view, not per
+row, so the agent cannot put new postings at the top of any other view, and an unsorted view
+shows them at the bottom. Rows reach the base once a day, on the 18:10 run.
 
 `Unlabeled` is the agent asking you something: every row it has no answer for. Set Label and
 write a sentence in Label reason. Clearing this view is what teaches the ranker.
@@ -597,12 +603,17 @@ That creates all three tables and every field from `sources/airtable.toml`. It o
 creates what is missing, so re-run it after editing that file to add a field.
 
 Two things it cannot do, because Airtable's API cannot. It cannot create views, so build
-these two on Postings by hand:
+these on Postings by hand:
 
+    New          grid, filter: where Applied status is empty
+                 sort by First seen descending, then Tier ascending
     Unlabeled    grid, filter: where Label is empty
     Interested   grid, filter: where Label is "interested"
                  group by Applied status
                  sort by Deadline ascending, then First seen ascending
+    Applied      grid, filter: where Applied status is any of
+                 applied, interviewing, rejected, offer
+                 group by Applied status, sort by First seen descending
 
 And it cannot delete Airtable's default `Table 1`, so delete that by hand too. The bootstrap
 tells you when a view is missing, and prints the filter, grouping and sort for each, rather

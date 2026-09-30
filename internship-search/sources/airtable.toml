@@ -467,6 +467,29 @@ description = "Surfaced postings only. The owner edits Label, Applied status, La
   sort_by = ["Deadline asc", "First seen asc"]
   purpose = "The shortlist. Flip Applied status when you apply; tick Closed when a role is gone."
 
+  # Newest first, added 2026-09-30. The owner asked for new postings at the top
+  # because applying early is the point. Row order in Airtable belongs to the
+  # view, never to the data: the agent cannot move a row up, and an unsorted
+  # grid puts every new record at the BOTTOM, in creation order. So this is a
+  # manual view like the others, and the sort is the whole feature.
+  #
+  # First seen is a date, not a timestamp, so every posting found the same day
+  # ties. Tier breaks the tie, best band first. Blank Applied status means not
+  # applied (see the Applied view below), so isEmpty is the correct filter and
+  # a row drops out of this view the moment he applies.
+  #
+  # First seen is when the AGENT found the posting, which is the right clock
+  # here: it is the date the posting became actionable for him. Rows reach the
+  # base once a day, on the 18:10 digest run (rule 8), so this view is at most
+  # a day behind the email, never ahead of it.
+  [[tables.views]]
+  name = "New"
+  type = "grid"
+  filter_field = "Applied status"
+  filter_operator = "isEmpty"
+  sort_by = ["First seen desc", "Tier asc"]
+  purpose = "Newest postings first. Work from the top; applying removes the row from this view."
+
   # Added 2026-09-25. The owner asked whether there is an applied view; there was
   # not, only Applied status as a field and the dashboard's pipeline panel. This
   # is the Airtable-side answer, and like every view it is a manual step because
