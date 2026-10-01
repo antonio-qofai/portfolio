@@ -1,6 +1,9 @@
 # Public sync rules. Anything that names a real person, address, account or
 # identifier belongs in ~/.config/portfolio-sync/private.toml, not here.
 
+# Order of projects in the README list. Others follow alphabetically.
+readme_order = ["internship-search", "apartment-chores", "life-dashboard"]
+
 exclude_everywhere = [
     ".env", ".env.*", "*.db", "*.db-*", "*.pem", "credentials*.json", "token*.json",
     ".DS_Store", "*/.DS_Store", ".claude/settings.local.json",
@@ -11,6 +14,13 @@ exclude_everywhere = [
 # Airtable base, table, view and share IDs.
 pattern = '\b(app|tbl|viw|shr)[A-Za-z0-9]{14}\b'
 replace = '\1XXXXXXXXXXXXXX'
+scan = false
+
+[[redact]]
+# Google Calendar IDs for shared and subscribed calendars. Anyone holding one
+# can read that calendar.
+pattern = '\b[A-Za-z0-9._-]{16,}@(group|import)\.calendar\.google\.com\b'
+replace = 'calendar-id@example.com'
 scan = false
 
 [scan]

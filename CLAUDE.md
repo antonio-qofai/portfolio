@@ -8,8 +8,11 @@ private repos. Treat everything here as visible to employers.
 - Project code (every folder except `tools/`) is generated. Never edit it here. The next sync
   deletes the folder and rebuilds it from the source repo, so any change made here is lost.
   To change a project, work in its source repo and commit there.
-- Edit these files here: `README.md`, `CLAUDE.md`, `tools/sync.py`, `tools/rules.toml`, and
-  `tools/overlays/`.
+- Edit these files here: `README.md` (outside the generated project list), `CLAUDE.md`,
+  `tools/sync.py`, `tools/rules.toml`, and `tools/overlays/`.
+- The README project list between `<!-- projects:start -->` and `<!-- projects:end -->` is
+  generated from each published folder's `PORTFOLIO.md`. To change a description, edit
+  `PORTFOLIO.md` in the source repo. The order is `readme_order` in `rules.toml`.
 - Source repo paths are listed under `[sources]` in the private config for each machine. They
   are not in this repo.
 
@@ -17,14 +20,23 @@ private repos. Treat everything here as visible to employers.
 
 `tools/sync.py` builds each project in this order:
 
-1. Export the committed HEAD of the source repo (never uncommitted edits).
+1. Export the source repo's `main` branch (or the project's `branch` in `rules.toml`). The
+   checked-out branch and uncommitted edits are never published.
 2. Drop excluded files.
 3. Replace marked blocks and apply overlays (example files that stand in for personal ones).
 4. Apply redactions.
 5. Scan the result for secrets, unapproved email addresses and denied text.
+6. Review: Claude reads the diff against what is already published and flags personal or
+   confidential details the rules missed. If the review cannot run, nothing is published.
 
-A clean scan copies the project into its folder here, commits, and pushes. Any finding stops
-that project and nothing is published.
+If both gates pass, the project is copied into its folder here, the README list is rebuilt,
+and the result is committed and pushed. Any finding stops that project and nothing is
+published.
+
+`uv run --script tools/sync.py --status` shows the last result per project, with findings.
+After the owner has read a review's findings and decided they are false alarms,
+`sync.py NAME --approve-review` publishes that exact change. Anything newer is reviewed again.
+Never run `--approve-review` without the owner's explicit decision.
 
 A post-commit hook in each source repo runs the sync automatically. Output goes to
 `~/Library/Logs/portfolio-sync.log`, and a blocked sync raises a macOS notification. Both Macs
