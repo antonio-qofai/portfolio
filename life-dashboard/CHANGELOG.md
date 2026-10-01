@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+Portfolio sync.
+
+### Added
+
+- `connectors/portfolio.py` reads the portfolio sync's status file (`portfolio_status_file`). A project whose last publish was blocked by the leak scan or the review, or failed, becomes a Pressing actions candidate with the command that shows why. Before, a block only raised a macOS notification, and three life-dashboard publishes sat blocked for days unnoticed. Published projects produce nothing, and a missing status file is not an error.
+- The ranking prompt names portfolio as a source and treats a blocked publish as needing action today.
+- Tests in `tests/test_portfolio.py`.
+
 Build retries.
 
 ### Fixed

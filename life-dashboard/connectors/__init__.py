@@ -4,7 +4,7 @@ Adding a source means adding a module here and registering it below; the
 pipeline and page do not change.
 """
 
-from connectors import ai_daily_brief, chores, gcal, gmail, job_search, nyt, weather
+from connectors import ai_daily_brief, chores, gcal, gmail, job_search, nyt, portfolio, weather
 
 REGISTRY = {
     "weather": weather.fetch,
@@ -12,6 +12,7 @@ REGISTRY = {
     "email": gmail.fetch,
     "chores": chores.fetch,
     "job_search": job_search.fetch,
+    "portfolio": portfolio.fetch,
     "nyt": nyt.fetch,
     "ai_daily_brief": ai_daily_brief.fetch,
 }

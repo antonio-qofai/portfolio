@@ -30,7 +30,7 @@ from dashboard.schema import ConnectorResult, Item
 
 LEAD_PROMPT = ROOT / "prompts" / "lead_time.md"
 RANK_PROMPT = ROOT / "prompts" / "rank_actions.md"
-CANDIDATE_CONNECTORS = ("calendar", "email", "chores", "job_search")
+CANDIDATE_CONNECTORS = ("calendar", "email", "chores", "job_search", "portfolio")
 URGENCY_ORDER = {"overdue": 0, "due_today": 1, "reply_needed": 2, "deadline": 3}
 # Without the model, only deadlines this close surface early.
 FALLBACK_LEAD_DAYS = 3

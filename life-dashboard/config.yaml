@@ -143,6 +143,10 @@ agent_reports_dir: agent-reports
 # A report older than this shows as an error (the chore exporter runs daily at 05:45).
 agent_report_max_age_hours: 30
 
+# Written by the portfolio sync (~/portfolio/tools/sync.py). A blocked publish
+# becomes a Pressing actions candidate.
+portfolio_status_file: ~/.config/portfolio-sync/status.json
+
 # Daily build time (local). launchd also re-runs on wake/login if this was missed.
 # Keep the pmset wake a few minutes earlier (see README, Scheduling).
 schedule:
