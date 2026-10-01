@@ -207,3 +207,22 @@ Append fixes here so they don't recur. One line each, newest at the bottom.
   whether the new rule would have placed it. It would not have, and the row
   was deleted by hand. When a rule changes mid-term, check the already
   written weeks against the new rule and ask before treating them as history.
+
+## Public portfolio
+
+This repo is published. A post-commit hook runs `~/portfolio/tools/sync.py`, which exports the
+`main` branch, redacts personal details, and publishes the result to the public repo
+github.com/antonio-qofai/portfolio. Work on other branches is not published until it is merged
+into `main`.
+
+- Keep secrets and personal values (real names, emails, addresses, account and calendar IDs)
+  in gitignored files such as `.env`, never in tracked files. If a tracked file has to hold one,
+  add a redaction for it to `~/.config/portfolio-sync/private.toml` in the same session. Never
+  write the real value into any public file, including `~/portfolio/tools/rules.toml`.
+- Two gates run before anything is published: a scanner, then a Claude review of exactly what
+  changed. A blocked sync publishes nothing. `uv run --script ~/portfolio/tools/sync.py --status`
+  shows why. Do not work around a block. Fix the content, or tell the owner.
+- `PORTFOLIO.md` is this project's entry in the portfolio README. Keep it current: when a change
+  adds, removes or materially changes a headline capability, update it in the same commit. One
+  paragraph on what the project does today, then one line listing the stack. Plain prose, no em
+  dashes, no exclamation points, no bold inside paragraphs. Describe only what the code does now.
