@@ -215,10 +215,12 @@ This repo is published. A post-commit hook runs `~/portfolio/tools/sync.py`, whi
 github.com/antonio-qofai/portfolio. Work on other branches is not published until it is merged
 into `main`.
 
-- Keep secrets and personal values (real names, emails, addresses, account and calendar IDs)
-  in gitignored files such as `.env`, never in tracked files. If a tracked file has to hold one,
-  add a redaction for it to `~/.config/portfolio-sync/private.toml` in the same session. Never
-  write the real value into any public file, including `~/portfolio/tools/rules.toml`.
+- This repo is private, so personal values in tracked files are fine. When you add a new real
+  name, email, address or ID to a tracked file, also add a redaction for it to
+  `~/.config/portfolio-sync/private.toml` in the same session, so the public copy is cleaned
+  automatically instead of being blocked by the review. Never write the real value into any
+  public file, including `~/portfolio/tools/rules.toml`. Secrets such as API keys still belong
+  in `.env`.
 - Two gates run before anything is published: a scanner, then a Claude review of exactly what
   changed. A blocked sync publishes nothing. `uv run --script ~/portfolio/tools/sync.py --status`
   shows why. Do not work around a block. Fix the content, or tell the owner.
