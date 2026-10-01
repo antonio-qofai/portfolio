@@ -56,11 +56,22 @@ calendars:
     label: Canvas due dates
     section: personal
     kind: deadlines
-    google_id: null
+    google_id: calendar-id@example.com
   - id: qofai
     label: QofAI
     section: qofai
     google_id: owner@example.com
+
+# Recurring coursework no calendar holds (connectors/coursework.py). Physics
+# PSets come from the Canvas feed. Economic Policy Analysis homework is on
+# Gradescope: add a weekly rule once its due day is known.
+coursework:
+  - title: Money & Banking homework
+    weekly: Wed            # due Wednesday evening
+    from: 2026-10-07       # first set is posted Thu/Fri of week 1
+    finish_early_days: 1   # I aim to finish Tuesday night
+  - title: Colonizations reading
+    before_class: colonizations
 
 # Events after today, up to lookahead_days, are rated for lead time (M5).
 calendar:
@@ -137,6 +148,9 @@ agent_report_max_age_hours: 30
 schedule:
   hour: 6
   minute: 0
+  # If today's build had failing connectors, the 30-minute catch-up rebuilds
+  # up to this many times (each rebuild makes one ranking call).
+  retries: 3
 
 # Morning email digest: the top of the brief, from and to the user's Gmail
 # (GMAIL_ADDRESS, GMAIL_APP_PASSWORD, and optional DASHBOARD_URL in .env).

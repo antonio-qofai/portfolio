@@ -3,8 +3,8 @@
     uv run run.py                     build data/brief.json and web/index.html
     uv run run.py --serve             build, then serve web/ at http://127.0.0.1:8000
     uv run run.py --serve --no-build  serve only (the always-on launchd job)
-    uv run run.py --catch-up          build only if the last scheduled run was missed
-                                      (the scheduled launchd job)
+    uv run run.py --catch-up          build only if the last scheduled run was missed, or
+                                      retry it if connectors failed (the scheduled launchd job)
     uv run run.py --digest            email today's digest if it's due and not yet sent
                                       (the digest launchd job)
     uv run run.py --digest-test       email the current brief now, marked [Test]
@@ -26,7 +26,7 @@ from zoneinfo import ZoneInfo
 
 from dashboard import api, digest
 from dashboard.config import ROOT, load_config, load_env
-from dashboard.pipeline import DATA_DIR, build_brief, last_generated_at, save_brief
+from dashboard.pipeline import DATA_DIR, build_brief, last_failed, last_generated_at, save_brief
 from dashboard.refresh import Refresher
 from dashboard.render import render, write_page
 
@@ -40,6 +40,33 @@ def last_scheduled_time(config: dict, now: datetime) -> datetime:
 
 def needs_run(config: dict, now: datetime, last: datetime | None) -> bool:
     return last is None or last < last_scheduled_time(config, now)
+
+
+def retries_today(config: dict, now: datetime, runs_log=None) -> int:
+    """Retry builds logged in runs.log since the last scheduled time."""
+    since = last_scheduled_time(config, now)
+    try:
+        lines = (runs_log or DATA_DIR / "runs.log").read_text().splitlines()
+    except OSError:
+        return 0
+    count = 0
+    for line in lines:
+        parts = line.split("\t")
+        if len(parts) >= 3 and parts[1] == "retry" and not parts[2].startswith("skipped"):
+            try:
+                if datetime.fromisoformat(parts[0]) >= since:
+                    count += 1
+            except ValueError:
+                continue
+    return count
+
+
+def needs_retry(config: dict, now: datetime, failed: list[str], retries: int) -> bool:
+    """Today's brief exists but some connectors failed; rebuild up to schedule.retries times.
+
+    The cap keeps a source that is really down from costing a ranking call every 30 minutes.
+    """
+    return bool(failed) and retries < config["schedule"].get("retries", 0)
 
 
 # After a scheduled wake the Mac can run jobs before Wi-Fi is back; every
@@ -179,16 +206,22 @@ def main() -> None:
     if args.catch_up:
         now = datetime.now(ZoneInfo(config.get("timezone", "America/Chicago")))
         stamp = now.isoformat(timespec="seconds")
-        if not needs_run(config, now, last_generated_at()):
+        if needs_run(config, now, last_generated_at()):
+            trigger = "scheduled"
+        elif needs_retry(config, now, failed := last_failed(), retries_today(config, now)):
+            trigger = "retry"
+            print(f"{stamp} retrying, last build failed={','.join(failed)}", flush=True)
+        else:
+            trigger = None
             print(f"{stamp} brief is current, skipping", flush=True)
-        elif not network_up():
+        if trigger and not network_up():
             # No brief is written, so the next launchd trigger tries again.
             print(f"{stamp} no network after {NETWORK_WAIT_SECONDS}s, will retry", flush=True)
             DATA_DIR.mkdir(exist_ok=True)
             with open(DATA_DIR / "runs.log", "a") as log:
-                log.write(f"{stamp}\tscheduled\tskipped=no_network\n")
-        else:
-            build(config, trigger="scheduled")
+                log.write(f"{stamp}\t{trigger}\tskipped=no_network\n")
+        elif trigger:
+            build(config, trigger=trigger)
     elif not args.no_build:
         build(config, trigger=args.trigger)
 

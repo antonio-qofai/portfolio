@@ -57,9 +57,9 @@ Each module is a card on the page, fed by one connector, and summarized to a few
 | Module | What it shows | Priority |
 | --- | --- | --- |
 | Pressing actions | 3–7 ranked items needing action today, each linked to its source and saying why it made the list | P0 |
-| Calendar | Today's events from Google Calendar (personal, UChicago, QofAI, Canvas due dates), plus upcoming items surfaced early based on importance | P0 |
+| Calendar | Today's events from Google Calendar (personal, UChicago, QofAI, Canvas due dates), plus recurring coursework no calendar holds (homework handed to a TA, readings before class) from rules in config.yaml, and upcoming items surfaced early based on importance | P0 |
 | Email | Across personal Gmail and UChicago: only pressing, time-sensitive school, work and internship email (a reply or action needed soon), 1 line each with why and any deadline, labeled by inbox; everything else collapsed | P0 |
-| QofAI | Everything work-related in one dedicated section: today's QofAI meetings and work deadlines. QofAI email is not read (its communication happens in Slack). Kept out of Pressing actions. | P0 |
+| QofAI | Everything work-related in one dedicated section: this week's QofAI meetings, with a prep note on the ones that need it, work deadlines, and a to-do list I add to from the page. QofAI email and Slack are not read; the quick-add box is how work commitments get in. Kept out of Pressing actions and the digest. | P0 |
 | Chores | My open chores from the chore agent: overdue, due today, and due in the next 7 days (so a Sunday deadline shows all week); ticked-off chores drop off | P0 |
 | Weather | Now, high/low, rain chance, and a one-line "what to wear for the walk" for Chicago | P0 |
 | Job search | From my internship agent's report file: offers, interviews and events this week, deadlines on roles I marked interested, status changes since yesterday, and applications with no reply in three weeks | P1 |
@@ -68,6 +68,8 @@ Each module is a card on the page, fed by one connector, and summarized to a few
 | Yesterday recap | What I planned vs. what got done (from actions I checked off) | P2 |
 
 **Email triage.** An LLM reads sender, subject and snippet for each Primary-tab thread where I didn't send the last message, and keeps only pressing school, work and internship email. If the LLM call fails, simple rules (a real person wrote last) stand in and the card says so. This part of the LLM step lands in M3, ahead of the rest of M5.
+
+**QofAI section.** The lead-time call also rates QofAI meetings (title and time only) and writes a short prep line for the ones that need it, such as a demo or client call a day or two ahead; those notes appear only on the QofAI card. Commitments that come up in Slack get typed into the card's quick-add box ("demo ready by Thu"); a trailing date becomes the due date, a to-do due on a meeting day names that meeting, and to-dos stay until checked off. They're stored locally in data/ and never sent anywhere.
 
 **Pressing actions logic.** An LLM ranks candidates from every personal module (QofAI has its own section) by deadline, who is waiting on me, and cost of missing it.
 
@@ -105,7 +107,7 @@ A single scrolling web page, served locally, that reads well on a laptop and a p
 6. **Job search:** changes since yesterday.
 7. **Reading:** NYT and AI brief cards, each 3–5 items. NYT leads with up to 3 stories for my macro classes this quarter (Money and Banking, Economic Policy Analysis), matched on NYT's own topic tags, then fills with top headlines.
 
-**Interaction (v1):** check off actions, expand a card, click through to the source, and a "refresh now" button. The header shows when the brief was built. A failed connector shows an error on its card, with the age of the last good data it falls back to, instead of breaking the page.
+**Interaction (v1):** check off actions, add and check off QofAI to-dos, expand a card, click through to the source, and a "refresh now" button. The header shows when the brief was built. A failed connector shows an error on its card, with the age of the last good data it falls back to, instead of breaking the page.
 
 **Delivery:** I read it on my phone or laptop depending on the day. The live page is the main view and has everything. A short 7:00 AM email digest (Pressing actions with why, today's calendar, chores, weather, and a link to the page) reaches my phone even if the page isn't reachable. It is sent from my Gmail to myself over SMTP with an app password, once a day, or on wake until noon if the Mac was asleep at 7:00. QofAI items stay out of the digest.
 
@@ -143,7 +145,7 @@ External sources and agent reports merge into one item list; one LLM pass, infor
 The dashboard touches my inbox, so it stays read-only and local by default.
 
 - Read-only OAuth scopes for both inboxes and Google Calendar in v1; no send, delete or edit permissions until the actions phase.
-- **QofAI:** its email is not read. Work items from Calendar stay labeled so they're easy to exclude.
+- **QofAI:** its email and Slack are not read. QofAI meeting titles and times go to the Claude API for prep notes; to-dos typed into the page stay on this Mac. Work items stay labeled, on the QofAI card only.
 - **UChicago account:** connected with read-only Gmail access after I reviewed the policy question; only sender, subject and snippet reach the LLM.
 - API keys and tokens in a `.env` file excluded from git; never in the public repo.
 - Phone access only through Tailscale (private network) or the email digest; the page is never on the open internet.

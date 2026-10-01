@@ -6,7 +6,8 @@ today's events plus the upcoming ones it surfaces.
 Named gcal to avoid shadowing the stdlib `calendar` module. Read-only scope
 (calendar.readonly) through one Google account; UChicago, QofAI and Canvas
 are calendars subscribed into that account. Only title, time, location and
-link are fetched, never descriptions.
+link are fetched, never descriptions. Recurring coursework rules
+(connectors/coursework.py) add deadline items that no calendar holds.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ from __future__ import annotations
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from connectors import coursework
 from dashboard.google_auth import CALENDAR_READONLY, session
 from dashboard.schema import Item
 
@@ -95,4 +97,4 @@ def fetch(config: dict) -> list[Item]:
                 break
             params["pageToken"] = data["nextPageToken"]
         items.extend(parse_events(events, cal, today))
-    return items
+    return items + coursework.derive(items, config.get("coursework", []), datetime.now(tz))

@@ -1,8 +1,9 @@
 """Pressing actions (M5): lead times for upcoming events, then an LLM ranking.
 
-1. Lead time: the model rates each upcoming personal event (title, calendar,
-   start time only) and says how many days ahead it should surface. Events
-   inside their lead time appear under Coming up and become candidates.
+1. Lead time: the model rates each upcoming event (title, calendar, start
+   time only) and says how many days ahead it should surface. Personal events
+   inside their lead time appear under Coming up and become candidates; QofAI
+   events inside theirs only get a prep note on the QofAI card.
 2. Ranking: the model picks 3 to `actions.cap` candidates from the personal
    modules (calendar, pressing email, chores, job search), most pressing first,
    each with a one-line why. QofAI items are never candidates.
@@ -301,10 +302,14 @@ def fallback_rank(cands: list[Surfaced], cap: int) -> list[Surfaced]:
 def select(
     results: dict[str, ConnectorResult], config: dict, now: datetime, data_dir: Path, client: Any = None
 ) -> dict[str, Any]:
-    """{"actions": [Surfaced], "upcoming": [Surfaced], "note": str | None}."""
+    """{"actions": [Surfaced], "upcoming": [Surfaced], "qofai_prep": [Surfaced], "note": str | None}.
+
+    One lead-time call rates personal and QofAI events together; QofAI results
+    never reach Coming up or the ranking.
+    """
     feedback = store.recent_feedback(data_dir, config["actions"]["feedback_limit"])
     cal = results.get("calendar")
-    later = split_events([e for e in (cal.items if cal else []) if e.section == "personal"], now)[1]
+    later = split_events(cal.items if cal else [], now)[1]
     errors = []
     try:
         client = client or _client()
@@ -320,6 +325,8 @@ def select(
             errors.append(f"lead times: {e}")
     if upcoming is None:
         upcoming = fallback_upcoming(later, now)
+    qofai_prep = [u for u in upcoming if u.item.section == "qofai"]
+    upcoming = [u for u in upcoming if u.item.section == "personal"]
 
     cands = candidates(results, upcoming, now, store.hidden_keys(data_dir))
     actions = None
@@ -332,4 +339,4 @@ def select(
         actions = fallback_rank(cands, config["actions"]["cap"])
 
     note = "AI unavailable, simple rules stood in (" + "; ".join(errors) + ")." if errors else None
-    return {"actions": actions, "upcoming": upcoming, "note": note}
+    return {"actions": actions, "upcoming": upcoming, "qofai_prep": qofai_prep, "note": note}

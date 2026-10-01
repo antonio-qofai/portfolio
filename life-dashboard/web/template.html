@@ -72,7 +72,7 @@
     border-radius: 20px; padding: 22px 24px 24px;
     box-shadow: 0 8px 28px rgba(128, 0, 0, .18);
   }
-  .hero-top { display: flex; justify-content: space-between; gap: 12px; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--hero-muted); }
+  .hero-top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; white-space: nowrap; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--hero-muted); }
   .stamp { display: inline-flex; align-items: center; gap: 6px; }
   #refresh {
     border: none; background: transparent; color: inherit; cursor: pointer; padding: 0;
@@ -174,6 +174,28 @@
   details li .title { font-weight: 400; font-size: .92rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* QofAI */
+  .prep { -webkit-line-clamp: 3; }
+  #qofai li.timed { grid-template-columns: 92px 1fr; }
+  #qofai .lead { white-space: nowrap; }
+  .todos .due { display: block; margin-top: 2px; font-size: .8rem; color: var(--faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .prep::before { content: "Prep · "; font-weight: 600; color: var(--work); }
+  .todos li { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start; }
+  .todos .check { width: 20px; height: 20px; }
+  .todos .check:checked { background: var(--work); border-color: var(--work); }
+  .todos li.done .title { text-decoration: line-through; color: var(--faint); }
+  .todos .pill.overdue { background: var(--error-bg); color: var(--error-text); }
+  .add { display: flex; gap: 8px; margin-top: 10px; }
+  .add input {
+    flex: 1; min-width: 0; font: inherit; font-size: .9rem; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px;
+  }
+  .add input::placeholder { color: var(--faint); }
+  .add input:focus { outline: none; border-color: var(--work); }
+  .add button {
+    font: inherit; font-size: .85rem; font-weight: 600; color: var(--card); background: var(--work);
+    border: none; border-radius: 10px; padding: 0 14px; cursor: pointer;
+  }
+  .add button:disabled { opacity: .5; cursor: default; }
   .card.work h2 { color: var(--work); }
   .card.work h2::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--work); }
 
@@ -275,6 +297,72 @@ $body
     post("/api/refresh", {}).then(function () { setTimeout(waitForBuild, 2000); })
       .catch(function () { failed("Couldn't start a refresh"); });
   });
+
+  // QofAI to-dos: typed into the quick-add box, stored by the local server.
+  var todoList = document.getElementById("qofai-todos");
+  var addForm = document.getElementById("qofai-add");
+  var meetings = {};
+  document.querySelectorAll("#qofai li[data-date]").forEach(function (li) {
+    if (!meetings[li.dataset.date]) meetings[li.dataset.date] = li.dataset.title;
+  });
+  function localISO(d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }
+  function dueLabel(iso) {
+    var today = new Date(), d = new Date(iso + "T12:00:00");
+    var tomorrow = new Date(today.getTime() + 864e5);
+    if (iso === localISO(today)) return "Today";
+    if (iso === localISO(tomorrow)) return "Tomorrow";
+    return d.toLocaleDateString("en-US", {weekday: "short"}) + " " + d.toLocaleDateString("en-US", {month: "short", day: "numeric"});
+  }
+  function el(tag, cls, text) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text) node.textContent = text;
+    return node;
+  }
+  function todoRow(t) {
+    var li = el("li", t.done_at ? "done" : "");
+    var box = el("input", "check");
+    box.type = "checkbox"; box.checked = !!t.done_at; box.setAttribute("aria-label", "Done");
+    box.addEventListener("change", function () {
+      li.classList.toggle("done", box.checked);
+      post("/api/qofai/done", {id: t.id, done: box.checked})
+        .catch(function () { box.checked = !box.checked; li.classList.toggle("done", box.checked); say("Couldn't save the check-off"); });
+    });
+    var main = el("div", "main"), line = el("div", "line");
+    line.appendChild(el("span", "title", t.text));
+    if (t.due) {
+      if (!t.done_at && t.due < localISO(new Date())) line.appendChild(el("span", "pill overdue", "overdue"));
+    }
+    main.appendChild(line);
+    if (t.due) main.appendChild(el("span", "due", dueLabel(t.due) + (meetings[t.due] ? " · " + meetings[t.due] : "")));
+    li.appendChild(box); li.appendChild(main);
+    return li;
+  }
+  function loadTodos() {
+    if (!todoList) return;
+    fetch("/api/qofai").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (data) {
+        todoList.textContent = "";
+        if (!data.todos.length) todoList.appendChild(el("li", "empty", "Nothing yet."));
+        data.todos.forEach(function (t) { todoList.appendChild(todoRow(t)); });
+      })
+      .catch(function () { todoList.textContent = ""; todoList.appendChild(el("li", "empty", "To-dos need the dashboard server.")); });
+  }
+  if (addForm) addForm.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var input = addForm.elements.text, button = addForm.querySelector("button");
+    var text = input.value.trim();
+    if (!text) return;
+    button.disabled = true;
+    fetch("/api/qofai/add", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({text: text})})
+      .then(function (r) { return r.json().then(function (body) { if (!r.ok) throw new Error(body.error || r.status); return body; }); })
+      .then(function () { input.value = ""; loadTodos(); })
+      .catch(function (err) { say(err.message && isNaN(err.message) ? err.message : "Couldn't add the to-do"); })
+      .then(function () { button.disabled = false; });
+  });
+  loadTodos();
 
   fetch("/api/state").then(function (r) { return r.ok ? r.json() : null; }).then(function (state) {
     if (!state) return;

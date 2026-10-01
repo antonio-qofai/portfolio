@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+Build retries.
+
+### Fixed
+
+- A connector that fails is retried once, 10 seconds after the others finish. On Sep 30 the Mac went back to sleep 14 seconds into the 6:00 build (a maintenance wake on battery, lid closed); email and AI Daily Brief had connections open across the 16-minute sleep and failed when it resumed, while the connectors that started after it succeeded.
+- `--catch-up` rebuilds when today's brief has failed connectors, up to `schedule.retries` (3) times a day, logged as `retry` in runs.log. Before, it saw today's brief and skipped, so the failed cards stayed stale until a manual refresh. The cap keeps a source that's really down from costing a ranking call every 30 minutes. The digest still waits only for the scheduled build.
+- Tests for both.
+
+QofAI section.
+
+### Added
+
+- The QofAI card lists this week's QofAI meetings instead of only today's. The lead-time call now rates QofAI meetings with the personal ones (title and time only; the prompt says what makes a work meeting need prep), and meetings inside their lead time get a "Prep" line. QofAI results stay off Coming up, Pressing actions and the digest (`qofai_prep` in brief.json).
+- A quick-add box on the QofAI card for work to-dos, in place of reading Slack. A trailing date ("by Thu", "tomorrow", "Oct 3", "10/3") becomes the due date; a to-do due on a meeting day names the meeting; overdue ones are flagged. Stored in `data/qofai_todos.json` through `GET /api/qofai`, `POST /api/qofai/add` and `POST /api/qofai/done` (same-origin, like the other endpoints). Checked-off to-dos stay visible, struck through, until the next day.
+- Tests for the prep split, the card, date parsing, the store and the endpoints.
+- The Canvas calendar feed is subscribed in Google Calendar and mapped in config.yaml. It has no assignments yet.
+- Recurring coursework rules (`coursework` in config.yaml, `connectors/coursework.py`) for deadlines no calendar holds: Money & Banking homework due Wednesdays from Oct 7, with a reminder on Tuesday, my target day (`finish_early_days`; overdue on Wednesday until done), and the Colonizations reading before each class. They become Canvas-style deadline items from the calendar connector, next occurrence only, so they get lead times and can rank in Pressing actions. Economic Policy Analysis homework is on Gradescope; its rule waits for the due day.
+
+### Changed
+
+- PRD: the QofAI module, privacy note and interactions describe the week view, prep notes and to-dos. Slack stays unread.
+
 Refresh now.
 
 ### Added

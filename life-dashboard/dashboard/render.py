@@ -6,16 +6,20 @@ All source text is HTML-escaped; it is data, never markup.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from html import escape
 from pathlib import Path
 from string import Template
 from typing import Any
 
-from dashboard.actions import split_events
+from dashboard import store, worklist
+from dashboard.actions import local_date, split_events
 from dashboard.config import ROOT
 from dashboard.schema import ConnectorResult, Item
 from dashboard.store import FEEDBACK_KINDS
+
+# How many days of QofAI meetings the QofAI card lists, today included.
+QOFAI_DAYS = 7
 
 TEMPLATE = ROOT / "web" / "template.html"
 
@@ -70,6 +74,22 @@ def _pills(item: Item) -> str:
     """Urgency hints as small tags: 'overdue', 'due today', ..."""
     return "".join(
         f'<span class="pill {escape(h)}">{escape(h.replace("_", " "))}</span>' for h in item.urgency_hints
+    )
+
+
+def _meeting(event: Item, now: datetime, prep: str) -> str:
+    """A QofAI meeting: 'Today 1:30 PM' or 'Thu 1:30 PM', the title, and a prep note if the model gave one.
+
+    data-date lets the page script tie a to-do due that day to this meeting.
+    """
+    day = local_date(event.timestamp, now)
+    label = "Today" if day == now.date() else day.strftime("%a")
+    lead = label if _all_day(event.timestamp) else f"{label} {_time(event.timestamp)}"
+    prep_html = f'<p class="summary prep">{escape(prep)}</p>' if prep else ""
+    return (
+        f'<li class="timed" data-date="{day.isoformat()}" data-title="{escape(event.title)}">'
+        f'<span class="lead">{escape(lead)}</span><div class="main"><div class="line">'
+        f'<span class="title">{_title(event)}</span></div>{prep_html}</div></li>'
     )
 
 
@@ -254,16 +274,26 @@ def render(brief: dict[str, Any], config: dict) -> str:
         )
     inbox = _card("inbox", "Inbox", inbox_body, [email], count=len(pressing))
 
-    # 5. QofAI (kept separate from personal items). Its email lives in Slack, so no inbox here.
-    q_events = [e for e in events if e.section == "qofai" and not e.due]
+    # 5. QofAI (kept separate from personal items): this week's meetings with prep notes
+    # for the ones that need it, then the to-dos typed into the quick-add box (filled by the page script).
+    prep = {u.key: u.why for u in brief.get("qofai_prep", [])}
+    week_end = now.date() + timedelta(days=QOFAI_DAYS)
+    q_week = [
+        e for e in cal.items
+        if e.section == "qofai" and not e.due and e.timestamp and local_date(e.timestamp, now) < week_end
+    ]
+    q_week.sort(key=lambda e: e.timestamp or "")
     q_due = [i for res in r.values() for i in res.items if i.section == "qofai" and i.due]
-    if q_events or q_due:
-        qofai_body = (
-            (_list([_item(e, lead=_time(e.timestamp)) for e in q_events]) if q_events else "")
-            + ("<h3>Deadlines</h3>" + _list([_item(i, _short_due(i.due)) for i in q_due]) if q_due else "")
-        )
-    else:
-        qofai_body = '<p class="empty">No meetings or deadlines today.</p>'
+    meetings = _list([_meeting(e, now, prep.get(store.item_key(e), "")) for e in q_week], "No work meetings this week.")
+    qofai_body = (
+        "<h3>This week</h3>" + meetings
+        + ("<h3>Deadlines</h3>" + _list([_item(i, _short_due(i.due)) for i in q_due]) if q_due else "")
+        + '<h3>To do</h3><ul class="todos" id="qofai-todos"></ul>'
+        '<form class="add" id="qofai-add" autocomplete="off">'
+        f'<input type="text" name="text" maxlength="{worklist.MAX_TEXT}" aria-label="Add a QofAI to-do" '
+        'placeholder="Add a to-do, like \u201cdemo by Thu\u201d">'
+        '<button type="submit" aria-label="Add">Add</button></form>'
+    )
     qofai = _card("qofai", "QofAI", qofai_body, [cal], "work")
 
     # 6. Job search

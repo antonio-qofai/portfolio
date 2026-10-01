@@ -6,11 +6,17 @@ lead times, with rule fallbacks).
 One failing connector produces an error result instead of stopping the run.
 Each connector's last good result is cached in data/cache/, so a failure
 shows the previous data (marked stale) rather than a blank card.
+
+A connector that fails is retried once after the others finish. The Mac can
+sleep in the middle of a scheduled build (a maintenance wake on battery lasts
+seconds), and connections open across that sleep come back dead; by the time
+the rest of the run is done it is usually awake and online again.
 """
 
 from __future__ import annotations
 
 import json
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
@@ -24,6 +30,7 @@ from dashboard.schema import ConnectorResult, Item
 Fetch = Callable[[dict], list[Item]]
 
 DATA_DIR = ROOT / "data"
+RETRY_DELAY_SECONDS = 10
 
 
 def _now(config: dict) -> datetime:
@@ -47,6 +54,19 @@ def _read_cache(cache_dir: Path, name: str) -> ConnectorResult | None:
     return ConnectorResult(name=name, items=items, last_updated=data.get("last_updated"))
 
 
+def _fetch(config: dict, name: str, fetch: Fetch, cache_dir: Path) -> ConnectorResult:
+    stamp = _now(config).isoformat(timespec="seconds")
+    try:
+        result = ConnectorResult(name=name, items=fetch(config), last_updated=stamp)
+        _write_cache(cache_dir, result)
+    except Exception as e:  # noqa: BLE001 - any connector failure becomes an error card
+        error = f"{type(e).__name__}: {e}"
+        result = _read_cache(cache_dir, name) or ConnectorResult(name=name, last_updated=stamp)
+        result.error = error
+        result.stale = bool(result.items)
+    return result
+
+
 def run_connectors(
     config: dict,
     registry: dict[str, Fetch] | None = None,
@@ -54,18 +74,12 @@ def run_connectors(
 ) -> dict[str, ConnectorResult]:
     registry = REGISTRY if registry is None else registry
     cache_dir = cache_dir or DATA_DIR / "cache"
-    results = {}
-    for name, fetch in registry.items():
-        stamp = _now(config).isoformat(timespec="seconds")
-        try:
-            result = ConnectorResult(name=name, items=fetch(config), last_updated=stamp)
-            _write_cache(cache_dir, result)
-        except Exception as e:  # noqa: BLE001 - any connector failure becomes an error card
-            error = f"{type(e).__name__}: {e}"
-            result = _read_cache(cache_dir, name) or ConnectorResult(name=name, last_updated=stamp)
-            result.error = error
-            result.stale = bool(result.items)
-        results[name] = result
+    results = {name: _fetch(config, name, fetch, cache_dir) for name, fetch in registry.items()}
+    failed = [name for name, r in results.items() if r.error]
+    if failed:
+        time.sleep(RETRY_DELAY_SECONDS)
+        for name in failed:
+            results[name] = _fetch(config, name, registry[name], cache_dir)
     return results
 
 
@@ -86,6 +100,7 @@ def build_brief(
         "results": results,
         "actions": picked["actions"],
         "upcoming": picked["upcoming"],
+        "qofai_prep": picked["qofai_prep"],
         "actions_note": picked["note"],
     }
 
@@ -98,10 +113,21 @@ def save_brief(brief: dict[str, Any], path: Path | None = None) -> Path:
         "results": {k: v.to_dict() for k, v in brief["results"].items()},
         "actions": [a.to_dict() for a in brief["actions"]],
         "upcoming": [u.to_dict() for u in brief["upcoming"]],
+        "qofai_prep": [u.to_dict() for u in brief.get("qofai_prep", [])],
         "actions_note": brief["actions_note"],
     }
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False))
     return path
+
+
+def last_failed(path: Path | None = None) -> list[str]:
+    """Connectors that failed in the saved brief."""
+    path = path or DATA_DIR / "brief.json"
+    try:
+        results = json.loads(path.read_text())["results"]
+    except (OSError, ValueError, KeyError):
+        return []
+    return [name for name, r in results.items() if r.get("error")]
 
 
 def last_generated_at(path: Path | None = None) -> datetime | None:

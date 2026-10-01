@@ -76,7 +76,7 @@ Three launchd jobs keep the brief fresh, the page up, and the digest sent.
 
 | Job | What it does |
 | --- | --- |
-| `...life-dashboard.build` | `run.py --catch-up` at 6:00 AM, at login, on wake after a missed 6:00, and every 30 min. Skips if today's brief already exists. |
+| `...life-dashboard.build` | `run.py --catch-up` at 6:00 AM, at login, on wake after a missed 6:00, and every 30 min. Skips if today's brief already exists, unless some of its connectors failed; then it rebuilds, up to `schedule.retries` times a day. |
 | `...life-dashboard.digest` | `run.py --digest` at 7:00, at login, and every 15 min. Sends once a day in the window, after the build. |
 | `...life-dashboard.serve` | `run.py --serve --no-build`, always on, localhost only (Tailscale proxies to it). Serves `web/` and the check-off and feedback endpoints. Reinstall after changing server code or `DASHBOARD_URL`. |
 
@@ -94,7 +94,7 @@ sudo pmset repeat wakeorpoweron MTWRFSU 05:55:00
 pmset -g sched                           # confirm
 ```
 
-Every build appends a line to `data/runs.log` (time, trigger, status); that log is how we check the "ready before 7:00 AM" metric. Job output goes to `data/logs/`.
+Every build appends a line to `data/runs.log` (time, trigger, status; trigger is `scheduled`, `retry`, `manual` or `refresh`); that log is how we check the "ready before 7:00 AM" metric. Job output goes to `data/logs/`.
 
 When a connector fails, its card shows the error plus its last good result from `data/cache/`, marked with its age.
 

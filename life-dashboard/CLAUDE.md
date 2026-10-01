@@ -56,3 +56,22 @@ tests/
 - Caps come from config.yaml (`news.cap`, `actions.cap`), never hardcoded.
 - The server binds to 127.0.0.1 and serves `web/` plus the check-off and feedback endpoints (`dashboard/api.py`). The endpoints accept same-origin JSON only, and only keys in the current brief.
 - Python 3.12, run through uv. Other agents on this machine use their own environments and talk to this project only through files and email.
+
+## Public portfolio
+
+This repo is published. A post-commit hook runs `~/portfolio/tools/sync.py`, which exports the
+`main` branch, redacts personal details, and publishes the result to the public repo
+github.com/antonio-qofai/portfolio. Work on other branches is not published until it is merged
+into `main`.
+
+- Keep secrets and personal values (real names, emails, addresses, account and calendar IDs)
+  in gitignored files such as `.env`, never in tracked files. If a tracked file has to hold one,
+  add a redaction for it to `~/.config/portfolio-sync/private.toml` in the same session. Never
+  write the real value into any public file, including `~/portfolio/tools/rules.toml`.
+- Two gates run before anything is published: a scanner, then a Claude review of exactly what
+  changed. A blocked sync publishes nothing. `uv run --script ~/portfolio/tools/sync.py --status`
+  shows why. Do not work around a block. Fix the content, or tell the owner.
+- `PORTFOLIO.md` is this project's entry in the portfolio README. Keep it current: when a change
+  adds, removes or materially changes a headline capability, update it in the same commit. One
+  paragraph on what the project does today, then one line listing the stack. Plain prose, no em
+  dashes, no exclamation points, no bold inside paragraphs. Describe only what the code does now.

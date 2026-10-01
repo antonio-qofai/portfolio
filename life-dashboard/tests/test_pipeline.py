@@ -5,7 +5,7 @@ import pytest
 from connectors import REGISTRY
 from connectors._time import at
 from dashboard.config import ROOT, load_config
-from dashboard.pipeline import build_brief, save_brief
+from dashboard.pipeline import build_brief, last_failed, save_brief
 from dashboard.render import CARD_ORDER, render, write_page
 from dashboard.schema import AgentReportError, Item, parse_agent_report
 
@@ -147,6 +147,40 @@ def test_failure_falls_back_to_last_good_result(config, registry, build):
     assert "60°F, overcast" in page
     assert "9:30 AM · CMSC 14100" in page
     assert "Showing last good result from" in page
+
+
+def test_failed_connector_is_retried_once(registry, build, tmp_path):
+    calls = []
+
+    def flaky(config):
+        calls.append(1)
+        if len(calls) == 1:
+            raise ConnectionError("Remote end closed connection without response")
+        return fake_email(config)
+
+    brief = build({**registry, "email": flaky})
+    assert len(calls) == 2
+    assert brief["results"]["email"].error is None
+    assert brief["results"]["email"].items[0].title == "Coffee Friday?"
+
+    save_brief(brief, tmp_path / "brief.json")
+    assert last_failed(tmp_path / "brief.json") == []
+
+
+def test_connector_that_fails_twice_keeps_the_error(registry, build, tmp_path):
+    calls = []
+
+    def broken(_config):
+        calls.append(1)
+        raise TimeoutError("The read operation timed out")
+
+    brief = build({**registry, "ai_daily_brief": broken})
+    assert len(calls) == 2
+    assert brief["results"]["ai_daily_brief"].error == "TimeoutError: The read operation timed out"
+
+    save_brief(brief, tmp_path / "brief.json")
+    assert last_failed(tmp_path / "brief.json") == ["ai_daily_brief"]
+    assert last_failed(tmp_path / "missing.json") == []
 
 
 def test_caps_and_qofai_kept_out_of_actions(config, build):
