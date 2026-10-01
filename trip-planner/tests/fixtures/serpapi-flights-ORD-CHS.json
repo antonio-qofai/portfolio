@@ -1,0 +1,809 @@
+{
+  "search_metadata": {
+    "id": "6abe7632532a170f254f50e9",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/g97PEMdHLwwaSIo2p2iGsRG07zF-5oHZAZV2HeDCy0A/6abe7632532a170f254f50e9.json",
+    "markdown_endpoint": "https://serpapi.com/searches/g97PEMdHLwwaSIo2p2iGsRG07zF-5oHZAZV2HeDCy0A/6abe7632532a170f254f50e9.md",
+    "created_at": "2026-10-01 15:03:14 UTC",
+    "processed_at": "2026-10-01 15:03:14 UTC",
+    "google_flights_url": "https://www.google.com/travel/flights?hl=en&gl=us&curr=USD&tfs=CBwQAhoeEgoyMDI2LTExLTEzagcIARIDT1JEcgcIARIDQ0hTGh4SCjIwMjYtMTEtMTZqBwgBEgNDSFNyBwgBEgNPUkRAAUgBcAGYAQE&tfu=EgIIAQ",
+    "raw_html_file": "https://serpapi.com/searches/g97PEMdHLwwaSIo2p2iGsRG07zF-5oHZAZV2HeDCy0A/6abe7632532a170f254f50e9.html",
+    "prettify_html_file": "https://serpapi.com/searches/g97PEMdHLwwaSIo2p2iGsRG07zF-5oHZAZV2HeDCy0A/6abe7632532a170f254f50e9.prettify",
+    "total_time_taken": 1.11
+  },
+  "search_parameters": {
+    "engine": "google_flights",
+    "hl": "en",
+    "gl": "us",
+    "type": "1",
+    "departure_id": "ORD",
+    "arrival_id": "CHS",
+    "outbound_date": "2026-11-13",
+    "return_date": "2026-11-16",
+    "adults": 1,
+    "currency": "USD"
+  },
+  "best_flights": [
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Chicago O'Hare International Airport",
+            "id": "ORD",
+            "time": "2026-11-13 10:40"
+          },
+          "arrival_airport": {
+            "name": "Charleston International Airport",
+            "id": "CHS",
+            "time": "2026-11-13 13:56"
+          },
+          "duration": 136,
+          "airplane": "Airbus A319",
+          "airline": "United",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/UA.png",
+          "travel_class": "Economy",
+          "flight_number": "UA 1491",
+          "legroom": "30 in",
+          "extensions": [
+            "Average legroom (30 in)",
+            "Wi-Fi for a fee",
+            "In-seat power & USB outlets",
+            "Stream media to your device",
+            "Carbon emissions estimate: 150 kg"
+          ]
+        }
+      ],
+      "total_duration": 136,
+      "carbon_emissions": {
+        "this_flight": 151000,
+        "typical_for_this_route": 165000,
+        "difference_percent": -8
+      },
+      "price": 308,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/UA.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJZUUxZlFtbzVjM1ZEZVhkQlIwWlVZbmRDUnkwdExTMHRMUzB0YjJ0aWJHUXlNVUZCUVVGQlIzRXRaR3BOUzJKaGNWTkJFZ1pWUVRFME9URWFDd2k4OEFFUUFob0RWVk5FT0J4d3ZQQUIiLFtbIk9SRCIsIjIwMjYtMTEtMTMiLCJDSFMiLG51bGwsIlVBIiwiMTQ5MSJdXV0="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Chicago O'Hare International Airport",
+            "id": "ORD",
+            "time": "2026-11-13 12:06"
+          },
+          "arrival_airport": {
+            "name": "Charleston International Airport",
+            "id": "CHS",
+            "time": "2026-11-13 15:24"
+          },
+          "duration": 138,
+          "airplane": "Boeing 737",
+          "airline": "American",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AA.png",
+          "travel_class": "Economy",
+          "flight_number": "AA 2221",
+          "legroom": "30 in",
+          "extensions": [
+            "Average legroom (30 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "Stream media to your device",
+            "Carbon emissions estimate: 120 kg"
+          ]
+        }
+      ],
+      "total_duration": 138,
+      "carbon_emissions": {
+        "this_flight": 121000,
+        "typical_for_this_route": 165000,
+        "difference_percent": -27
+      },
+      "price": 308,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AA.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJZUUxZlFtbzVjM1ZEZVhkQlIwWlVZbmRDUnkwdExTMHRMUzB0YjJ0aWJHUXlNVUZCUVVGQlIzRXRaR3BOUzJKaGNWTkJFZ1pCUVRJeU1qRWFDd2k4OEFFUUFob0RWVk5FT0J4d3ZQQUIiLFtbIk9SRCIsIjIwMjYtMTEtMTMiLCJDSFMiLG51bGwsIkFBIiwiMjIyMSJdXV0="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Chicago O'Hare International Airport",
+            "id": "ORD",
+            "time": "2026-11-13 16:40"
+          },
+          "arrival_airport": {
+            "name": "Charlotte Douglas International Airport",
+            "id": "CLT",
+            "time": "2026-11-13 19:52"
+          },
+          "duration": 132,
+          "airplane": "Boeing 737",
+          "airline": "American",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AA.png",
+          "travel_class": "Economy",
+          "flight_number": "AA 864",
+          "legroom": "30 in",
+          "extensions": [
+            "Average legroom (30 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "Stream media to your device",
+            "Carbon emissions estimate: 104 kg"
+          ]
+        },
+        {
+          "departure_airport": {
+            "name": "Charlotte Douglas International Airport",
+            "id": "CLT",
+            "time": "2026-11-13 20:46"
+          },
+          "arrival_airport": {
+            "name": "Charleston International Airport",
+            "id": "CHS",
+            "time": "2026-11-13 21:53"
+          },
+          "duration": 67,
+          "airplane": "Airbus A320",
+          "airline": "American",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AA.png",
+          "travel_class": "Economy",
+          "flight_number": "AA 3201",
+          "legroom": "31 in",
+          "extensions": [
+            "Average legroom (31 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "Stream media to your device",
+            "Carbon emissions estimate: 57 kg"
+          ]
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 54,
+          "name": "Charlotte Douglas International Airport",
+          "id": "CLT"
+        }
+      ],
+      "total_duration": 253,
+      "carbon_emissions": {
+        "this_flight": 163000,
+        "typical_for_this_route": 165000,
+        "difference_percent": -1
+      },
+      "price": 318,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AA.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJZUUxZlFtbzVjM1ZEZVhkQlIwWlVZbmRDUnkwdExTMHRMUzB0YjJ0aWJHUXlNVUZCUVVGQlIzRXRaR3BOUzJKaGNWTkJFZ3hCUVRnMk5IeEJRVE15TURFYUN3aVErQUVRQWhvRFZWTkVPQnh3a1BnQiIsW1siT1JEIiwiMjAyNi0xMS0xMyIsIkNMVCIsbnVsbCwiQUEiLCI4NjQiXSxbIkNMVCIsIjIwMjYtMTEtMTMiLCJDSFMiLG51bGwsIkFBIiwiMzIwMSJdXV0="
+    }
+  ],
+  "other_flights": [
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Chicago O'Hare International Airport",
+            "id": "ORD",
+            "time": "2026-11-13 07:47"
+          },
+          "arrival_airport": {
+            "name": "Charleston International Airport",
+            "id": "CHS",
+            "time": "2026-11-13 11:21"
+          },
+          "duration": 154,
+          "airplane": "Embraer 175",
+          "airline": "United",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/UA.png",
+          "travel_class": "Economy",
+          "flight_number": "UA 5963",
+          "legroom": "31 in",
+          "extensions": [
+            "Average legroom (31 in)",
+            "Free Wi-Fi",
+            "In-seat power outlet",
+            "Stream media to your device",
+            "Carbon emissions estimate: 182 kg"
+          ],
+          "plane_and_crew_by": "SkyWest DBA United Express"
+        }
+      ],
+      "total_duration": 154,
+      "carbon_emissions": {
+        "this_flight": 183000,
+        "typical_for_this_route": 165000,
+        "difference_percent": 11
+      },
+      "price": 308,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/UA.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJZUUxZlFtbzVjM1ZEZVhkQlIwWlVZbmRDUnkwdExTMHRMUzB0YjJ0aWJHUXlNVUZCUVVGQlIzRXRaR3BOUzJKaGNWTkJFZ1pWUVRVNU5qTWFDd2k4OEFFUUFob0RWVk5FT0J4d3ZQQUIiLFtbIk9SRCIsIjIwMjYtMTEtMTMiLCJDSFMiLG51bGwsIlVBIiwiNTk2MyJdXV0="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Chicago O'Hare International Airport",
+            "id": "ORD",
+            "time": "2026-11-13 08:05"
+          },
+          "arrival_airport": {
+            "name": "Charleston International Airport",
+            "id": "CHS",
+            "time": "2026-11-13 11:24"
+          },
+          "duration": 139,
+          "airplane": "Boeing 737",
+          "airline": "American",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AA.png",
+          "travel_class": "Economy",
+          "flight_number": "AA 2658",
+          "ticket_also_sold_by": [
+            "Alaska"
+          ],
+          "legroom": "30 in",
+          "extensions": [
+            "Average legroom (30 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "Stream media to your device",
+            "Carbon emissions estimate: 120 kg"
+          ]
+        }
+      ],
+      "total_duration": 139,
+      "carbon_emissions": {
+        "this_flight": 121000,
+        "typical_for_this_route": 165000,
+        "difference_percent": -27
+      },
+      "price": 308,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AA.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJZUUxZlFtbzVjM1ZEZVhkQlIwWlVZbmRDUnkwdExTMHRMUzB0YjJ0aWJHUXlNVUZCUVVGQlIzRXRaR3BOUzJKaGNWTkJFZ1pCUVRJMk5UZ2FDd2k4OEFFUUFob0RWVk5FT0J4d3ZQQUIiLFtbIk9SRCIsIjIwMjYtMTEtMTMiLCJDSFMiLG51bGwsIkFBIiwiMjY1OCJdXV0="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Chicago O'Hare International Airport",
+            "id": "ORD",
+            "time": "2026-11-13 14:32"
+          },
+          "arrival_airport": {
+            "name": "Charleston International Airport",
+            "id": "CHS",
+            "time": "2026-11-13 18:06"
+          },
+          "duration": 154,
+          "airplane": "Embraer 175",
+          "airline": "United",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/UA.png",
+          "travel_class": "Economy",
+          "flight_number": "UA 3713",
+          "legroom": "31 in",
+          "extensions": [
+            "Average legroom (31 in)",
+            "Free Wi-Fi",
+            "Stream media to your device",
+            "Carbon emissions estimate: 169 kg"
+          ],
+          "plane_and_crew_by": "Republic Airways DBA United Express"
+        }
+      ],
+      "total_duration": 154,
+      "carbon_emissions": {
+        "this_flight": 170000,
+        "typical_for_this_route": 165000,
+        "difference_percent": 3
+      },
+      "price": 308,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/UA.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJZUUxZlFtbzVjM1ZEZVhkQlIwWlVZbmRDUnkwdExTMHRMUzB0YjJ0aWJHUXlNVUZCUVVGQlIzRXRaR3BOUzJKaGNWTkJFZ1pWUVRNM01UTWFDd2k4OEFFUUFob0RWVk5FT0J4d3ZQQUIiLFtbIk9SRCIsIjIwMjYtMTEtMTMiLCJDSFMiLG51bGwsIlVBIiwiMzcxMyJdXV0="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Chicago O'Hare International Airport",
+            "id": "ORD",
+            "time": "2026-11-13 18:17"
+          },
+          "arrival_airport": {
+            "name": "Charleston International Airport",
+            "id": "CHS",
+            "time": "2026-11-13 22:00"
+          },
+          "duration": 163,
+          "airplane": "Embraer 175",
+          "airline": "United",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/UA.png",
+          "travel_class": "Economy",
+          "flight_number": "UA 5357",
+          "legroom": "31 in",
+          "extensions": [
+            "Average legroom (31 in)",
+            "Free Wi-Fi",
+            "In-seat power outlet",
+            "Stream media to your device",
+            "Carbon emissions estimate: 182 kg"
+          ],
+          "plane_and_crew_by": "SkyWest DBA United Express"
+        }
+      ],
+      "total_duration": 163,
+      "carbon_emissions": {
+        "this_flight": 183000,
+        "typical_for_this_route": 165000,
+        "difference_percent": 11
+      },
+      "price": 308,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/UA.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJZUUxZlFtbzVjM1ZEZVhkQlIwWlVZbmRDUnkwdExTMHRMUzB0YjJ0aWJHUXlNVUZCUVVGQlIzRXRaR3BOUzJKaGNWTkJFZ1pWUVRVek5UY2FDd2k4OEFFUUFob0RWVk5FT0J4d3ZQQUIiLFtbIk9SRCIsIjIwMjYtMTEtMTMiLCJDSFMiLG51bGwsIlVBIiwiNTM1NyJdXV0="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Chicago O'Hare International Airport",
+            "id": "ORD",
+            "time": "2026-11-13 20:59"
+          },
+          "arrival_airport": {
+            "name": "Charleston International Airport",
+            "id": "CHS",
+            "time": "2026-11-14 00:17"
+          },
+          "duration": 138,
+          "airplane": "Boeing 737",
+          "airline": "American",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AA.png",
+          "travel_class": "Economy",
+          "flight_number": "AA 1245",
+          "legroom": "30 in",
+          "extensions": [
+            "Average legroom (30 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "Stream media to your device",
+            "Carbon emissions estimate: 120 kg"
+          ]
+        }
+      ],
+      "total_duration": 138,
+      "carbon_emissions": {
+        "this_flight": 121000,
+        "typical_for_this_route": 165000,
+        "difference_percent": -27
+      },
+      "price": 308,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/AA.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJZUUxZlFtbzVjM1ZEZVhkQlIwWlVZbmRDUnkwdExTMHRMUzB0YjJ0aWJHUXlNVUZCUVVGQlIzRXRaR3BOUzJKaGNWTkJFZ1pCUVRFeU5EVWFDd2k4OEFFUUFob0RWVk5FT0J4d3ZQQUIiLFtbIk9SRCIsIjIwMjYtMTEtMTMiLCJDSFMiLG51bGwsIkFBIiwiMTI0NSJdXV0="
+    },
+    {
+      "flights": [
+        {
+          "departure_airport": {
+            "name": "Chicago O'Hare International Airport",
+            "id": "ORD",
+            "time": "2026-11-13 18:15"
+          },
+          "arrival_airport": {
+            "name": "Hartsfield-Jackson Atlanta International Airport",
+            "id": "ATL",
+            "time": "2026-11-13 21:25"
+          },
+          "duration": 130,
+          "airplane": "Boeing 737",
+          "airline": "Delta",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/DL.png",
+          "travel_class": "Economy",
+          "flight_number": "DL 2738",
+          "legroom": "31 in",
+          "extensions": [
+            "Average legroom (31 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "Live TV",
+            "Carbon emissions estimate: 99 kg"
+          ]
+        },
+        {
+          "departure_airport": {
+            "name": "Hartsfield-Jackson Atlanta International Airport",
+            "id": "ATL",
+            "time": "2026-11-13 22:44"
+          },
+          "arrival_airport": {
+            "name": "Charleston International Airport",
+            "id": "CHS",
+            "time": "2026-11-13 23:59"
+          },
+          "duration": 75,
+          "airplane": "Boeing 737",
+          "airline": "Delta",
+          "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/DL.png",
+          "travel_class": "Economy",
+          "flight_number": "DL 2850",
+          "legroom": "31 in",
+          "extensions": [
+            "Average legroom (31 in)",
+            "Free Wi-Fi",
+            "In-seat power & USB outlets",
+            "Live TV",
+            "Carbon emissions estimate: 58 kg"
+          ]
+        }
+      ],
+      "layovers": [
+        {
+          "duration": 79,
+          "name": "Hartsfield-Jackson Atlanta International Airport",
+          "id": "ATL"
+        }
+      ],
+      "total_duration": 284,
+      "carbon_emissions": {
+        "this_flight": 158000,
+        "typical_for_this_route": 165000,
+        "difference_percent": -4
+      },
+      "price": 328,
+      "type": "Round trip",
+      "airline_logo": "https://www.gstatic.com/flights/airline_logos/70px/DL.png",
+      "extensions": [
+        "Checked baggage for a fee",
+        "Bag and fare conditions depend on the return flight"
+      ],
+      "departure_token": "WyJDalJJZUUxZlFtbzVjM1ZEZVhkQlIwWlVZbmRDUnkwdExTMHRMUzB0YjJ0aWJHUXlNVUZCUVVGQlIzRXRaR3BOUzJKaGNWTkJFZzFFVERJM016aDhSRXd5T0RVd0dnc0k1UDhCRUFJYUExVlRSRGdjY09UL0FRPT0iLFtbIk9SRCIsIjIwMjYtMTEtMTMiLCJBVEwiLG51bGwsIkRMIiwiMjczOCJdLFsiQVRMIiwiMjAyNi0xMS0xMyIsIkNIUyIsbnVsbCwiREwiLCIyODUwIl1dXQ=="
+    }
+  ],
+  "price_insights": {
+    "lowest_price": 308,
+    "price_level": "typical",
+    "typical_price_range": [
+      225,
+      410
+    ],
+    "price_history": [
+      [
+        1785646800,
+        309
+      ],
+      [
+        1785733200,
+        309
+      ],
+      [
+        1785819600,
+        309
+      ],
+      [
+        1785906000,
+        305
+      ],
+      [
+        1785992400,
+        309
+      ],
+      [
+        1786078800,
+        309
+      ],
+      [
+        1786165200,
+        309
+      ],
+      [
+        1786251600,
+        399
+      ],
+      [
+        1786338000,
+        288
+      ],
+      [
+        1786424400,
+        288
+      ],
+      [
+        1786510800,
+        288
+      ],
+      [
+        1786597200,
+        258
+      ],
+      [
+        1786683600,
+        258
+      ],
+      [
+        1786770000,
+        258
+      ],
+      [
+        1786856400,
+        258
+      ],
+      [
+        1786942800,
+        258
+      ],
+      [
+        1787029200,
+        258
+      ],
+      [
+        1787115600,
+        258
+      ],
+      [
+        1787202000,
+        258
+      ],
+      [
+        1787288400,
+        258
+      ],
+      [
+        1787374800,
+        258
+      ],
+      [
+        1787461200,
+        258
+      ],
+      [
+        1787547600,
+        258
+      ],
+      [
+        1787634000,
+        258
+      ],
+      [
+        1787720400,
+        258
+      ],
+      [
+        1787806800,
+        258
+      ],
+      [
+        1787893200,
+        258
+      ],
+      [
+        1787979600,
+        389
+      ],
+      [
+        1788066000,
+        389
+      ],
+      [
+        1788152400,
+        339
+      ],
+      [
+        1788238800,
+        339
+      ],
+      [
+        1788325200,
+        339
+      ],
+      [
+        1788411600,
+        339
+      ],
+      [
+        1788498000,
+        339
+      ],
+      [
+        1788584400,
+        387
+      ],
+      [
+        1788670800,
+        387
+      ],
+      [
+        1788757200,
+        338
+      ],
+      [
+        1788843600,
+        338
+      ],
+      [
+        1788930000,
+        338
+      ],
+      [
+        1789016400,
+        338
+      ],
+      [
+        1789102800,
+        338
+      ],
+      [
+        1789189200,
+        387
+      ],
+      [
+        1789275600,
+        439
+      ],
+      [
+        1789362000,
+        286
+      ],
+      [
+        1789448400,
+        286
+      ],
+      [
+        1789534800,
+        286
+      ],
+      [
+        1789621200,
+        307
+      ],
+      [
+        1789707600,
+        307
+      ],
+      [
+        1789794000,
+        333
+      ],
+      [
+        1789880400,
+        333
+      ],
+      [
+        1789966800,
+        333
+      ],
+      [
+        1790053200,
+        324
+      ],
+      [
+        1790139600,
+        303
+      ],
+      [
+        1790226000,
+        308
+      ],
+      [
+        1790312400,
+        308
+      ],
+      [
+        1790398800,
+        308
+      ],
+      [
+        1790485200,
+        308
+      ],
+      [
+        1790571600,
+        308
+      ],
+      [
+        1790658000,
+        308
+      ],
+      [
+        1790744400,
+        308
+      ],
+      [
+        1790830800,
+        308
+      ]
+    ]
+  },
+  "airports": [
+    {
+      "departure": [
+        {
+          "airport": {
+            "id": "ORD",
+            "name": "Chicago O'Hare International Airport"
+          },
+          "city": "Chicago",
+          "country": "United States",
+          "country_code": "US",
+          "image": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTDuw95ynLqGCkZRzt9XuWXGBs8qWhw_1UZkMrCRAQp3rojEZBpwitHM8GAMBXgKhSKFgJZcXZ3qmYs2g",
+          "thumbnail": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcR0CK6-eZWtnTJdtBk0BnPl1NeBcRul1YiurNp0AEgxFjNRleXR3vb2VV6vc5Uk51C0AhYN6AZAQKz6FJ-NQfbjVf8HQQ96ZH3WYIS-Rw0"
+        }
+      ],
+      "arrival": [
+        {
+          "airport": {
+            "id": "CHS",
+            "name": "Charleston International Airport"
+          },
+          "city": "Charleston",
+          "country": "United States",
+          "country_code": "US",
+          "image": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcSjaJrDhVl8kBzUPvEQJZv9b6HHg_QgTn4tk6YSd-OnTD4vl5OKooUtXvWkPP3jlmPcsjmnQ8ZtXvW3Hw",
+          "thumbnail": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQpWzYZcr4j_ysRRe5zh1ngJ66aHhnTe_PaLgXC6Ma9SOB9LeYJbWlN9kx2ctiCjzymipXLnwuuxr5erSTNXUptX9t0GFvnSsuFQC0skKM"
+        }
+      ]
+    },
+    {
+      "departure": [
+        {
+          "airport": {
+            "id": "CHS",
+            "name": "Charleston International Airport"
+          },
+          "city": "Charleston",
+          "country": "United States",
+          "country_code": "US",
+          "image": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcSjaJrDhVl8kBzUPvEQJZv9b6HHg_QgTn4tk6YSd-OnTD4vl5OKooUtXvWkPP3jlmPcsjmnQ8ZtXvW3Hw",
+          "thumbnail": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQpWzYZcr4j_ysRRe5zh1ngJ66aHhnTe_PaLgXC6Ma9SOB9LeYJbWlN9kx2ctiCjzymipXLnwuuxr5erSTNXUptX9t0GFvnSsuFQC0skKM"
+        }
+      ],
+      "arrival": [
+        {
+          "airport": {
+            "id": "ORD",
+            "name": "Chicago O'Hare International Airport"
+          },
+          "city": "Chicago",
+          "country": "United States",
+          "country_code": "US",
+          "image": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTDuw95ynLqGCkZRzt9XuWXGBs8qWhw_1UZkMrCRAQp3rojEZBpwitHM8GAMBXgKhSKFgJZcXZ3qmYs2g",
+          "thumbnail": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcR0CK6-eZWtnTJdtBk0BnPl1NeBcRul1YiurNp0AEgxFjNRleXR3vb2VV6vc5Uk51C0AhYN6AZAQKz6FJ-NQfbjVf8HQQ96ZH3WYIS-Rw0"
+        }
+      ]
+    }
+  ]
+}

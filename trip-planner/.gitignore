@@ -1,0 +1,9 @@
+node_modules
+dist
+.DS_Store
+*.tar.gz
+.vercel
+
+# Secrets. .env.example is the committed template.
+.env
+.env.local

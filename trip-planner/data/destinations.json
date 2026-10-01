@@ -1,0 +1,1283 @@
+[
+  {
+    "id": "miami_beach",
+    "name": "Miami Beach",
+    "country_or_region": "USA",
+    "climate_tags": [
+      "warm",
+      "beach",
+      "tropical"
+    ],
+    "activity_tags": [
+      "nightlife",
+      "relaxation",
+      "food",
+      "water_sports"
+    ],
+    "estimated_cost_per_person_usd": 1400,
+    "notes": "Popular beach destination with strong nightlife. Can be crowded in peak season.",
+    "latitude": 25.7907,
+    "longitude": -80.13,
+    "airport": "MIA"
+  },
+  {
+    "id": "vancouver",
+    "name": "Vancouver",
+    "country_or_region": "Canada",
+    "climate_tags": [
+      "mild",
+      "city",
+      "nature"
+    ],
+    "activity_tags": [
+      "hiking",
+      "food",
+      "museums",
+      "scenic_views"
+    ],
+    "estimated_cost_per_person_usd": 1600,
+    "notes": "Mix of outdoor activities and city experiences. Good option for safety-focused travelers.",
+    "latitude": 49.2497,
+    "longitude": -123.1193,
+    "airport": "YVR"
+  },
+  {
+    "id": "cancun",
+    "name": "Cancún",
+    "country_or_region": "Mexico",
+    "climate_tags": [
+      "hot",
+      "beach",
+      "tropical"
+    ],
+    "activity_tags": [
+      "all_inclusive",
+      "snorkeling",
+      "relaxation",
+      "nightlife"
+    ],
+    "estimated_cost_per_person_usd": 1300,
+    "notes": "Affordable resort destination. Best for groups prioritizing relaxation and water activities.",
+    "latitude": 21.1743,
+    "longitude": -86.8466,
+    "airport": "CUN"
+  },
+  {
+    "id": "denver",
+    "name": "Denver",
+    "country_or_region": "USA",
+    "climate_tags": [
+      "mountain",
+      "dry",
+      "city"
+    ],
+    "activity_tags": [
+      "hiking",
+      "nature",
+      "skiing",
+      "brewery"
+    ],
+    "estimated_cost_per_person_usd": 1200,
+    "notes": "Outdoor-focused destination with access to Rocky Mountains.",
+    "latitude": 39.7392,
+    "longitude": -104.9847,
+    "airport": "DEN"
+  },
+  {
+    "id": "lisbon",
+    "name": "Lisbon",
+    "country_or_region": "Portugal",
+    "climate_tags": [
+      "warm",
+      "coastal",
+      "historic"
+    ],
+    "activity_tags": [
+      "culture",
+      "food",
+      "walking_tours",
+      "museums"
+    ],
+    "estimated_cost_per_person_usd": 1900,
+    "notes": "International option with strong culture and food. Requires passport-ready travelers.",
+    "latitude": 38.7251,
+    "longitude": -9.1498,
+    "airport": "LIS"
+  },
+  {
+    "id": "chicago",
+    "name": "Chicago",
+    "country_or_region": "USA",
+    "climate_tags": [
+      "city",
+      "cold",
+      "lake"
+    ],
+    "activity_tags": [
+      "museums",
+      "food",
+      "architecture",
+      "nightlife"
+    ],
+    "estimated_cost_per_person_usd": 900,
+    "notes": "Budget-friendly city getaway with lots of indoor activities.",
+    "latitude": 41.85,
+    "longitude": -87.65,
+    "airport": "ORD"
+  },
+  {
+    "id": "tokyo",
+    "name": "Tokyo",
+    "country_or_region": "Japan",
+    "climate_tags": [
+      "city",
+      "modern",
+      "humid"
+    ],
+    "activity_tags": [
+      "food",
+      "culture",
+      "shopping",
+      "nightlife"
+    ],
+    "estimated_cost_per_person_usd": 2200,
+    "notes": "High-energy global city with amazing food and cultural neighborhoods. Requires passport.",
+    "latitude": 35.6895,
+    "longitude": 139.6917,
+    "airport": "HND"
+  },
+  {
+    "id": "hong_kong",
+    "name": "Hong Kong",
+    "country_or_region": "China",
+    "climate_tags": [
+      "city",
+      "humid",
+      "coastal"
+    ],
+    "activity_tags": [
+      "food",
+      "shopping",
+      "nightlife",
+      "scenic_views"
+    ],
+    "estimated_cost_per_person_usd": 2100,
+    "notes": "Dense urban destination with iconic skyline and great cuisine. Requires passport.",
+    "latitude": 22.2783,
+    "longitude": 114.1747,
+    "airport": "HKG"
+  },
+  {
+    "id": "bangkok",
+    "name": "Bangkok",
+    "country_or_region": "Thailand",
+    "climate_tags": [
+      "hot",
+      "tropical",
+      "city"
+    ],
+    "activity_tags": [
+      "food",
+      "culture",
+      "nightlife",
+      "markets"
+    ],
+    "estimated_cost_per_person_usd": 1700,
+    "notes": "Affordable international city with temples, street food, and vibrant nightlife.",
+    "latitude": 13.754,
+    "longitude": 100.5014,
+    "airport": "BKK"
+  },
+  {
+    "id": "shkoder_alps",
+    "name": "Shkodër (Albanian Alps)",
+    "country_or_region": "Albania",
+    "climate_tags": [
+      "mountain",
+      "nature",
+      "cool"
+    ],
+    "activity_tags": [
+      "hiking",
+      "nature",
+      "adventure",
+      "scenic_views"
+    ],
+    "estimated_cost_per_person_usd": 1500,
+    "notes": "Gateway to the Albanian Alps. Great for hiking-focused trips and nature lovers.",
+    "latitude": 42.0683,
+    "longitude": 19.5126,
+    "airport": "TIA"
+  },
+  {
+    "id": "new_york_city",
+    "name": "New York City",
+    "country_or_region": "USA",
+    "climate_tags": [
+      "city",
+      "busy",
+      "seasonal"
+    ],
+    "activity_tags": [
+      "museums",
+      "food",
+      "shopping",
+      "nightlife"
+    ],
+    "estimated_cost_per_person_usd": 1800,
+    "notes": "Iconic city destination with endless activities, but can be expensive and crowded.",
+    "latitude": 40.7143,
+    "longitude": -74.006,
+    "airport": "JFK"
+  },
+  {
+    "id": "las_vegas",
+    "name": "Las Vegas",
+    "country_or_region": "USA",
+    "climate_tags": [
+      "hot",
+      "desert",
+      "city"
+    ],
+    "activity_tags": [
+      "nightlife",
+      "shows",
+      "food",
+      "gambling"
+    ],
+    "estimated_cost_per_person_usd": 1500,
+    "notes": "Entertainment-heavy destination ideal for nightlife, shows, and group fun.",
+    "latitude": 36.175,
+    "longitude": -115.1372,
+    "airport": "LAS"
+  },
+  {
+    "id": "budapest",
+    "name": "Budapest",
+    "country_or_region": "Hungary",
+    "climate_tags": [
+      "historic",
+      "city",
+      "cold"
+    ],
+    "activity_tags": [
+      "culture",
+      "museums",
+      "food",
+      "thermal_baths"
+    ],
+    "estimated_cost_per_person_usd": 1600,
+    "notes": "Historic European city known for architecture and thermal baths. Requires passport.",
+    "latitude": 47.4984,
+    "longitude": 19.0405,
+    "airport": "BUD"
+  },
+  {
+    "id": "new_orleans",
+    "name": "New Orleans",
+    "country_or_region": "USA",
+    "climate_tags": [
+      "warm",
+      "historic",
+      "city"
+    ],
+    "activity_tags": [
+      "food",
+      "music",
+      "nightlife",
+      "culture"
+    ],
+    "estimated_cost_per_person_usd": 1300,
+    "notes": "Unique US city with jazz culture, festivals, and amazing cuisine.",
+    "latitude": 29.9547,
+    "longitude": -90.0751,
+    "airport": "MSY"
+  },
+  {
+    "id": "rome",
+    "name": "Rome",
+    "country_or_region": "Italy",
+    "climate_tags": [
+      "historic",
+      "warm",
+      "city"
+    ],
+    "activity_tags": [
+      "history",
+      "museums",
+      "food",
+      "walking_tours"
+    ],
+    "estimated_cost_per_person_usd": 2000,
+    "notes": "Classic history-focused destination with world-famous landmarks. Requires passport.",
+    "latitude": 41.8919,
+    "longitude": 12.5113,
+    "airport": "FCO"
+  },
+  {
+    "id": "petra",
+    "name": "Petra",
+    "country_or_region": "Jordan",
+    "climate_tags": [
+      "desert",
+      "historic",
+      "hot"
+    ],
+    "activity_tags": [
+      "history",
+      "culture",
+      "adventure",
+      "scenic_views"
+    ],
+    "estimated_cost_per_person_usd": 2100,
+    "notes": "Ancient archaeological wonder. Best for history + adventure travelers. Requires passport.",
+    "latitude": 30.321,
+    "longitude": 35.479,
+    "airport": "AMM"
+  },
+  {
+    "id": "reykjavik",
+    "name": "Reykjavík",
+    "country_or_region": "Iceland",
+    "climate_tags": [
+      "cold",
+      "arctic",
+      "nature"
+    ],
+    "activity_tags": [
+      "hot_springs",
+      "scenic_views",
+      "adventure",
+      "northern_lights"
+    ],
+    "estimated_cost_per_person_usd": 2300,
+    "notes": "Cold-weather destination famous for glaciers, geothermal spas, and the Northern Lights. Requires passport.",
+    "latitude": 64.1355,
+    "longitude": -21.8954,
+    "airport": "KEF"
+  },
+  {
+    "id": "cape_town",
+    "name": "Cape Town",
+    "country_or_region": "South Africa",
+    "climate_tags": [
+      "coastal",
+      "mild",
+      "scenic"
+    ],
+    "activity_tags": [
+      "hiking",
+      "food",
+      "wildlife",
+      "beach"
+    ],
+    "estimated_cost_per_person_usd": 2000,
+    "notes": "Beautiful coastal city with mountains, beaches, and strong outdoor + food culture. Requires passport.",
+    "latitude": -33.9258,
+    "longitude": 18.4232,
+    "airport": "CPT"
+  },
+  {
+    "id": "banff",
+    "name": "Banff National Park",
+    "country_or_region": "Canada",
+    "climate_tags": [
+      "mountain",
+      "cold",
+      "nature"
+    ],
+    "activity_tags": [
+      "hiking",
+      "lakes",
+      "skiing",
+      "scenic_views"
+    ],
+    "estimated_cost_per_person_usd": 1800,
+    "notes": "Top-tier nature getaway in the Canadian Rockies. Great for hiking and outdoor-focused groups.",
+    "latitude": 51.1762,
+    "longitude": -115.5698,
+    "airport": "YYC"
+  },
+  {
+    "id": "marrakech",
+    "name": "Marrakech",
+    "country_or_region": "Morocco",
+    "climate_tags": [
+      "hot",
+      "desert",
+      "historic"
+    ],
+    "activity_tags": [
+      "markets",
+      "culture",
+      "food",
+      "architecture"
+    ],
+    "estimated_cost_per_person_usd": 1700,
+    "notes": "Historic desert city known for vibrant markets, architecture, and cultural experiences. Requires passport.",
+    "latitude": 31.6342,
+    "longitude": -7.9999,
+    "airport": "RAK"
+  },
+  {
+    "id": "santorini",
+    "name": "Santorini",
+    "country_or_region": "Greece",
+    "climate_tags": [
+      "warm",
+      "coastal",
+      "romantic"
+    ],
+    "activity_tags": [
+      "relaxation",
+      "scenic_views",
+      "beach",
+      "food"
+    ],
+    "estimated_cost_per_person_usd": 2100,
+    "notes": "Relaxing island destination with iconic views and strong food culture. Best for slower-paced trips. Requires passport.",
+    "latitude": 36.4211,
+    "longitude": 25.4309,
+    "airport": "JTR"
+  },
+  {
+    "id": "barcelona",
+    "name": "Barcelona",
+    "country_or_region": "Spain",
+    "climate_tags": [
+      "warm",
+      "coastal",
+      "city"
+    ],
+    "activity_tags": [
+      "food",
+      "nightlife",
+      "architecture",
+      "beach"
+    ],
+    "estimated_cost_per_person_usd": 1900,
+    "notes": "Energetic coastal city known for architecture, beaches, and vibrant nightlife. Requires passport.",
+    "latitude": 41.3888,
+    "longitude": 2.159,
+    "airport": "BCN"
+  },
+  {
+    "id": "dubai",
+    "name": "Dubai",
+    "country_or_region": "UAE",
+    "climate_tags": [
+      "hot",
+      "desert",
+      "modern"
+    ],
+    "activity_tags": [
+      "shopping",
+      "luxury",
+      "nightlife",
+      "adventure"
+    ],
+    "estimated_cost_per_person_usd": 2300,
+    "notes": "Luxury-focused destination with desert experiences and futuristic skyline. Requires passport.",
+    "latitude": 25.0773,
+    "longitude": 55.3093,
+    "airport": "DXB"
+  },
+  {
+    "id": "bali",
+    "name": "Bali",
+    "country_or_region": "Indonesia",
+    "climate_tags": [
+      "tropical",
+      "warm",
+      "island"
+    ],
+    "activity_tags": [
+      "relaxation",
+      "beach",
+      "culture",
+      "nature"
+    ],
+    "estimated_cost_per_person_usd": 1800,
+    "notes": "Island destination known for beaches, temples, and relaxed atmosphere. Requires passport.",
+    "latitude": -8.5098,
+    "longitude": 115.2654,
+    "airport": "DPS"
+  },
+  {
+    "id": "amsterdam",
+    "name": "Amsterdam",
+    "country_or_region": "Netherlands",
+    "climate_tags": [
+      "mild",
+      "historic",
+      "city"
+    ],
+    "activity_tags": [
+      "museums",
+      "cycling",
+      "culture",
+      "nightlife"
+    ],
+    "estimated_cost_per_person_usd": 1900,
+    "notes": "Compact European city known for canals, museums, and nightlife. Requires passport.",
+    "latitude": 52.374,
+    "longitude": 4.8897,
+    "airport": "AMS"
+  },
+  {
+    "id": "seoul",
+    "name": "Seoul",
+    "country_or_region": "South Korea",
+    "climate_tags": [
+      "city",
+      "seasonal",
+      "modern"
+    ],
+    "activity_tags": [
+      "food",
+      "shopping",
+      "culture",
+      "nightlife"
+    ],
+    "estimated_cost_per_person_usd": 2000,
+    "notes": "Fast-paced city blending tradition and modern culture. Requires passport.",
+    "latitude": 37.566,
+    "longitude": 126.9784,
+    "airport": "ICN"
+  },
+  {
+    "id": "phuket",
+    "name": "Phuket",
+    "country_or_region": "Thailand",
+    "climate_tags": [
+      "tropical",
+      "beach",
+      "hot"
+    ],
+    "activity_tags": [
+      "beach",
+      "snorkeling",
+      "nightlife",
+      "relaxation"
+    ],
+    "estimated_cost_per_person_usd": 1600,
+    "notes": "Beach-focused island destination popular for nightlife and water activities.",
+    "latitude": 7.8906,
+    "longitude": 98.3981,
+    "airport": "HKT"
+  },
+  {
+    "id": "prague",
+    "name": "Prague",
+    "country_or_region": "Czech Republic",
+    "climate_tags": [
+      "historic",
+      "city",
+      "cold"
+    ],
+    "activity_tags": [
+      "architecture",
+      "culture",
+      "food",
+      "walking_tours"
+    ],
+    "estimated_cost_per_person_usd": 1500,
+    "notes": "Historic European city with fairy-tale architecture and strong cultural scene. Requires passport.",
+    "latitude": 50.088,
+    "longitude": 14.4208,
+    "airport": "PRG"
+  },
+  {
+    "id": "queenstown",
+    "name": "Queenstown",
+    "country_or_region": "New Zealand",
+    "climate_tags": [
+      "mountain",
+      "cool",
+      "nature"
+    ],
+    "activity_tags": [
+      "adventure",
+      "skiing",
+      "hiking",
+      "scenic_views"
+    ],
+    "estimated_cost_per_person_usd": 2400,
+    "notes": "Adventure capital known for skiing, bungee jumping, and dramatic landscapes. Requires passport.",
+    "latitude": -45.0302,
+    "longitude": 168.6627,
+    "airport": "ZQN"
+  },
+  {
+    "id": "istanbul",
+    "name": "Istanbul",
+    "country_or_region": "Turkey",
+    "climate_tags": [
+      "historic",
+      "city",
+      "coastal"
+    ],
+    "activity_tags": [
+      "culture",
+      "food",
+      "markets",
+      "architecture"
+    ],
+    "estimated_cost_per_person_usd": 1700,
+    "notes": "Crossroads of Europe and Asia with rich history and strong culinary culture. Requires passport.",
+    "latitude": 41.0138,
+    "longitude": 28.9497,
+    "airport": "IST"
+  },
+  {
+    "id": "honolulu",
+    "name": "Honolulu",
+    "country_or_region": "USA",
+    "climate_tags": [
+      "tropical",
+      "beach",
+      "warm"
+    ],
+    "activity_tags": [
+      "beach",
+      "hiking",
+      "relaxation",
+      "water_sports"
+    ],
+    "estimated_cost_per_person_usd": 2100,
+    "notes": "Tropical US island destination ideal for beaches and outdoor activities.",
+    "latitude": 21.3069,
+    "longitude": -157.8583,
+    "airport": "HNL"
+  },
+  {
+    "id": "mexico_city",
+    "name": "Mexico City",
+    "country_or_region": "Mexico",
+    "climate_tags": [
+      "mild",
+      "city",
+      "historic"
+    ],
+    "activity_tags": [
+      "food",
+      "culture",
+      "museums",
+      "markets"
+    ],
+    "estimated_cost_per_person_usd": 1200,
+    "notes": "Affordable major city with incredible food, museums, and cultural neighborhoods.",
+    "latitude": 19.4285,
+    "longitude": -99.1277,
+    "airport": "MEX"
+  },
+  {
+    "id": "medellin",
+    "name": "Medellín",
+    "country_or_region": "Colombia",
+    "climate_tags": [
+      "spring_weather",
+      "mountain",
+      "city"
+    ],
+    "activity_tags": [
+      "culture",
+      "food",
+      "nightlife",
+      "scenic_views"
+    ],
+    "estimated_cost_per_person_usd": 1100,
+    "notes": "Budget-friendly city with pleasant weather and strong café + nightlife scene. Requires passport.",
+    "latitude": 6.245,
+    "longitude": -75.5715,
+    "airport": "MDE"
+  },
+  {
+    "id": "porto",
+    "name": "Porto",
+    "country_or_region": "Portugal",
+    "climate_tags": [
+      "coastal",
+      "historic",
+      "mild"
+    ],
+    "activity_tags": [
+      "food",
+      "walking_tours",
+      "culture",
+      "wine"
+    ],
+    "estimated_cost_per_person_usd": 1500,
+    "notes": "Cheaper alternative to Lisbon with river views, wine culture, and historic charm. Requires passport.",
+    "latitude": 41.1485,
+    "longitude": -8.611,
+    "airport": "OPO"
+  },
+  {
+    "id": "krakow",
+    "name": "Kraków",
+    "country_or_region": "Poland",
+    "climate_tags": [
+      "historic",
+      "city",
+      "cold"
+    ],
+    "activity_tags": [
+      "culture",
+      "food",
+      "walking_tours",
+      "museums"
+    ],
+    "estimated_cost_per_person_usd": 1400,
+    "notes": "One of Europe's best-value historic cities with great food and architecture. Requires passport.",
+    "latitude": 50.0614,
+    "longitude": 19.9366,
+    "airport": "KRK"
+  },
+  {
+    "id": "valencia",
+    "name": "Valencia",
+    "country_or_region": "Spain",
+    "climate_tags": [
+      "warm",
+      "coastal",
+      "city"
+    ],
+    "activity_tags": [
+      "beach",
+      "food",
+      "culture",
+      "walking_tours"
+    ],
+    "estimated_cost_per_person_usd": 1600,
+    "notes": "Relaxed coastal Spanish city, often cheaper and less crowded than Barcelona. Requires passport.",
+    "latitude": 39.4739,
+    "longitude": -0.3797,
+    "airport": "VLC"
+  },
+  {
+    "id": "athens",
+    "name": "Athens",
+    "country_or_region": "Greece",
+    "climate_tags": [
+      "warm",
+      "historic",
+      "city"
+    ],
+    "activity_tags": [
+      "history",
+      "food",
+      "culture",
+      "walking_tours"
+    ],
+    "estimated_cost_per_person_usd": 1600,
+    "notes": "Budget-friendly gateway to Greek history and islands. Requires passport.",
+    "latitude": 37.9838,
+    "longitude": 23.7278,
+    "airport": "ATH"
+  },
+  {
+    "id": "hanoi",
+    "name": "Hanoi",
+    "country_or_region": "Vietnam",
+    "climate_tags": [
+      "humid",
+      "city",
+      "historic"
+    ],
+    "activity_tags": [
+      "food",
+      "markets",
+      "culture",
+      "walking_tours"
+    ],
+    "estimated_cost_per_person_usd": 1400,
+    "notes": "Very affordable international destination known for street food and old-town culture. Requires passport.",
+    "latitude": 21.0245,
+    "longitude": 105.8412,
+    "airport": "HAN"
+  },
+  {
+    "id": "ho_chi_minh_city",
+    "name": "Ho Chi Minh City",
+    "country_or_region": "Vietnam",
+    "climate_tags": [
+      "hot",
+      "tropical",
+      "city"
+    ],
+    "activity_tags": [
+      "food",
+      "nightlife",
+      "culture",
+      "markets"
+    ],
+    "estimated_cost_per_person_usd": 1400,
+    "notes": "Affordable energetic city with amazing food and strong nightlife. Requires passport.",
+    "latitude": 10.823,
+    "longitude": 106.6297,
+    "airport": "SGN"
+  },
+  {
+    "id": "kuala_lumpur",
+    "name": "Kuala Lumpur",
+    "country_or_region": "Malaysia",
+    "climate_tags": [
+      "hot",
+      "tropical",
+      "city"
+    ],
+    "activity_tags": [
+      "food",
+      "shopping",
+      "culture",
+      "markets"
+    ],
+    "estimated_cost_per_person_usd": 1500,
+    "notes": "Great-value Asian city with diverse food and modern skyline. Requires passport.",
+    "latitude": 3.1412,
+    "longitude": 101.6865,
+    "airport": "KUL"
+  },
+  {
+    "id": "sarajevo",
+    "name": "Sarajevo",
+    "country_or_region": "Bosnia and Herzegovina",
+    "climate_tags": [
+      "historic",
+      "mountain",
+      "city"
+    ],
+    "activity_tags": [
+      "culture",
+      "food",
+      "walking_tours",
+      "history"
+    ],
+    "estimated_cost_per_person_usd": 1300,
+    "notes": "Underrated budget European city with rich history and scenic surroundings. Requires passport.",
+    "latitude": 43.8486,
+    "longitude": 18.3564,
+    "airport": "SJJ"
+  },
+  {
+    "id": "belgrade",
+    "name": "Belgrade",
+    "country_or_region": "Serbia",
+    "climate_tags": [
+      "city",
+      "historic",
+      "seasonal"
+    ],
+    "activity_tags": [
+      "nightlife",
+      "food",
+      "culture",
+      "walking_tours"
+    ],
+    "estimated_cost_per_person_usd": 1400,
+    "notes": "One of Europe's cheapest nightlife capitals with strong culture. Requires passport.",
+    "latitude": 44.804,
+    "longitude": 20.4651,
+    "airport": "BEG"
+  },
+  {
+    "id": "bucharest",
+    "name": "Bucharest",
+    "country_or_region": "Romania",
+    "climate_tags": [
+      "city",
+      "historic",
+      "cold"
+    ],
+    "activity_tags": [
+      "food",
+      "culture",
+      "nightlife",
+      "architecture"
+    ],
+    "estimated_cost_per_person_usd": 1400,
+    "notes": "Affordable Eastern European city with lively nightlife and unique architecture. Requires passport.",
+    "latitude": 44.4323,
+    "longitude": 26.1063,
+    "airport": "OTP"
+  },
+  {
+    "id": "tbilisi",
+    "name": "Tbilisi",
+    "country_or_region": "Georgia",
+    "climate_tags": [
+      "mild",
+      "historic",
+      "city"
+    ],
+    "activity_tags": [
+      "food",
+      "culture",
+      "wine",
+      "walking_tours"
+    ],
+    "estimated_cost_per_person_usd": 1500,
+    "notes": "Extremely good-value destination known for food, wine, and old-town charm. Requires passport.",
+    "latitude": 41.6914,
+    "longitude": 44.8341,
+    "airport": "TBS"
+  },
+  {
+    "id": "san_juan",
+    "name": "San Juan",
+    "country_or_region": "Puerto Rico (USA)",
+    "climate_tags": [
+      "tropical",
+      "beach",
+      "historic"
+    ],
+    "activity_tags": [
+      "beach",
+      "food",
+      "culture",
+      "nightlife"
+    ],
+    "estimated_cost_per_person_usd": 1500,
+    "notes": "Affordable Caribbean option for US travelers with beaches and historic streets.",
+    "latitude": 18.4663,
+    "longitude": -66.1057,
+    "airport": "SJU"
+  },
+  {
+    "id": "charleston",
+    "name": "Charleston",
+    "country_or_region": "USA",
+    "climate_tags": [
+      "warm",
+      "coastal",
+      "historic"
+    ],
+    "activity_tags": [
+      "food",
+      "walking_tours",
+      "culture",
+      "relaxation"
+    ],
+    "estimated_cost_per_person_usd": 1100,
+    "notes": "Charming lower-cost US coastal city with amazing food and historic districts.",
+    "latitude": 32.7763,
+    "longitude": -79.9327,
+    "airport": "CHS"
+  },
+  {
+    "id": "savannah",
+    "name": "Savannah",
+    "country_or_region": "USA",
+    "climate_tags": [
+      "warm",
+      "historic",
+      "city"
+    ],
+    "activity_tags": [
+      "walking_tours",
+      "food",
+      "culture",
+      "relaxation"
+    ],
+    "estimated_cost_per_person_usd": 1000,
+    "notes": "Budget-friendly Southern getaway with beautiful streets and relaxed vibe.",
+    "latitude": 32.0835,
+    "longitude": -81.0998,
+    "airport": "SAV"
+  },
+  {
+    "id": "nashville",
+    "name": "Nashville",
+    "country_or_region": "USA",
+    "climate_tags": [
+      "warm",
+      "city",
+      "music"
+    ],
+    "activity_tags": [
+      "music",
+      "nightlife",
+      "food",
+      "culture"
+    ],
+    "estimated_cost_per_person_usd": 1200,
+    "notes": "Affordable US city break known for live music, nightlife, and great food.",
+    "latitude": 36.1659,
+    "longitude": -86.7844,
+    "airport": "BNA"
+  },
+  {
+    "id": "philadelphia",
+    "name": "Philadelphia",
+    "country_or_region": "USA",
+    "climate_tags": [
+      "city",
+      "historic",
+      "seasonal"
+    ],
+    "activity_tags": [
+      "museums",
+      "food",
+      "history",
+      "walking_tours"
+    ],
+    "estimated_cost_per_person_usd": 950,
+    "notes": "Lower-cost major city with history, museums, and excellent food scene.",
+    "latitude": 39.9524,
+    "longitude": -75.1636,
+    "airport": "PHL"
+  },
+  {
+    "id": "montreal",
+    "name": "Montréal",
+    "country_or_region": "Canada",
+    "climate_tags": [
+      "cold",
+      "city",
+      "culture"
+    ],
+    "activity_tags": [
+      "food",
+      "culture",
+      "festivals",
+      "museums"
+    ],
+    "estimated_cost_per_person_usd": 1400,
+    "notes": "French-influenced Canadian city with strong culture and often cheaper than Vancouver.",
+    "latitude": 45.5088,
+    "longitude": -73.5878,
+    "airport": "YUL"
+  },
+  {
+    "id": "quebec_city",
+    "name": "Québec City",
+    "country_or_region": "Canada",
+    "climate_tags": [
+      "cold",
+      "historic",
+      "city"
+    ],
+    "activity_tags": [
+      "culture",
+      "walking_tours",
+      "food",
+      "scenic_views"
+    ],
+    "estimated_cost_per_person_usd": 1400,
+    "notes": "Charming historic city with European feel, great for budget-friendly cultural trips.",
+    "latitude": 46.8123,
+    "longitude": -71.2145,
+    "airport": "YQB"
+  },
+  {
+    "id": "accra",
+    "name": "Accra",
+    "country_or_region": "Ghana",
+    "climate_tags": [
+      "tropical",
+      "coastal",
+      "hot"
+    ],
+    "activity_tags": [
+      "culture",
+      "food",
+      "beach",
+      "markets"
+    ],
+    "estimated_cost_per_person_usd": 1500,
+    "notes": "West African coastal capital with strong music, food, and cultural scene. Requires passport.",
+    "latitude": 5.556,
+    "longitude": -0.1969,
+    "airport": "ACC"
+  },
+  {
+    "id": "zanzibar",
+    "name": "Zanzibar",
+    "country_or_region": "Tanzania",
+    "climate_tags": [
+      "tropical",
+      "beach",
+      "hot"
+    ],
+    "activity_tags": [
+      "beach",
+      "snorkeling",
+      "relaxation",
+      "culture"
+    ],
+    "estimated_cost_per_person_usd": 1700,
+    "notes": "Indian Ocean island known for white-sand beaches and historic Stone Town. Requires passport.",
+    "latitude": -6.1639,
+    "longitude": 39.1979,
+    "airport": "ZNZ"
+  },
+  {
+    "id": "addis_ababa",
+    "name": "Addis Ababa",
+    "country_or_region": "Ethiopia",
+    "climate_tags": [
+      "mild",
+      "highland",
+      "city"
+    ],
+    "activity_tags": [
+      "culture",
+      "food",
+      "museums",
+      "history"
+    ],
+    "estimated_cost_per_person_usd": 1400,
+    "notes": "High-altitude African capital with deep history and unique cuisine. Requires passport.",
+    "latitude": 9.025,
+    "longitude": 38.7469,
+    "airport": "ADD"
+  },
+  {
+    "id": "bratislava",
+    "name": "Bratislava",
+    "country_or_region": "Slovakia",
+    "climate_tags": [
+      "historic",
+      "city",
+      "seasonal"
+    ],
+    "activity_tags": [
+      "walking_tours",
+      "culture",
+      "food",
+      "architecture"
+    ],
+    "estimated_cost_per_person_usd": 1400,
+    "notes": "Compact Central European capital with charming old town and Danube views. Requires passport.",
+    "latitude": 48.1482,
+    "longitude": 17.1067,
+    "airport": "BTS"
+  },
+  {
+    "id": "ljubljana",
+    "name": "Ljubljana",
+    "country_or_region": "Slovenia",
+    "climate_tags": [
+      "mild",
+      "historic",
+      "city"
+    ],
+    "activity_tags": [
+      "walking_tours",
+      "culture",
+      "food",
+      "scenic_views"
+    ],
+    "estimated_cost_per_person_usd": 1500,
+    "notes": "Small, picturesque Balkan capital with riverside cafés and nearby alpine scenery. Requires passport.",
+    "latitude": 46.0511,
+    "longitude": 14.5051,
+    "airport": "LJU"
+  },
+  {
+    "id": "skopje",
+    "name": "Skopje",
+    "country_or_region": "North Macedonia",
+    "climate_tags": [
+      "historic",
+      "city",
+      "warm"
+    ],
+    "activity_tags": [
+      "culture",
+      "food",
+      "walking_tours",
+      "architecture"
+    ],
+    "estimated_cost_per_person_usd": 1300,
+    "notes": "Budget-friendly Balkan city blending Ottoman history and dramatic architecture. Requires passport.",
+    "latitude": 41.9965,
+    "longitude": 21.4314,
+    "airport": "SKP"
+  },
+  {
+    "id": "almaty",
+    "name": "Almaty",
+    "country_or_region": "Kazakhstan",
+    "climate_tags": [
+      "mountain",
+      "continental",
+      "seasonal"
+    ],
+    "activity_tags": [
+      "hiking",
+      "nature",
+      "culture",
+      "scenic_views"
+    ],
+    "estimated_cost_per_person_usd": 1700,
+    "notes": "Central Asian city with mountain backdrops and strong outdoor culture. Requires passport.",
+    "latitude": 43.2525,
+    "longitude": 76.9115,
+    "airport": "ALA"
+  },
+  {
+    "id": "doha",
+    "name": "Doha",
+    "country_or_region": "Qatar",
+    "climate_tags": [
+      "hot",
+      "desert",
+      "coastal"
+    ],
+    "activity_tags": [
+      "culture",
+      "markets",
+      "food",
+      "modern_architecture"
+    ],
+    "estimated_cost_per_person_usd": 2000,
+    "notes": "Modern Gulf city with desert excursions and growing museum scene. Requires passport.",
+    "latitude": 25.2855,
+    "longitude": 51.531,
+    "airport": "DOH"
+  },
+  {
+    "id": "la_paz",
+    "name": "La Paz",
+    "country_or_region": "Bolivia",
+    "climate_tags": [
+      "mountain",
+      "highland",
+      "cool"
+    ],
+    "activity_tags": [
+      "culture",
+      "markets",
+      "adventure",
+      "scenic_views"
+    ],
+    "estimated_cost_per_person_usd": 1400,
+    "notes": "High-altitude South American city known for dramatic scenery and unique culture. Requires passport.",
+    "latitude": -16.5,
+    "longitude": -68.15,
+    "airport": "LPB"
+  },
+  {
+    "id": "guatemala_city",
+    "name": "Guatemala City",
+    "country_or_region": "Guatemala",
+    "climate_tags": [
+      "mild",
+      "mountain",
+      "city"
+    ],
+    "activity_tags": [
+      "culture",
+      "food",
+      "history",
+      "markets"
+    ],
+    "estimated_cost_per_person_usd": 1200,
+    "notes": "Affordable Central American hub near volcanoes, lakes, and historic towns. Requires passport.",
+    "latitude": 14.6407,
+    "longitude": -90.5133,
+    "airport": "GUA"
+  }
+]

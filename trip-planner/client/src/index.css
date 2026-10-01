@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  
+  --color-background: hsl(210 20% 98%);
+  --color-foreground: hsl(220 15% 20%);
+  
+  --color-card: hsl(0 0% 100%);
+  --color-card-foreground: hsl(220 15% 20%);
+  
+  --color-popover: hsl(0 0% 100%);
+  --color-popover-foreground: hsl(220 15% 20%);
+  
+  --color-primary: hsl(190 80% 30%); /* Deep Teal */
+  --color-primary-foreground: hsl(0 0% 100%);
+  
+  --color-secondary: hsl(220 15% 90%);
+  --color-secondary-foreground: hsl(220 15% 20%);
+  
+  --color-muted: hsl(220 10% 95%);
+  --color-muted-foreground: hsl(220 10% 50%);
+  
+  --color-accent: hsl(35 80% 90%); /* Soft Warm Sand */
+  --color-accent-foreground: hsl(35 80% 30%);
+  
+  --color-destructive: hsl(0 80% 60%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  
+  --color-border: hsl(220 15% 90%);
+  --color-input: hsl(220 15% 90%);
+  --color-ring: hsl(190 80% 30%);
+  
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  --shadow-subtle: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-card: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+  --shadow-elevated: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+}
+
+.json-view {
+  @apply font-mono text-xs bg-slate-50 p-4 rounded-md border border-slate-200 overflow-auto max-h-[400px];
+}
+
+.feature-card {
+  @apply bg-card border border-border/50 shadow-card hover:shadow-elevated transition-all duration-300;
+}
