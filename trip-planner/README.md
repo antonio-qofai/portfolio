@@ -148,15 +148,18 @@ Needs Node 22 or newer and a Postgres database (a free Neon database works).
 
 ```sh
 npm install
-cp .env.example .env          # fill in the four values
+cp .env.example .env          # or create .env with the variables below
 npm run db:migrate            # create the tables
 npm run dev                   # app and API at http://localhost:5173
 npm test                      # 69 tests, no network, no API spend
 npm run check                 # types
 ```
 
-`ANTHROPIC_API_KEY` and `SERPAPI_API_KEY` are optional. Without them the planner
-falls back to keyword rules, the template itinerary, and estimated prices.
+The variables are `DATABASE_URL` (pooled) and `DATABASE_URL_UNPOOLED` (used by
+the migration), `ANTHROPIC_API_KEY`, `SERPAPI_API_KEY`, and optionally
+`SERPAPI_MONTHLY_CAP` (default 200). The two API keys are optional. Without them
+the planner falls back to keyword rules, the template itinerary, and estimated
+prices.
 
 The database tests run only when `DATABASE_URL` is set:
 
