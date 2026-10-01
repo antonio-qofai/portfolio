@@ -2,7 +2,7 @@
 # identifier belongs in ~/.config/portfolio-sync/private.toml, not here.
 
 # Order of projects in the README list. Others follow alphabetically.
-readme_order = ["internship-search", "apartment-chores", "life-dashboard"]
+readme_order = ["internship-search", "trip-planner", "apartment-chores", "life-dashboard"]
 
 exclude_everywhere = [
     ".env", ".env.*", "*.db", "*.db-*", "*.pem", "credentials*.json", "token*.json",
@@ -92,3 +92,5 @@ end = '^## Fit, 1 to 10$'
 with = "tools/overlays/internship-search/rubric-candidate.md"
 
 [projects.life-dashboard]
+
+[projects.trip-planner]
