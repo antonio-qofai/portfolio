@@ -59,6 +59,8 @@ overlay. A public list of what is hidden reveals it.
 1. Audit the source repo for sensitive content before writing any rules.
 2. Add the source path and redactions to the private config. Add a `[projects.<name>]`
    section to `rules.toml`.
+   For a shared monorepo, set `subdir` so only the owner's folder is exported, and
+   `branch` if the publish branch is not `main`.
 3. Choose a neutral folder name. Folder names are not scanned, so they must never contain a
    client or person's name.
 4. Run `uv run --script tools/sync.py <name> --check` until it is clean.

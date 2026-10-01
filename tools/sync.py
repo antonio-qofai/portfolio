@@ -6,8 +6,9 @@
 
 For each project:
   1. Export the project's publish branch (main unless rules.toml says
-     otherwise) from the source repo. Never the working tree, never a feature
-     branch, whatever happens to be checked out.
+     otherwise) from the source repo, or only its `subdir` folder for a shared
+     monorepo. Never the working tree, never a feature branch, whatever happens
+     to be checked out.
   2. Drop excluded files, apply block replacements and overlays, apply
      redactions.
   3. Leak scan: secret-shaped strings, unapproved email addresses, denied text,
@@ -198,14 +199,17 @@ def run(cmd: list[str], cwd: Path | None = None) -> str:
 # ------------------------------------------------------------------ build
 
 
-def export_branch(src: Path, branch: str, dest: Path) -> str:
-    """Export a branch's tip. The checked-out branch and working tree are ignored."""
+def export_branch(src: Path, branch: str, dest: Path, subdir: str = "") -> str:
+    """Export a branch's tip, or one folder of it. The checked-out branch and working tree are ignored."""
     ref = f"refs/heads/{branch}"
     if subprocess.run(["git", "show-ref", "--verify", "--quiet", ref], cwd=src).returncode != 0:
         raise SyncError(f"{src}: no local branch {branch!r} to publish from")
     sha = run(["git", "rev-parse", "--short", ref], cwd=src).strip()
-    data = subprocess.run(["git", "archive", "--format=tar", ref], cwd=src,
-                          capture_output=True, check=True).stdout
+    tree = f"{ref}:{subdir.strip('/')}" if subdir else ref
+    r = subprocess.run(["git", "archive", "--format=tar", tree], cwd=src, capture_output=True)
+    if r.returncode != 0:
+        raise SyncError(f"{src}: cannot export {tree}: {r.stderr.decode().strip()}")
+    data = r.stdout
     with tarfile.open(fileobj=io.BytesIO(data)) as tar:
         tar.extractall(dest, filter="data")
     return sha
@@ -301,7 +305,7 @@ def build(name: str, src: Path, rules: dict, private: dict, out: Path) -> str:
     proj = rules["projects"].get(name)
     if proj is None:
         raise SyncError(f"{name}: no [projects.{name}] section in rules.toml")
-    sha = export_branch(src, proj.get("branch", "main"), out)
+    sha = export_branch(src, proj.get("branch", "main"), out, proj.get("subdir", ""))
     apply_excludes(out, rules.get("exclude_everywhere", []) + proj.get("exclude", []))
     apply_blocks(out, proj.get("block", []))
     apply_overlays(out, proj.get("overlay", []))
