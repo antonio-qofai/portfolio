@@ -1,14 +1,20 @@
 # Public sync rules. Anything that names a real person, address, account or
 # identifier belongs in ~/.config/portfolio-sync/private.toml, not here.
 
-# Order of projects in the README list. Others follow alphabetically.
-readme_order = ["qofai-deck-generator", "qofai-content-calendar", "qofai-pe-research-agent",
-                "internship-search", "trip-planner", "apartment-chores", "life-dashboard"]
-
 exclude_everywhere = [
     ".env", ".env.*", "*.db", "*.db-*", "*.pem", "credentials*.json", "token*.json",
     ".DS_Store", "*/.DS_Store", ".claude/settings.local.json",
 ]
+
+# The README project list, as headed groups in this order. A published project no group
+# names goes at the end of the last group, alphabetically.
+[[readme_group]]
+title = "QofAI internship"
+projects = ["qofai-deck-generator", "qofai-content-calendar", "qofai-pe-research-agent"]
+
+[[readme_group]]
+title = "Personal projects"
+projects = ["internship-search", "trip-planner", "apartment-chores", "life-dashboard"]
 
 # Generic redactions, applied after the private ones.
 [[redact]]

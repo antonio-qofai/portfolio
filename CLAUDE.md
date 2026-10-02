@@ -12,7 +12,7 @@ private repos. Treat everything here as visible to employers.
   `tools/sync.py`, `tools/rules.toml`, and `tools/overlays/`.
 - The README project list between `<!-- projects:start -->` and `<!-- projects:end -->` is
   generated from each published folder's `PORTFOLIO.md`. To change a description, edit
-  `PORTFOLIO.md` in the source repo. The order is `readme_order` in `rules.toml`.
+  `PORTFOLIO.md` in the source repo. The grouping and order are the `[[readme_group]]` entries in `rules.toml`.
 - Source repo paths are listed under `[sources]` in the private config for each machine. They
   are not in this repo.
 

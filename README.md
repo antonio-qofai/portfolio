@@ -23,7 +23,9 @@ hold it to that.
 
 <!-- projects:start -->
 
-### [qofai-deck-generator](qofai-deck-generator/)
+### QofAI internship
+
+#### [qofai-deck-generator](qofai-deck-generator/)
 
 Built during my internship at QofAI, this agent writes the proposal and status check-in
 decks QofAI brings to a client engagement. It pulls a project's data from the company's
@@ -39,7 +41,7 @@ fictional ones.
 
 Python, Claude API, MCP, Flask, Playwright, pypdf and python-docx, SQLite, Railway.
 
-### [qofai-content-calendar](qofai-content-calendar/)
+#### [qofai-content-calendar](qofai-content-calendar/)
 
 Built during my internship at QofAI, this agent plans the founders' LinkedIn calendar. It
 does not write posts. Each morning it reads what the company's other content agents produced,
@@ -53,7 +55,7 @@ itself. A teammate started it and I took it over and rebuilt most of it.
 
 Python, Claude API, Flask, Airtable REST API, RSS, PyYAML, GitHub Actions, Railway.
 
-### [qofai-pe-research-agent](qofai-pe-research-agent/)
+#### [qofai-pe-research-agent](qofai-pe-research-agent/)
 
 Built during my internship at QofAI, as pre-work, this agent writes a sourced dossier on a
 middle-market private equity firm, covering the firm, its portfolio companies, estimated
@@ -66,7 +68,9 @@ a human scorer.
 
 Python, Claude Code subagents, Claude API.
 
-### [internship-search](internship-search/)
+### Personal projects
+
+#### [internship-search](internship-search/)
 
 An agent that watches about 175 company job boards and three aggregator feeds on a schedule,
 stores every posting in SQLite, works out what is new and what has closed, and filters out
@@ -78,7 +82,7 @@ mutation-tested health alerting and runs itself on a launchd schedule.
 
 Python, SQLite, Claude API, Airtable API, Greenhouse/Lever/Ashby/Workday fetchers, launchd.
 
-### [trip-planner](trip-planner/)
+#### [trip-planner](trip-planner/)
 
 The first agent I built, for the University of Chicago AI integration program in winter 2026,
 since refined into a live product. A group shares one link and everyone answers a short form
@@ -92,7 +96,7 @@ tests.
 
 TypeScript, React, Vite, Vercel Functions, Neon Postgres, Claude API, Open-Meteo, SerpApi.
 
-### [apartment-chores](apartment-chores/)
+#### [apartment-chores](apartment-chores/)
 
 A rotation scheduler for a shared apartment. Every roommate does every chore the same number
 of times over a quarter. It emails a weekly digest and sends private nudges when a chore is
@@ -103,7 +107,7 @@ on GitHub Actions, with 389 tests.
 
 Python, Airtable API, Gmail SMTP/IMAP, Claude API, GitHub Actions.
 
-### [life-dashboard](life-dashboard/)
+#### [life-dashboard](life-dashboard/)
 
 A personal morning brief. One page that pulls news, weather, inboxes, Google Calendar, chores
 and job search. An LLM triages email and ranks a short list of pressing actions. Work items

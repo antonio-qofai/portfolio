@@ -448,11 +448,28 @@ def rebuild_readme(rules: dict) -> bool:
     start, end = text.find(README_START), text.find(README_END)
     if start < 0 or end < start:
         return False
-    order = rules.get("readme_order", [])
-    folders = [d for d in REPO.iterdir() if d.is_dir() and (d / "PORTFOLIO.md").is_file()]
-    folders.sort(key=lambda d: (order.index(d.name) if d.name in order else len(order), d.name))
-    sections = [f"### [{d.name}]({d.name}/)\n\n{(d / 'PORTFOLIO.md').read_text(encoding='utf-8').strip()}"
-                for d in folders]
+    folders = {d.name: d for d in REPO.iterdir() if d.is_dir() and (d / "PORTFOLIO.md").is_file()}
+
+    def entry(d: Path, level: str) -> str:
+        return f"{level} [{d.name}]({d.name}/)\n\n{(d / 'PORTFOLIO.md').read_text(encoding='utf-8').strip()}"
+
+    groups = rules.get("readme_group", [])
+    if groups:
+        # Each group is a heading over its projects, in the order listed. A published
+        # folder no group names goes at the end of the last group, alphabetically.
+        listed = [name for g in groups for name in g["projects"]]
+        sections = []
+        for i, g in enumerate(groups):
+            names = [n for n in g["projects"] if n in folders]
+            if i == len(groups) - 1:
+                names += sorted(n for n in folders if n not in listed)
+            if names:
+                sections.append(f"### {g['title']}")
+                sections += [entry(folders[n], "####") for n in names]
+    else:
+        order = rules.get("readme_order", [])
+        ordered = sorted(folders.values(), key=lambda d: (order.index(d.name) if d.name in order else len(order), d.name))
+        sections = [entry(d, "###") for d in ordered]
     new = text[:start + len(README_START)] + "\n\n" + "\n\n".join(sections) + "\n\n" + text[end:]
     if new == text:
         return False
