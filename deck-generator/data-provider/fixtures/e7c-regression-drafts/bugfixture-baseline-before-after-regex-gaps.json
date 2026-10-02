@@ -1,0 +1,14 @@
+{
+  "_fixture": {
+    "kind": "hand-authored parser regression snippet, not a captured paper excerpt",
+    "authored": "2026-08-15",
+    "rule": "N/A -- every name and figure below is invented; nothing here is real client content, so data-provider/SCRUBBING.md's capture/scrub/verify procedure does not apply. Built to reproduce one specific E7c parser finding structurally, with realistic-scale but entirely synthetic numbers.",
+    "bug": "Two distinct _figure_near regex gaps, both losing EBITDA while revenue (or an earlier figure in the same sentence) parses fine: (a) the 'before' branch regex `({MONEY})\\s*\\w{0,12}$` cannot match '$4.2M adjusted EBITDA' because there is a trailing space after 'adjusted' before 'EBITDA' begins, and the pattern has no \\s* AFTER \\w{0,12} to absorb it; (b) the 'after' branch regex requires the money value immediately (past an optional connector word) after the metric word, and cannot skip an adverb like 'approximately' inserted between the connector and the value.",
+    "source": "E7c diagnosis, 2026-08-15, corresponds to opportunities 00000020-0000-4000-8000-000000000020, 0000001f-0000-4000-8000-00000000001f (trailing-space case) and 00000021-0000-4000-8000-000000000021 (adverb case) in the live corpus"
+  },
+  "opportunity": {
+    "id": "00000003-0000-4000-8000-000000000003",
+    "stage": "published",
+    "research_paper_natural": "## Financial Analysis\n\n### Current State\n\nMeridian Cargo Systems posted strong results this period.\n\n## References\n\n[1] Company Financial Statements: TTM summary showing $18.5M revenue, $4.2M adjusted EBITDA (22.7% margin).\n[2] Company Financial Statements: CY2025 Adjusted EBITDA of approximately $4.2M.\n"
+  }
+}

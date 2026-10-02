@@ -1,0 +1,208 @@
+[
+  {
+    "id": "leverage-gerund",
+    "pattern": "\\bleveraging\\b",
+    "replacement": "using",
+    "mode": "replace",
+    "words": ["leveraging", "using"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Leverage as a verb. Use 'use' or a specific action verb."
+  },
+  {
+    "id": "leverage-verb-after-auxiliary",
+    "pattern": "\\b(?:to|will|can|could|would|should|must|may|helps?|let|lets|and|then)\\s+(leverage)\\b",
+    "replacement": "use",
+    "group": 1,
+    "mode": "replace",
+    "words": ["leverage", "use"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Leverage as a verb. The auxiliary is what proves it is a verb here. The noun ('operating leverage', 'leveraged buyout') is PE vocabulary and is deliberately untouched: the rule fires only on positive evidence of the verb."
+  },
+  {
+    "id": "leverage-verb-after-subject",
+    "pattern": "\\b(?:we|they|you|it|which|that)\\s+(leverages?)\\b",
+    "replacement": "use",
+    "group": 1,
+    "mode": "replace",
+    "words": ["leverage", "leverages", "use", "uses"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Leverage as a verb, with a subject in front of it."
+  },
+  {
+    "id": "leverage-verb-sentence-initial",
+    "pattern": "(?:(?<=^)|(?<=[.!?]\\s)|(?<=[.!?]\\s\\s))(Leverage)(?=\\s+\\S)",
+    "replacement": "Use",
+    "group": 1,
+    "mode": "replace",
+    "case_sensitive": true,
+    "words": ["leverage", "use"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "An imperative sentence opening with the verb."
+  },
+  {
+    "id": "synergies",
+    "pattern": "\\bsynergies\\b",
+    "replacement": "benefits",
+    "mode": "replace_and_flag",
+    "words": ["synergies", "benefits"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Synergies. Say what the actual benefit is; name it in review."
+  },
+  {
+    "id": "synergy",
+    "pattern": "\\bsynergy\\b",
+    "replacement": "benefit",
+    "mode": "replace_and_flag",
+    "words": ["synergy", "benefit"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Synergy. Say what the actual benefit is; name it in review."
+  },
+  {
+    "id": "deep-dive-gerund-into",
+    "pattern": "\\bdeep[ -]diving\\s+into\\b",
+    "replacement": "researching",
+    "mode": "replace",
+    "words": ["deep", "diving", "into", "researching"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Deep dive. Say 'research', 'investigate', or 'look at closely'."
+  },
+  {
+    "id": "deep-dive-verb-into",
+    "pattern": "\\bdeep[ -]dive\\s+into\\b",
+    "replacement": "research",
+    "mode": "replace",
+    "words": ["deep", "dive", "into", "research"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Deep dive as a verb phrase."
+  },
+  {
+    "id": "deep-dive-noun-plural",
+    "pattern": "\\bdeep[ -]dives\\b",
+    "replacement": "close looks",
+    "mode": "replace",
+    "words": ["deep", "dives", "close", "looks"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Deep dives as a noun."
+  },
+  {
+    "id": "deep-dive-noun",
+    "pattern": "\\bdeep[ -]dive\\b",
+    "replacement": "close look",
+    "mode": "replace",
+    "words": ["deep", "dive", "close", "look"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "A deep dive as a noun."
+  },
+  {
+    "id": "unpack-gerund",
+    "pattern": "\\bunpacking\\b",
+    "replacement": "examining",
+    "mode": "replace",
+    "words": ["unpacking", "examining"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Unpack. Say 'examine' or 'work through'."
+  },
+  {
+    "id": "unpack-past",
+    "pattern": "\\bunpacked\\b",
+    "replacement": "examined",
+    "mode": "replace",
+    "words": ["unpacked", "examined"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Unpack, past tense."
+  },
+  {
+    "id": "unpack-third-person",
+    "pattern": "\\bunpacks\\b",
+    "replacement": "examines",
+    "mode": "replace",
+    "words": ["unpacks", "examines"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Unpack, third person."
+  },
+  {
+    "id": "unpack",
+    "pattern": "\\bunpack\\b",
+    "replacement": "examine",
+    "mode": "replace",
+    "words": ["unpack", "examine"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Unpack, base form."
+  },
+  {
+    "id": "drill-down-verb-into",
+    "pattern": "\\bdrill(?:s|ing)?\\s+down\\s+(?:in)?to\\b",
+    "replacement": "focus on",
+    "mode": "replace",
+    "words": ["drill", "drills", "drilling", "down", "into", "to", "focus", "on"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Drill down. Say 'look closer' or 'focus on'."
+  },
+  {
+    "id": "drill-down-verb-on",
+    "pattern": "\\bdrill(?:s|ing)?\\s+down\\s+on\\b",
+    "replacement": "focus on",
+    "mode": "replace",
+    "words": ["drill", "drills", "drilling", "down", "focus", "on"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Drill down on."
+  },
+  {
+    "id": "drill-down-verb-bare",
+    "pattern": "\\bdrill\\s+down\\b",
+    "replacement": "look closer",
+    "mode": "replace",
+    "words": ["drill", "down", "look", "closer"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Drill down, bare verb."
+  },
+  {
+    "id": "drill-down-noun",
+    "pattern": "\\bdrill[-]downs?\\b",
+    "replacement": null,
+    "mode": "flag",
+    "words": ["drill", "down", "downs"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "The hyphenated noun names a capability rather than an action. Every deterministic substitute changes what it claims, so the reviewer decides the wording."
+  },
+  {
+    "id": "portco-plural",
+    "pattern": "\\bportcos\\b",
+    "replacement": "portfolio companies",
+    "mode": "replace",
+    "audience": "external",
+    "words": ["portcos", "portfolio", "companies"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Portco in any external communication. Use 'portfolio company'."
+  },
+  {
+    "id": "portco",
+    "pattern": "\\bportco\\b",
+    "replacement": "portfolio company",
+    "mode": "replace",
+    "audience": "external",
+    "words": ["portco", "portfolio", "company"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Portco in any external communication. Use 'portfolio company'."
+  },
+  {
+    "id": "please-dont-hesitate",
+    "pattern": "(?:[Pp]lease,?\\s+)?[Dd]o\\s?n[o']?t\\s+hesitate\\s+to\\s+",
+    "replacement": "",
+    "mode": "replace",
+    "words": ["please", "do", "don", "dont", "not", "hesitate", "to"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Please don't hesitate. Cut the phrase entirely."
+  },
+  {
+    "id": "looking-forward-fragment",
+    "pattern": "(?:(?<=^)|(?<=[.!?]\\s)|(?<=[.!?]\\s\\s))(Looking forward to)\\b",
+    "replacement": "We are looking forward to",
+    "group": 1,
+    "mode": "replace",
+    "case_sensitive": true,
+    "words": ["looking", "forward", "to", "we", "are"],
+    "source": "QofAI house voice: Vocabulary to Avoid",
+    "note": "Looking forward to as a standalone fragment. Use the full form with a subject."
+  }
+]

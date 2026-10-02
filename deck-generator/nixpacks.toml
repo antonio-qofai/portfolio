@@ -1,0 +1,7 @@
+# PDF export (ui/app.py `/download-pdf`) prints through headless Chromium via
+# Playwright. Nixpacks' own install phase only pulls the `playwright` pip
+# package from requirements.txt; the browser binary and its system libraries
+# are not pip's to install, so this phase fetches them once at build time.
+[phases.playwright]
+dependsOn = ["install"]
+cmds = ["playwright install --with-deps chromium"]

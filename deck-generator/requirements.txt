@@ -1,0 +1,102 @@
+# Runtime dependency for the automatic HTML deck build (src/deck_renderer.py).
+# The prompt-generation pipeline (loader, adapter, assembler, coverage guard)
+# is plain Python 3 and needs nothing here; anthropic is only imported when a
+# deck is actually rendered via the Anthropic API.
+#
+# CEILINGED AT 1.0, AND THE CEILING IS LOAD-BEARING. `anthropic` 1.0.0
+# (2026-08-20) dropped `httpx` for `httpx2`, so `anthropic.Timeout` is now an
+# `httpx2.Timeout` and an object from the `httpx` package is refused at request
+# time. `model_call.bounded_client` builds an `httpx.Timeout`, and under 1.x the
+# resulting `TypeError: 'Timeout' object cannot be interpreted as an integer` is
+# caught by the SDK's own catch-all and re-raised as
+# `APIConnectionError("Connection error.")` in about 0.05 seconds.
+#
+# That is what took the deployed studio down on 2026-09-03. Nothing about the
+# code or the key had changed: an unpinned floor meant a fresh build resolved
+# 1.3.0 where every earlier build had resolved 0.11x, and every local
+# verification ran against the 0.119.0 already installed in the venv. The
+# reviewer saw a failed extraction pass and a 0.33 completeness score against a
+# paper that states every figure it was accused of missing.
+#
+# Verified 2026-09-03: this range resolves 0.125.0, and the extraction leg's own
+# call shape (adaptive thinking + `output_config` json_schema) answers in 2.6s.
+# Lifting the ceiling means migrating the five call sites off `httpx` first --
+# `anthropic.Timeout` is the version-agnostic spelling -- not relaxing it here.
+anthropic>=0.109,<1
+
+# UI-only dependency for the internal review tool (ui/app.py). The pipeline and
+# the preference store need nothing here; Flask is imported only when the review
+# UI runs. Install it only if you use the UI.
+flask>=3.0
+
+# Production WSGI server for hosted deployments of the review UI (ui/app.py).
+# Not needed for local runs (`python ui/app.py` uses Flask's dev server) or for
+# the prompt/deck pipeline. The hosting platform starts the app through this.
+gunicorn>=21
+
+# Runtime dependency for the headless QofAI Platform MCP client
+# (src/qofai_mcp_client.py). Imported only when the MCP data path is used. Needs a
+# Python with a modern TLS stack (3.10+ / OpenSSL 3.x); the macOS system Python
+# 3.9 (LibreSSL 2.8.3) cannot handshake with the endpoint — run under a venv.
+httpx>=0.28
+
+# The deck store (src/deck_store.py) needs nothing here. It is SQLite on the
+# hosted service's disk volume, and sqlite3 ships with Python — the Postgres
+# driver this file used to carry went away with the Postgres that was never
+# there (PROMPT-QUEUE prompt B2d).
+
+# UI-only dependency for the PDF export button (ui/app.py `/download-pdf`).
+# Imported only when a reviewer presses that button. Prints the deck in real
+# headless Chromium — the same engine the HTML review renders in — so the
+# fixed 1280x720 slide geometry carries over exactly instead of reflowing into
+# a browser's default page format. The pip package alone is not the whole
+# dependency: the Chromium binary and its system libraries come from
+# `playwright install --with-deps chromium` (see nixpacks.toml), run once at
+# build time so no deploy pays the download cost per request.
+playwright>=1.47
+
+# Text extraction from an uploaded PDF (src/document_text.py). Imported inside
+# the leg that reads a PDF, never at module import, so the prompt pipeline pays
+# nothing for it. Pure Python, no system libraries, no binary of its own.
+#
+# CEILINGED, AND THE CEILING IS THE POINT. A parser dependency has the exact
+# shape of the failure that took the deployed studio down on 2026-09-03: the
+# laptop already had a working version installed, pip does not upgrade a
+# satisfied requirement, so every local verification passes and only a clean
+# hosted build resolves the floor. The floor here is the version actually
+# verified rather than the oldest that might work, and the ceiling stops the
+# next major from arriving unannounced.
+#
+# Verified 2026-09-07: this range resolves 6.18.0 on a clean download, extracts
+# text from a one-page PDF, returns empty text for a page with no text layer
+# (which src/document_text.py turns into E_NO_TEXT rather than an empty deck),
+# and refuses a mislabelled file by raising rather than by returning nothing.
+pypdf>=6.18,<7
+
+# Text extraction from an uploaded .docx (src/document_text.py), same leg, same
+# lazy import, same reasoning on the ceiling. Reads the document body in order
+# so a pricing table stays with the sentence that introduced it.
+#
+# Verified 2026-09-07: this range resolves 1.2.0 on a clean download, and
+# reads paragraphs and table cells out of a document written by itself.
+python-docx>=1.2,<2
+
+# TRANSITIVE, DECLARED HERE FOR ITS CEILING ONLY. `python-docx` imports lxml at
+# its own import time and asks only for `lxml>=3.1.0`, so without this line a
+# clean build is free to resolve a future lxml major into the one dependency
+# here that is a compiled extension rather than pure Python. That is the
+# 2026-09-03 failure with a different package name.
+#
+# The floor is the version this repo has actually run, not python-docx's much
+# older one, which is the rule every other line in this file follows and which
+# the first version of this line broke. It costs nothing to hold: pip resolves
+# the newest version a range allows, so what installs is unchanged either way,
+# and a build that genuinely cannot reach 6.x now says so instead of quietly
+# dropping to an lxml nobody here has ever run.
+#
+# Verified 2026-09-07: resolves 6.1.3 alongside the two above.
+lxml>=6.1,<7
+
+# `typing_extensions` also arrives transitively, from pypdf. Pure Python, no
+# ceiling: it is a backport package whose whole contract is that older code
+# keeps working, and it carries no API this repo calls directly.

@@ -1,0 +1,37 @@
+{
+  "_comment": "Sample fixtures the review UI offers in its picker. This is CONFIG, not logic: the same shape as scripts/eval_status_decks.py's CASES and render_sample_deck.py's DECK_TYPE_DEFAULTS. Each entry names a frozen packet plus the company/project the request carries (the FixtureProvider returns the packet regardless; client_short is read from the packet). Paths are relative to the repo root. Add a client by adding one entry. A reviewer can also override company/project/check_in_date per run, or point at any other packet path.",
+  "fixtures": [
+    {
+      "id": "ridgeline-proposal",
+      "label": "Ridgeline Site Services — proposal",
+      "deck_type": "proposal",
+      "company": "Ridgeline Site Services",
+      "project": "Operational Intelligence Platform",
+      "packet": "proposal-data-packet-EXAMPLE.md"
+    },
+    {
+      "id": "fbk-proposal",
+      "label": "Fabrikam Marine — proposal",
+      "deck_type": "proposal",
+      "company": "Fabrikam Marine",
+      "project": "Field Capture & Project Dashboards",
+      "packet": "templates/packets/proposal-data-packet-fbk.md"
+    },
+    {
+      "id": "northwind-status",
+      "label": "Northwind — status check-in",
+      "deck_type": "status",
+      "company": "Northwind",
+      "project": "Implementation Project",
+      "packet": "status-data-packet-EXAMPLE.md"
+    },
+    {
+      "id": "vantgo-status",
+      "label": "Vantgo Logistics — status check-in",
+      "deck_type": "status",
+      "company": "Vantgo Logistics",
+      "project": "Fulfillment Automation",
+      "packet": "templates/packets/status-data-packet-second.md"
+    }
+  ]
+}

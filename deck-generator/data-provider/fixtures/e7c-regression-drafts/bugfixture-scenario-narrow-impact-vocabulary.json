@@ -1,0 +1,14 @@
+{
+  "_fixture": {
+    "kind": "hand-authored parser regression snippet, not a captured paper excerpt",
+    "authored": "2026-08-15",
+    "rule": "N/A -- every name and figure below is invented; nothing here is real client content, so data-provider/SCRUBBING.md's capture/scrub/verify procedure does not apply. Built to reproduce one specific E7c parser finding structurally, with realistic-scale but entirely synthetic numbers.",
+    "bug": "IMPACT_WORDS is a fixed five-word tuple (impact, incremental, contribution, gain, savings). The real dollar column here, 'Annual Benefit', uses a common synonym ('benefit') that isn't in the list, so _is_dollar_label never even considers it. The column that DOES match on label, 'EBITDA Impact', actually holds percentage-point figures (mislabeled), so even if picked it would correctly fail to parse as money -- meaning the real dollar column is skipped for vocabulary reasons alone, with nothing else standing in for it.",
+    "source": "E7c diagnosis, 2026-08-15, corresponds to opportunity 0000001e-0000-4000-8000-00000000001e's second candidate table in the live corpus ('reduction' and 'optimization' are the same class of gap seen on 0000000f-0000-4000-8000-00000000000f and 00000024-0000-4000-8000-000000000024)"
+  },
+  "opportunity": {
+    "id": "00000006-0000-4000-8000-000000000006",
+    "stage": "published",
+    "research_paper_natural": "## Projected Impact\n\n| Scenario | Scrap Rate Assumption | Annual Benefit | EBITDA Impact |\n|---|---|---|---|\n| Bear Case | 2% scrap | $95K | +0.5 pp |\n| Base Case | 3.5% scrap | $190K | +1.0 pp |\n| Bull Case | 5% scrap | $310K | +1.6 pp |\n"
+  }
+}

@@ -1,0 +1,9 @@
+# Python bytecode and test caches. Local build artifacts only — nothing here
+# belongs in the repo or in a deployed container.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# The repo-local deck store, which store_dir_resolver falls back to when no
+# disk volume is mounted. A development database, never a committed one.
+deck-store/

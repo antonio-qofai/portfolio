@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operational Intelligence Platform — Ridgeline Site Services</title>
+<style>
+  :root{
+    --ink:#0e1720;
+    --ink-soft:#3a4a58;
+    --paper:#f4f1ea;
+    --panel:#ffffff;
+    --line:#d7d0c4;
+    --accent:#c2532b;
+    --accent-deep:#8f3a1c;
+    --teal:#1e6b6b;
+    --gold:#b8862f;
+    --mute:#6b7683;
+    --dark:#12222c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    color:var(--ink);
+    background:#2a2a2a;
+    line-height:1.4;
+    -webkit-font-smoothing:antialiased;
+  }
+  .slide{
+    position:relative;
+    width:100%;
+    min-height:100vh;
+    padding:44px 60px 60px;
+    background:var(--paper);
+    display:flex;
+    flex-direction:column;
+    border-bottom:3px solid var(--dark);
+    overflow:hidden;
+  }
+  /* top bar */
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:10px;
+    letter-spacing:.18em;
+    color:var(--mute);
+    padding-bottom:10px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:26px;
+  }
+  .topbar .conf{color:var(--accent-deep);font-weight:700}
+  .brandmark{font-weight:700;color:var(--ink);letter-spacing:.24em}
+  .kicker{
+    font-size:11px;letter-spacing:.28em;color:var(--accent);font-weight:700;
+    text-transform:uppercase;margin-bottom:16px;
+  }
+  h1,h2{font-weight:700;letter-spacing:-.01em;line-height:1.06}
+  .footer{
+    margin-top:auto;
+    display:flex;justify-content:space-between;
+    font-size:9.5px;letter-spacing:.18em;color:var(--mute);
+    padding-top:16px;border-top:1px solid var(--line);
+  }
+  .slide-num{
+    position:absolute;top:44px;right:60px;font-size:10px;
+    color:var(--mute);letter-spacing:.1em;
+  }
+
+  /* ---------- Slide 1 Cover ---------- */
+  .cover{
+    background:linear-gradient(150deg,#12222c 0%,#1c3540 55%,#254048 100%);
+    color:var(--paper);
+    border-bottom:none;
+  }
+  .cover .topbar{border-color:rgba(255,255,255,.15);color:#a9b6bd}
+  .cover .brandmark{color:#fff}
+  .cover .conf{color:#e08a5f}
+  .cover-body{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:1000px}
+  .cover .kicker{color:#e08a5f}
+  .cover .prepared{
+    font-size:11px;letter-spacing:.2em;color:#9fb0b6;margin-bottom:30px;
+  }
+  .cover h1{
+    font-size:64px;color:#fff;margin-bottom:26px;
+  }
+  .cover .accentline{width:80px;height:4px;background:var(--accent);margin-bottom:26px}
+  .cover .subtitle{
+    font-size:19px;line-height:1.5;color:#d3dbde;max-width:760px;font-weight:400;
+  }
+  .cover .footer{border-color:rgba(255,255,255,.15);color:#9fb0b6}
+
+  /* ---------- Section head ---------- */
+  .section-head{margin-bottom:22px}
+  .section-head h2{font-size:33px;margin-bottom:12px;max-width:1050px}
+  .section-head p{font-size:14px;color:var(--ink-soft);max-width:900px;line-height:1.5}
+
+  /* ---------- Slide 2 ---------- */
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:22px}
+  .stack{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px 24px}
+  .stack.today{border-top:4px solid var(--mute)}
+  .stack.after{border-top:4px solid var(--teal)}
+  .stack .head{
+    font-size:11px;letter-spacing:.18em;font-weight:700;margin-bottom:16px;color:var(--mute);
+  }
+  .stack.after .head{color:var(--teal)}
+  .metric{margin-bottom:14px;padding-bottom:14px;border-bottom:1px dashed var(--line)}
+  .metric .big{font-size:20px;font-weight:700;line-height:1.15}
+  .today .metric .big{color:var(--ink)}
+  .after .metric .big{color:var(--teal)}
+  .metric .lbl{display:block;font-size:12px;color:var(--ink-soft);font-weight:400;margin-top:3px}
+  .stack ul{list-style:none;margin-top:6px}
+  .stack ul li{
+    font-size:12.5px;color:var(--ink-soft);padding-left:16px;position:relative;margin-bottom:8px;line-height:1.4;
+  }
+  .stack ul li::before{content:"";position:absolute;left:0;top:6px;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+  .build-band{
+    background:var(--dark);color:#fff;border-radius:6px;padding:20px 26px;
+  }
+  .build-band .bt{font-size:11px;letter-spacing:.2em;color:var(--gold);font-weight:700;margin-bottom:14px}
+  .build-phases{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .build-phases .ph .pn{font-size:11px;font-weight:700;letter-spacing:.08em;color:#e08a5f;margin-bottom:6px}
+  .build-phases .ph .pd{font-size:12.5px;color:#cdd6d9;line-height:1.5}
+
+  /* ---------- Slide 3 ---------- */
+  .comp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;flex:1;align-content:start}
+  .comp{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:26px 24px;display:flex;flex-direction:column}
+  .comp .num{font-size:40px;font-weight:800;color:var(--accent);line-height:1;margin-bottom:14px}
+  .comp .kick{font-size:10px;letter-spacing:.14em;color:var(--teal);font-weight:700;margin-bottom:10px}
+  .comp h3{font-size:18px;margin-bottom:12px;line-height:1.18}
+  .comp p{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+  .comp .connector{margin-top:auto}
+
+  /* ---------- Slide 4 timeline ---------- */
+  .tl-wrap{flex:1;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px}
+  .tl-head{display:grid;grid-template-columns:270px repeat(8,1fr);gap:2px;margin-bottom:6px}
+  .tl-head .corner{font-size:10px;letter-spacing:.1em;color:var(--mute);font-weight:700;align-self:end;padding-bottom:4px}
+  .tl-head .wk{font-size:10px;text-align:center;color:var(--mute);font-weight:700;padding:4px 0;border-bottom:2px solid var(--line)}
+  .tl-row{display:grid;grid-template-columns:270px repeat(8,1fr);gap:2px;align-items:center;height:34px}
+  .tl-row .lbl{font-size:10.5px;color:var(--ink);line-height:1.2;padding-right:8px}
+  .tl-cell{position:relative;height:100%}
+  .bar{position:absolute;top:8px;height:18px;border-radius:3px;left:2px;right:2px}
+  .p1{background:var(--teal)}
+  .p2{background:var(--accent)}
+  .phase-tag{font-size:9px;letter-spacing:.12em;font-weight:700;padding:6px 0 3px;text-transform:uppercase}
+  .phase-tag.a{color:var(--teal)}
+  .phase-tag.b{color:var(--accent);margin-top:6px}
+  .ms-band{display:flex;gap:34px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .ms{display:flex;align-items:center;gap:10px}
+  .ms .dot{width:34px;height:34px;border-radius:50%;background:var(--dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+  .ms .txt strong{display:block;font-size:12px}
+  .ms .txt span{font-size:10px;color:var(--mute);letter-spacing:.08em}
+
+  /* ---------- Slide 5 commercial ---------- */
+  .comm-top{display:grid;grid-template-columns:1.15fr 1fr;gap:22px;margin-bottom:18px}
+  .invest-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .ibox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px}
+  .ibox .bt{font-size:10px;letter-spacing:.14em;color:var(--teal);font-weight:700;margin-bottom:8px}
+  .ibox .bv{font-size:12.5px;color:var(--ink-soft);line-height:1.45}
+  .ibox.full{grid-column:1 / -1}
+  .downside{background:#f7e9e2;border:1px solid #e2b9a5;border-left:4px solid var(--accent);border-radius:6px;padding:14px 18px;grid-column:1 / -1;font-size:12.5px;color:var(--accent-deep);font-weight:600}
+  .valtable{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .valtable table{width:100%;border-collapse:collapse}
+  .valtable th{background:var(--dark);color:#fff;font-size:9.5px;letter-spacing:.08em;text-align:left;padding:9px 10px;font-weight:700}
+  .valtable td{font-size:11px;padding:8px 10px;border-bottom:1px solid var(--line);color:var(--ink-soft)}
+  .valtable .sc{font-weight:700;color:var(--ink);font-size:10.5px}
+  .valtable tr:last-child td{border-bottom:none}
+  .valtable tr.base td{background:#eef4f2}
+  .mechanics{background:var(--dark);color:#fff;border-radius:6px;padding:18px 24px}
+  .mechanics .mt{font-size:11px;letter-spacing:.18em;color:var(--gold);font-weight:700;margin-bottom:14px}
+  .mech-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .mech-steps .st{font-size:11.5px;color:#cdd6d9;line-height:1.5;padding-left:14px;border-left:2px solid var(--accent)}
+  .footnote{font-size:9.5px;color:var(--mute);margin-top:12px;line-height:1.4;font-style:italic}
+
+  /* ---------- Slide 6 next steps ---------- */
+  .steps-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;flex:1;align-content:start}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px 24px;border-left:4px solid var(--accent);display:flex;gap:18px}
+  .step .n{font-size:32px;font-weight:800;color:var(--accent);line-height:1;min-width:44px}
+  .step .body h3{font-size:17px;margin-bottom:8px}
+  .step .body p{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+  .step .meta{display:flex;gap:8px;margin-bottom:9px;flex-wrap:wrap}
+  .chip{font-size:9px;letter-spacing:.1em;font-weight:700;padding:3px 8px;border-radius:3px}
+  .chip.wk{background:var(--dark);color:#fff}
+  .chip.owner{background:#e7efee;color:var(--teal)}
+
+  .review-flag{
+    display:inline-block;background:#fff2c7;border:1px solid #d9b64a;color:#7a5a08;
+    font-size:9px;letter-spacing:.1em;padding:2px 7px;border-radius:3px;font-weight:700;
+  }
+  @media print{body{background:#fff}.slide{page-break-after:always;min-height:100vh}}
+</style>
+</head>
+<body>
+
+<!-- ============ SLIDE 1 — COVER ============ -->
+<section class="slide cover">
+  <div class="topbar">
+    <span class="brandmark">QOFAI</span>
+    <span class="conf">QOFAI CONFIDENTIAL</span>
+  </div>
+  <div class="cover-body">
+    <div class="kicker">PROJECT PLANNING · JULY 6 2026</div>
+    <div class="prepared">PREPARED FOR: RIDGELINE SITE SERVICES · Woodgrove Partners</div>
+    <div class="accentline"></div>
+    <h1>Operational Intelligence Project Planning.</h1>
+    <p class="subtitle">Standing up the data foundation, the mobile field app, and real-time dashboards — one integrated build, delivered in phases.</p>
+  </div>
+  <div class="footer">
+    <span>QOFAI CONFIDENTIAL</span>
+    <span>OPERATIONAL INTELLIGENCE PLATFORM</span>
+  </div>
+</section>
+
+<!-- ============ SLIDE 2 — OPPORTUNITY ============ -->
+<section class="slide">
+  <div class="topbar">
+    <span class="brandmark">QOFAI</span>
+    <span>OPERATIONAL INTELLIGENCE PLATFORM</span>
+    <span class="conf">QOFAI CONFIDENTIAL</span>
+  </div>
+  <div class="section-head">
+    <div class="kicker">THE OPPORTUNITY</div>
+    <h2>Mobile Field Capture &amp; Project Dashboards.</h2>
+    <p>A connected tablet app that replaces paper field tickets, feeding live project, equipment, and fuel margin — so cost overruns get caught while the job is still open.</p>
+  </div>
+
+  <div class="cols2">
+    <div class="stack today">
+      <div class="head">TODAY</div>
+      <div class="metric">
+        <span class="big">−41.2 – +58.4%</span>
+        <span class="lbl">Month-over-month EBITDA % swings, with little real-time visibility</span>
+      </div>
+      <div class="metric">
+        <span class="big">~26 days</span>
+        <span class="lbl">Reporting lag after project close prevents real-time intervention</span>
+      </div>
+      <ul>
+        <li>Foremen handwrite daily field tickets on paper; keyed into Excel next morning (12–24h lag)</li>
+        <li>Fuel and equipment-hour entry is optional; ~52 active jobs live in disconnected workbooks</li>
+      </ul>
+    </div>
+    <div class="stack after">
+      <div class="head">AFTER — TARGET IN ~16 WEEKS</div>
+      <div class="metric">
+        <span class="big">+1.6–2.7pp</span>
+        <span class="lbl">EBITDA margin uplift — $1.5M–$2.6M / yr direct</span>
+      </div>
+      <div class="metric">
+        <span class="big">&lt;24 hrs</span>
+        <span class="lbl">Data latency — real-time field sync from job sites</span>
+      </div>
+      <ul>
+        <li>Connected tablet app with enforced daily fuel + equipment-hour capture and automatic job allocation</li>
+        <li>Live per-job production and financial performance</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="build-band">
+    <div class="bt">THE 16-WEEK BUILD</div>
+    <div class="build-phases">
+      <div class="ph">
+        <div class="pn">PHASE 1 · WKS 1–8 · FOUNDATION &amp; PILOT</div>
+        <div class="pd">Cloud data warehouse + accounting connector, the Operations dashboard, and a single-crew field-capture pilot run in parallel with paper.</div>
+      </div>
+      <div class="ph">
+        <div class="pn">PHASE 2 · WKS 8–16 · FLEET ROLLOUT</div>
+        <div class="pd">Fleet-wide capture, the fuel/equipment-allocation engine, CEO / Finance dashboards with variance alerts, combined-entity reporting, and asset-tracking integration.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>QOFAI CONFIDENTIAL</span>
+    <span>RIDGELINE SITE SERVICES · Woodgrove Partners</span>
+  </div>
+</section>
+
+<!-- ============ SLIDE 3 — PLATFORM ============ -->
+<section class="slide">
+  <div class="topbar">
+    <span class="brandmark">QOFAI</span>
+    <span>OPERATIONAL INTELLIGENCE PLATFORM</span>
+    <span class="conf">QOFAI CONFIDENTIAL</span>
+  </div>
+  <div class="section-head">
+    <div class="kicker">THE PLATFORM</div>
+    <h2>One Operational Intelligence Platform, two connected layers.</h2>
+    <p>A mobile capture layer that replaces clipboards, and an analytics layer that turns captured data into live metrics — layered on top of the accounting and asset systems, not replacing them.</p>
+  </div>
+
+  <div class="comp-grid">
+    <div class="comp">
+      <div class="num">01</div>
+      <div class="kick">INPUTS · MOBILE FIELD CAPTURE</div>
+      <h3>Capture crew activity one time, in real-time.</h3>
+      <p>Connected tablet app: a guided, button-driven workflow with dependent dropdowns, the full earthwork + equipment-delay taxonomy, crew, and enforced fuel — buffering locally through connectivity dropouts.</p>
+    </div>
+    <div class="comp">
+      <div class="num">02</div>
+      <div class="kick">DATA FOUNDATION</div>
+      <h3>Integrate into one data store.</h3>
+      <p>A cloud warehouse joining field data, fuel, and accounting financials. Accounting + GL/fuel-card connectors, asset-tracking and pipeline ingestion, scheduled batch where APIs are constrained.</p>
+    </div>
+    <div class="comp">
+      <div class="num">03</div>
+      <div class="kick">OUTPUTS · DASHBOARDS &amp; ALERTS</div>
+      <h3>Live project performance, role by role.</h3>
+      <p>Operations, CEO, and Finance dashboards with drill-down from fleet → job → crew → day.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>QOFAI CONFIDENTIAL</span>
+    <span>RIDGELINE SITE SERVICES · Woodgrove Partners</span>
+  </div>
+</section>
+
+<!-- ============ SLIDE 4 — TIMELINE ============ -->
+<section class="slide">
+  <div class="topbar">
+    <span class="brandmark">QOFAI</span>
+    <span>OPERATIONAL INTELLIGENCE PLATFORM</span>
+    <span class="conf">QOFAI CONFIDENTIAL</span>
+  </div>
+  <div class="section-head">
+    <div class="kicker">PHASED ROLLOUT · PROJECT PLAN</div>
+    <h2>8 weeks to a validated pilot, 16 weeks to fleet-wide live.</h2>
+    <p>Cloud data warehouse + accounting connector, the Operations dashboard, and a single-crew field-capture pilot run in parallel with paper. Fleet-wide capture, the fuel/equipment-allocation engine, CEO / Finance dashboards with variance alerts, combined-entity reporting, and asset-tracking integration.</p>
+  </div>
+
+  <div class="tl-wrap">
+    <div class="tl-head">
+      <div class="corner">WEEK →</div>
+      <div class="wk">1–2</div><div class="wk">3–4</div><div class="wk">5–6</div><div class="wk">7–8</div>
+      <div class="wk">9–10</div><div class="wk">11–12</div><div class="wk">13–14</div><div class="wk">15–16</div>
+    </div>
+
+    <div class="phase-tag a">PHASE 1 · BUILD &amp; PILOT — WKS 1–8</div>
+
+    <!-- row helper: columns 1-2=col1,3-4=col2,5-6=col3,7-8=col4,9-10=col5,11-12=col6,13-14=col7,15-16=col8 -->
+    <div class="tl-row">
+      <div class="lbl">Scoping &amp; setup · Lock scope</div>
+      <div class="tl-cell"><div class="bar p1"></div></div>
+      <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+      <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+    </div>
+    <div class="tl-row">
+      <div class="lbl">Data foundation — warehouse + connectors · Accounting + GL connectors</div>
+      <div class="tl-cell"><div class="bar p1" style="left:50%;right:2px"></div></div>
+      <div class="tl-cell"><div class="bar p1"></div></div>
+      <div class="tl-cell"><div class="bar p1" style="left:2px;right:50%"></div></div>
+      <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+    </div>
+    <div class="tl-row">
+      <div class="lbl">Field application development · Daily-ticket forms + real-time sync</div>
+      <div class="tl-cell"></div>
+      <div class="tl-cell"><div class="bar p1" style="left:50%;right:2px"></div></div>
+      <div class="tl-cell"><div class="bar p1"></div></div>
+      <div class="tl-cell"><div class="bar p1" style="left:2px;right:50%"></div></div>
+      <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+    </div>
+    <div class="tl-row">
+      <div class="lbl">Operations dashboard · Fleet production &amp; downtime</div>
+      <div class="tl-cell"></div><div class="tl-cell"></div>
+      <div class="tl-cell"><div class="bar p1"></div></div>
+      <div class="tl-cell"><div class="bar p1"></div></div>
+      <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+    </div>
+    <div class="tl-row">
+      <div class="lbl">Single-crew field-capture pilot · Parallel paper + digital</div>
+      <div class="tl-cell"></div><div class="tl-cell"></div>
+      <div class="tl-cell"><div class="bar p1" style="left:50%;right:2px"></div></div>
+      <div class="tl-cell"><div class="bar p1"></div></div>
+      <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+    </div>
+
+    <div class="phase-tag b">PHASE 2 · FLEET ROLLOUT — WKS 8–16</div>
+
+    <div class="tl-row">
+      <div class="lbl">Fleet-wide field-capture rollout · Crew-by-crew; retire paper</div>
+      <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+      <div class="tl-cell"><div class="bar p2" style="left:50%;right:2px"></div></div>
+      <div class="tl-cell"><div class="bar p2"></div></div>
+      <div class="tl-cell"><div class="bar p2"></div></div>
+      <div class="tl-cell"><div class="bar p2" style="left:2px;right:50%"></div></div>
+      <div class="tl-cell"></div>
+    </div>
+    <div class="tl-row">
+      <div class="lbl">Fuel &amp; equipment-allocation engine · Auto-allocate by job</div>
+      <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+      <div class="tl-cell"><div class="bar p2"></div></div>
+      <div class="tl-cell"><div class="bar p2"></div></div>
+      <div class="tl-cell"><div class="bar p2" style="left:2px;right:50%"></div></div>
+      <div class="tl-cell"></div>
+    </div>
+    <div class="tl-row">
+      <div class="lbl">CEO / Finance dashboards + alerts · EBITDA, variance &amp; fuel alerts</div>
+      <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+      <div class="tl-cell"><div class="bar p2" style="left:50%;right:2px"></div></div>
+      <div class="tl-cell"><div class="bar p2"></div></div>
+      <div class="tl-cell"><div class="bar p2"></div></div>
+      <div class="tl-cell"><div class="bar p2" style="left:2px;right:50%"></div></div>
+    </div>
+    <div class="tl-row">
+      <div class="lbl">Reporting package + asset tracking · Combined-entity + Job Post-Mortem</div>
+      <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+      <div class="tl-cell"><div class="bar p2" style="left:50%;right:2px"></div></div>
+      <div class="tl-cell"><div class="bar p2"></div></div>
+      <div class="tl-cell"><div class="bar p2"></div></div>
+    </div>
+
+    <div class="ms-band">
+      <div class="ms"><div class="dot">M0</div><div class="txt"><strong>SCOPE LOCKED</strong><span>WEEK 2</span></div></div>
+      <div class="ms"><div class="dot">M1</div><div class="txt"><strong>PILOT VALIDATED</strong><span>WEEK 8</span></div></div>
+      <div class="ms"><div class="dot">M2</div><div class="txt"><strong>FLEET LIVE</strong><span>WEEK 16</span></div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>QOFAI CONFIDENTIAL</span>
+    <span>RIDGELINE SITE SERVICES · Woodgrove Partners</span>
+  </div>
+</section>
+
+<!-- ============ SLIDE 5 — COMMERCIAL ============ -->
+<section class="slide">
+  <div class="topbar">
+    <span class="brandmark">QOFAI</span>
+    <span>OPERATIONAL INTELLIGENCE PLATFORM</span>
+    <span class="conf">QOFAI CONFIDENTIAL</span>
+  </div>
+  <div class="section-head">
+    <div class="kicker">COMMERCIAL TERMS · HOW QOFAI GETS PAID</div>
+    <h2>A partnership built on performance.</h2>
+    <p>We invest. We deliver. You retain the value. QofAI bears all up-front build, licensing, and hosting cost; the client only pays from realized EBITDA gains — and keeps the rest.</p>
+  </div>
+
+  <div class="comm-top">
+    <div class="invest-grid">
+      <div class="downside">If margins don't improve above your locked baseline, QofAI earns nothing.</div>
+      <div class="ibox">
+        <div class="bt">QOFAI INVESTMENT <span class="review-flag">unconfirmed, see gaps</span></div>
+        <div class="bv"><strong>$275,000</strong> · Engineering, deployment, and all implementation risk — fully absorbed before the client pays a dollar. (unconfirmed, see gaps)</div>
+      </div>
+      <div class="ibox">
+        <div class="bt">CLIENT UP-FRONT</div>
+        <div class="bv"><strong>$0</strong> · No capital outlay. No per-seat BI licensing. Tablets (~18, rugged cases) procured by client — not in contract.</div>
+      </div>
+      <div class="ibox full">
+        <div class="bt">COMPENSATION SCHEDULE</div>
+        <div class="bv">YEAR 1 20% · YEAR 2 10% · YEAR 3 5% · YEAR 4+ 0% · Capped at 2.5× initial investment or 3 years, whichever first; ~$19K/yr support after that.</div>
+      </div>
+      <div class="ibox full">
+        <div class="bt">CLIENT RETENTION</div>
+        <div class="bv">Client retains 80–84%, 100% thereafter.</div>
+      </div>
+    </div>
+
+    <div class="valtable">
+      <table>
+        <thead>
+          <tr>
+            <th>SCENARIO</th><th>EBITDA GAIN</th><th>QOFAI COMP</th><th>CLIENT RETAINED</th><th>ENT. VALUE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="sc">CONSERVATIVE</td>
+            <td>+1.6pp · $1,500,000/yr</td>
+            <td>$640,000</td>
+            <td>$3,600,000</td>
+            <td>$10,700,000</td>
+          </tr>
+          <tr class="base">
+            <td class="sc">BASE CASE</td>
+            <td>+2.2pp · $2,050,000/yr</td>
+            <td>$685,000</td>
+            <td>$4,900,000</td>
+            <td>$14,000,000</td>
+          </tr>
+          <tr>
+            <td class="sc">OPTIMISTIC</td>
+            <td>+2.7pp · $2,600,000/yr</td>
+            <td>$685,000 (cap)</td>
+            <td>$6,200,000</td>
+            <td>$17,300,000</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="mechanics">
+    <div class="mt">HOW PAYMENT WORKS</div>
+    <div class="mech-steps">
+      <div class="st"><strong>Measured monthly.</strong> Actual job &amp; fleet EBITDA margin is compared to the client's locked pre-launch baseline; improvement is expressed in margin points.</div>
+      <div class="st"><strong>Converted to EBITDA.</strong> The margin-point gain is applied to financial performance at the contribution basis locked at signing for the term.</div>
+      <div class="st"><strong>Share paid that month.</strong> QofAI receives the year's share (20% / 10% / 5%) of that figure — paid monthly until the 2.5× cap or the 3-year term.</div>
+    </div>
+  </div>
+  <p class="footnote">Enterprise value at exit assumes a 6× EBITDA multiple on the annual uplift, plus a 0.25× reporting-readiness multiple improvement on ~$6.9M adjusted EBITDA. Directional, for decision support.</p>
+
+  <div class="footer">
+    <span>QOFAI CONFIDENTIAL</span>
+    <span>RIDGELINE SITE SERVICES · Woodgrove Partners</span>
+  </div>
+</section>
+
+<!-- ============ SLIDE 6 — NEXT STEPS ============ -->
+<section class="slide">
+  <div class="topbar">
+    <span class="brandmark">QOFAI</span>
+    <span>OPERATIONAL INTELLIGENCE PLATFORM</span>
+    <span class="conf">QOFAI CONFIDENTIAL</span>
+  </div>
+  <div class="section-head">
+    <div class="kicker">NEXT STEPS</div>
+    <h2>Four moves to launch the build.</h2>
+    <p>Each action has a named owner and a target week.</p>
+  </div>
+
+  <div class="steps-grid">
+    <div class="step">
+      <div class="n">01</div>
+      <div class="body">
+        <div class="meta"><span class="chip wk">WK 0</span><span class="chip owner">CLIENT LEADERSHIP</span></div>
+        <h3>Approve Project Plan</h3>
+        <p>Leadership reviews and approves the platform scope, the two-phase plan, and the 16-week timeline before the build begins.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">02</div>
+      <div class="body">
+        <div class="meta"><span class="chip wk">WK 0</span><span class="chip owner">QOFAI + CLIENT LEADERSHIP</span></div>
+        <h3>Sign Performance-Based Contract</h3>
+        <p>Execute the performance-based agreement: QofAI bears all upfront cost and is paid from realized EBITDA gains, capped at 2.5× cost over a three-year term.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">03</div>
+      <div class="body">
+        <div class="meta"><span class="chip wk">WK 1–2</span><span class="chip owner">QOFAI ENGINEERING</span></div>
+        <h3>Kick Off QofAI FDEs</h3>
+        <p>QofAI's forward-deployed engineers begin the build — standing up the cloud warehouse, the accounting connector, and the Operations dashboard.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="n">04</div>
+      <div class="body">
+        <div class="meta"><span class="chip wk">WK 1–2</span><span class="chip owner">OPERATIONS</span></div>
+        <h3>Select the pilot crew &amp; foreman</h3>
+        <p>Choose a tech-receptive foreman for the single-crew pilot; lock Phase 1 scope to the daily ticket, fuel, and the financial dashboard.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>QOFAI CONFIDENTIAL</span>
+    <span>RIDGELINE SITE SERVICES · Woodgrove Partners</span>
+  </div>
+</section>
+
+</body>
+</html>

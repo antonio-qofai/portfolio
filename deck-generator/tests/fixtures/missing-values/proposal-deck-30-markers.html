@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Multi-Agent AI Customer Care Platform - QofAI</title>
+<style>
+:root{
+  --ink:#10202e;           /* primary dark: dark-slide bg, dark text on cream */
+  --ink-soft:#3a4a58;      /* body text on cream */
+  --paper:#f4f1ea;         /* light-slide background (cream) */
+  --panel:#ffffff;         /* cards on light slides */
+  --line:#ded7ca;          /* hairline rules / card borders */
+  --mute:#6b7784;          /* muted small-caps labels */
+  --accent:#1a6199;        /* primary accent (steel blue) */
+  --accent-strong:#124e7d; /* deeper accent for small labels */
+  --accent-soft:#5fa8db;   /* accent on dark slides */
+  --accent-tint:#e7eef5;   /* pale blue fill (comp boxes, phase bands) */
+  --pos:#2f7d4f;           /* positive / money-good metrics (green) */
+  --neg:#b1442e;           /* current-state / negative metric accent (rust) */
+  --gold:#c9a24a;          /* label accent on dark bands */
+  --val-comp:#5fa8db;      /* value-map: QofAI comp segment (light steel blue) */
+  --val-ret:#2f7d4f;       /* value-map: client-retained EBITDA (forest green) */
+  --val-ev:#d3e7d9;        /* value-map: enterprise value at exit (pale green) */
+  --on-dark:#f2efe6;       /* text on dark slides */
+  --on-dark-soft:#aeb9c1;  /* muted text on dark slides */
+  /* The Gantt phase ramp — ONE COLOR FAMILY, shades of blue, darkest to
+     lightest (Casey, 2026-07-21: the multi-hue Gantt "is kind of a bad design",
+     one blue per phase is "probably better for the different phases"). Every
+     phase on every deck type takes a step from this one ramp, so a Gantt reads
+     as one family whatever the phase count and whatever the packet's content
+     happens to call a phase. */
+  --phase-1:#14385c;
+  --phase-2:#1f5285;
+  --phase-3:#2f6fb0;
+  --phase-4:#4a86c4;
+  --phase-5:#a9cbe8;
+  /* Arial everywhere (Casey, 2026-07-21: "if you made it just everything with
+     Arial it would probably be fine" — QofAI has its own fonts but loading them
+     is a hassle and Arial is the compatible default). ONE family for every
+     character on the deck: body copy, headlines, and the small-caps labels
+     alike. Nothing is loaded, so the deck renders identically on Mac and
+     Windows with no network request. `--label` keeps the label typography its
+     own hook while resolving to the same Arial stack. */
+  --sans:Arial,Helvetica,sans-serif;
+  --label:var(--sans);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#20262c;font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;align-items:center;gap:22px;padding:22px 0}
+
+/* Each slide is exactly one fixed 16:9 frame. */
+.slide{position:relative;width:1280px;height:720px;background:var(--paper);
+  padding:40px 52px 34px;display:flex;flex-direction:column;overflow:hidden}
+/* Cover + closing slides: a flat, solid dark fill (Antonio, 2026-07-21 — the
+   earlier radial-gradient read as a "weird blue gradient"; solid colors only). */
+.slide--dark{color:var(--on-dark);background:var(--ink)}
+
+/* Structural chrome: the cover's top bar, and every slide's footer.
+   The top bar exists on the COVER ONLY and carries the header logo mark
+   (unchanged, Antonio 2026-08-06) plus the deck kicker. It has NO rule under it
+   and no confidentiality note: Casey, 2026-07-21, on the body slides — "you can
+   get rid of that line at the top and the line and then the header, just start
+   it with the eyebrow on the left" — and, on the note appearing twice, "you got
+   QofAI Confidential in two places, upper right, lower left. Lower left is good.
+   Footer is good. You'll free up more real estate on the page too." So there is
+   no top rule anywhere on any slide, and confidentiality is a footer-left string
+   only. The footer keeps its hairline (Casey: "the footer is really good"). */
+.topbar{display:flex;justify-content:space-between;align-items:baseline;
+  font-family:var(--label);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--mute);padding-bottom:10px}
+.slide--dark .topbar{color:var(--on-dark-soft)}
+.footer{margin-top:auto;display:flex;justify-content:space-between;gap:16px;
+  font-family:var(--label);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--mute);padding-top:12px;border-top:1px solid var(--line)}
+.slide--dark .footer{color:var(--on-dark-soft);border-color:rgba(255,255,255,.14)}
+
+/* shared section head */
+.kicker{display:flex;align-items:center;gap:8px;font-family:var(--label);font-size:11px;
+  letter-spacing:.24em;text-transform:uppercase;color:var(--accent);font-weight:700;
+  margin:4px 0 11px}   /* small top margin: the eyebrow is the slide's first element (no top bar) */
+.slide--dark .kicker{color:var(--accent-soft)}
+.kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+h1,h2,h3{font-weight:700;line-height:1.05;letter-spacing:-.012em}
+.headline{font-size:33px;max-width:1120px;margin-bottom:10px}
+.summary{font-size:14px;line-height:1.5;color:var(--ink-soft);max-width:1120px}
+.summary b,.summary strong{color:var(--ink)}
+
+/* the content region fills everything between head and footer */
+.body{flex:1;display:flex;flex-direction:column;min-height:0;margin-top:14px}
+
+/* reviewer markers — rendered verbatim, made visible */
+.flag{display:inline-block;font-family:var(--label);font-size:9px;letter-spacing:.06em;
+  background:#fff2c7;border:1px solid #d9b64a;color:#7a5a08;padding:1px 6px;border-radius:3px;
+  font-weight:700;vertical-align:middle}
+
+/* ---------- The cover slide (dark) ---------- */
+.cover-body{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:1080px}
+.prepared{font-family:var(--label);font-size:12px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--on-dark-soft);margin-bottom:28px}
+.cover-title{font-size:64px;line-height:1.02;margin-bottom:24px}
+.cover-title .accent{color:var(--accent-soft);display:block}
+.cover-title .base{color:#fff;display:block}
+.cover-sub{font-size:19px;line-height:1.45;color:var(--on-dark-soft);max-width:900px;font-weight:400}
+
+/* ---------- Gantt phase fills — the one blue family, shared by every deck ----------
+   A phase takes its ramp step by POSITION (1st phase = .phase-1, 2nd = .phase-2,
+   ...), never by a hue named in the content, so no deck can reintroduce the
+   multi-color Gantt. Deeper decks clamp at the last step. These live in the theme
+   rather than in a deck type's components because both Gantts draw from the same
+   ramp. The `.bar` geometry itself is per deck type (a proposal rollout row and a
+   status lane are different shapes) and sits with those components. */
+.bar.phase-1{background:var(--phase-1)}
+.bar.phase-2{background:var(--phase-2)}
+.bar.phase-3{background:var(--phase-3)}
+.bar.phase-4{background:var(--phase-4)}
+.bar.phase-5{background:var(--phase-5);color:#123a5c}
+
+/* ---------- Slide 2 — opportunity ---------- */
+.opp-grid{flex:1;display:grid;grid-template-rows:1fr auto;gap:18px;min-height:0}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:20px;min-height:0}
+/* overflow:hidden is the last-resort container, the same role it plays on
+   `.gantt` below. `packet_fill`/`data_source_adapter` trim each panel's bullet
+   list to what the panel holds (see src/panel_fit.py), so this should never be
+   reached. When it is, the surplus is cut at the panel edge and the layout guard
+   reports a CLIPPED finding, which is a visible-to-review backstop. Without it
+   the surplus is painted over the build band instead, which is invisible to every
+   string-level guard and is exactly how the deck of 2026-08-19 shipped: 192px of
+   bullet text lying across the band, unreadable, with all four guards green. */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  padding:20px 22px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.panel--today{border-top:4px solid var(--neg)}
+.panel--after{border-top:4px solid var(--pos)}
+.panel-head{font-family:var(--label);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:700;color:var(--mute);margin-bottom:16px}
+.panel--today .panel-head{color:var(--neg)}
+.panel--after .panel-head{color:var(--pos)}
+.metrics{display:flex;gap:24px;flex-wrap:wrap}
+.metric{flex:1;min-width:42%;margin-bottom:6px}
+.metric .val{font-size:24px;font-weight:700;line-height:1.1}
+.panel--today .metric .val{color:var(--ink)}
+.panel--after .metric .val{color:var(--pos)}
+.metric .lbl{display:block;font-size:11.5px;color:var(--ink-soft);font-weight:400;margin-top:4px;line-height:1.35}
+.bullets{list-style:none;margin-top:auto;padding-top:12px}
+.bullets li{font-size:12.5px;color:var(--ink-soft);padding-left:15px;position:relative;
+  margin-bottom:7px;line-height:1.4}
+.bullets li::before{content:"";position:absolute;left:0;top:6px;width:6px;height:6px;
+  border-radius:50%;background:var(--accent)}
+.build-band{background:var(--ink);color:var(--on-dark);border-radius:7px;padding:17px 22px}
+.build-band .bt{font-family:var(--label);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold);font-weight:700;margin-bottom:12px}
+.build-phases{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.build-phases .pn{font-family:var(--label);font-size:10.5px;letter-spacing:.06em;
+  color:var(--accent-soft);font-weight:700;margin-bottom:5px}
+.build-phases .pd{font-size:12.5px;color:#c7d0d6;line-height:1.45}
+
+/* ---------- Slide 3 — numbered components ---------- */
+.cards{flex:1;display:grid;gap:20px;align-items:stretch;min-height:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  border-top:4px solid var(--accent);padding:24px 22px;display:flex;flex-direction:column;min-height:0}
+.card .num{font-size:38px;font-weight:800;color:var(--accent);line-height:1;margin-bottom:14px}
+.card .kick{font-family:var(--label);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent-strong);font-weight:700;margin-bottom:10px}
+.card h3{font-size:18px;margin-bottom:11px;line-height:1.16}
+.card p{font-size:12.5px;color:var(--ink-soft);line-height:1.5}
+.card .spacer{margin-top:auto}
+
+/* ---------- Slide 4 — timeline (deterministic Gantt) ---------- */
+/* overflow:hidden is the last-resort container: a pathological label is cut at
+   the panel edge rather than spilling onto the cream slide. The layout guard
+   (src/layout_guard.py) reports anything that reaches this point, so the clip is
+   a visible-to-review backstop, not a silent truncation. */
+.gantt{flex:1;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);
+  border-radius:7px;padding:16px 20px;min-height:0;overflow:hidden}
+/* The week tracks are minmax(0,1fr), not 1fr, and a trailing gutter track follows
+   them — both required by the bars' min-width:max-content below (Antonio,
+   2026-07-24), and the same pair the status Gantt has carried since 2026-07-23:
+   minmax(0,1fr) stops a bar's max-content minimum from inflating a track's
+   auto-minimum and blowing the grid past the panel, and the gutter gives a bar
+   that ends on the LAST week room to grow rightward inside the panel instead of
+   off its edge. The head and the rows must declare the SAME tracks or the columns
+   stop lining up. Bars and week labels are still placed only on columns 2..W+1,
+   so the placement rule in the render spec is unchanged. */
+.gantt-head{display:grid;
+  grid-template-columns:250px repeat(var(--weeks),minmax(0,1fr)) minmax(64px,112px);
+  align-items:end;gap:2px;
+  margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.gantt-head .corner{grid-column:1;font-family:var(--label);font-size:10px;letter-spacing:.1em;
+  color:var(--mute);font-weight:700}
+.gantt-head .wk{font-family:var(--label);font-size:10px;letter-spacing:.04em;color:var(--mute);
+  font-weight:700;text-align:center}
+.gantt-rows{flex:1;display:flex;flex-direction:column;min-height:0}
+.phase-band{font-family:var(--label);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:700;color:var(--accent-strong);background:var(--accent-tint);border-radius:4px;
+  padding:5px 10px;margin:7px 0 3px}
+.trow{flex:1;display:grid;
+  grid-template-columns:250px repeat(var(--weeks),minmax(0,1fr)) minmax(64px,112px);
+  align-items:center;
+  gap:2px;border-bottom:1px solid var(--line);min-height:0}
+.trow:last-child{border-bottom:none}
+.trow .rlabel{grid-column:1;font-size:11px;color:var(--ink);line-height:1.2;padding-right:10px}
+/* Bar height is a share of its row, so a bar fills most of its lane instead of
+   floating as a thin ribbon (Antonio, 2026-07-24 — the same rule the status
+   Gantt follows). The proposal rollout is a dense chart (one row per workstream,
+   often nine or more), so the share is a small inset with a low max: a sparse
+   four-row rollout gets taller bars, a dense one stays legible.
+   min-width:max-content replaces the old overflow:hidden (Antonio, 2026-07-24).
+   A short span with a longer detail used to truncate its label mid-word with no
+   ellipsis and no signal — a one-week bar on a 16-week plan is ~53px wide, about
+   six characters of room, and the deck shipped reading "Switch pro". A bar whose
+   week span is too narrow for its detail now keeps its true start column and
+   GROWS rightward to contain the text, so the words always sit on the bar. This
+   is the fix the status Gantt got on 2026-07-23; the proposal one had been left
+   behind. It requires the minmax(0,1fr) tracks and the trailing gutter above. */
+.bar{height:calc(100% - 8px);min-height:20px;max-height:38px;
+  border-radius:3px;display:flex;align-items:center;padding:0 8px;
+  font-size:9.5px;color:#fff;white-space:nowrap;min-width:max-content}
+/* Bar FILL comes from the theme's one blue ramp (`.phase-N`, keyed to the phase's
+   position in the plan), so a rollout with two phases and one with five both read
+   as a single blue family. The old two-tone `--bar-p1` / `--bar-p2` pair is gone:
+   it was its own mini-palette, and it had nothing to give a third phase. */
+.bar-missing{grid-column:2 / -1;font-family:var(--label);font-size:10px;color:#7a5a08}
+.milestones{display:flex;gap:32px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.ms{display:flex;align-items:center;gap:10px}
+.ms .dot{width:34px;height:34px;border-radius:50%;background:var(--ink);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-family:var(--label);font-size:12px;font-weight:700}
+.ms .mtxt strong{display:block;font-size:12px}
+.ms .mtxt span{font-family:var(--label);font-size:10px;letter-spacing:.06em;color:var(--mute)}
+
+/* ---------- Slide 5 — commercial terms ---------- */
+.comm{flex:1;display:grid;grid-template-rows:auto auto 1fr auto auto;gap:9px;min-height:0}
+.terms-strip{display:grid;gap:16px}
+.tbox{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:12px 16px;
+  display:flex;flex-direction:column}
+.tbox .bt{font-family:var(--label);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent-strong);font-weight:700;margin-bottom:6px}
+.tbox .bt.pos{color:var(--pos)}
+.tbox .big{font-size:26px;font-weight:800;color:var(--ink);line-height:1;margin-bottom:4px}
+.tbox .big.pos{color:var(--pos)}
+.tbox .bv{font-size:12px;color:var(--ink-soft);line-height:1.35}
+/* Empty state (no commercial_rows supplied): one open placeholder spanning the
+   strip, never an invented figure. */
+.tbox--empty{border-style:dashed;align-items:center;justify-content:center;text-align:center}
+.downside{background:var(--accent-tint);border:1px solid #b9cfe0;border-radius:7px;padding:8px 18px;
+  text-align:center;font-size:13px;color:var(--accent-strong);font-weight:600}
+.downside b{color:var(--accent)}
+.caption{font-family:var(--label);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--mute)}
+/* Value map — one horizontal stacked bar per scenario, mapping the EBITDA gain
+   to QofAI comp + client-retained EBITDA + enterprise value at exit. Replaces
+   the old scenario table (which overflowed the fixed frame). Segment widths are
+   set inline by the builder, proportional to a shared max so bars are
+   comparable row to row; the dollar figures are shown verbatim. */
+.valuemap{border:1px solid var(--line);border-radius:7px;background:var(--panel);
+  padding:10px 20px 9px;display:flex;flex-direction:column;min-height:0}
+.vm-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:2px}
+.vm-title{font-family:var(--label);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--mute);font-weight:700}
+.vm-legend{display:flex;gap:15px}
+.vm-key{display:flex;align-items:center;gap:6px;font-family:var(--label);font-size:8.5px;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);font-weight:700}
+.vm-key i{width:11px;height:11px;border-radius:2px;display:inline-block}
+.vm-key .k-comp{background:var(--val-comp)}
+.vm-key .k-ret{background:var(--val-ret)}
+.vm-key .k-ev{background:var(--val-ev);border:1px solid #b9d3c2}
+.vm-rows{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;min-height:0}
+.vm-row{display:grid;grid-template-columns:186px 1fr;align-items:center;gap:16px}
+.vm-label .vm-scenario{font-family:var(--label);font-size:12.5px;font-weight:700;color:var(--ink);
+  letter-spacing:.02em}
+.vm-row.base .vm-label .vm-scenario{color:var(--accent)}
+.vm-label .vm-gain{font-size:10.5px;color:var(--ink-soft);margin-top:1px;line-height:1.3}
+.vm-track{position:relative;padding-top:11px}
+.vm-comp-tag{position:absolute;top:0;left:0;font-family:var(--label);font-size:9px;
+  font-weight:700;color:var(--accent-strong);letter-spacing:.02em;white-space:nowrap}
+.vm-bar{display:flex;height:18px;width:100%}
+.vm-seg{height:100%;display:flex;align-items:center;font-size:10px;font-weight:700;
+  white-space:nowrap;overflow:hidden}
+.vm-seg.comp{background:var(--val-comp);border-radius:3px 0 0 3px}
+.vm-seg.ret{background:var(--val-ret);color:#fff;padding-left:9px}
+.vm-seg.ev{background:var(--val-ev);color:#1f5636;justify-content:flex-end;padding-right:9px;
+  border-radius:0 3px 3px 0}
+.mechanics{background:var(--ink);color:var(--on-dark);border-radius:7px;padding:11px 20px}
+.mechanics .mt{font-family:var(--label);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);font-weight:700;margin-bottom:6px}
+.mech-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.mech-steps .st{font-size:11.5px;color:#c7d0d6;line-height:1.4;padding-left:12px;
+  border-left:3px solid var(--accent)}
+.mech-steps .st b{color:#fff}
+.footnote{font-size:9.5px;color:var(--mute);line-height:1.4;font-style:italic}
+
+/* ---------- Slide 6 — next steps (dark) ---------- */
+.steps{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:20px;min-height:0}
+.step{border-top:1px solid rgba(255,255,255,.16);padding-top:14px;display:flex;flex-direction:column}
+.step .stop{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:10px}
+.step .num{font-size:32px;font-weight:800;color:var(--accent-soft);line-height:1}
+.step .tag{font-family:var(--label);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--on-dark-soft);text-align:right;line-height:1.5}
+.step h3{font-size:18px;color:#fff;margin-bottom:8px}
+.step p{font-size:12.5px;color:var(--on-dark-soft);line-height:1.5}
+
+@media print{
+  body{background:#fff;gap:0;padding:0}
+  .slide{page-break-after:always;break-after:page}
+}
+/* QofAI logo mark — mask + currentColor so it tints per slide (white on dark, ink on cream); self-contained data URI, no external file. */
+:root{--logo-src:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2027.9143%2027.9143'%3E%3Cpath%20d='M0%200V27.9143L6.97527%2020.9324V6.97527H20.9324V20.9324H13.9571V13.9571L6.97527%2020.9324V27.9143H27.9143V0H0Z'/%3E%3C/svg%3E")}
+.logo-mark{display:inline-block;flex:none;background-color:currentColor;color:var(--ink);-webkit-mask:var(--logo-src) no-repeat center/contain;mask:var(--logo-src) no-repeat center/contain}
+.slide--dark .logo-mark{color:#fff}
+.logo-mark--lg{width:30px;height:30px}
+.logo-mark--sm{width:14px;height:14px}
+.footer .brand-foot{display:inline-flex;align-items:center;gap:8px}
+
+</style>
+</head>
+<body>
+
+<!-- ===================== SLIDE 1 — COVER ===================== -->
+<section class="slide slide--dark" data-slide="1">
+  <div class="topbar">
+    <span class="logo-mark logo-mark--lg" aria-label="QofAI"></span>
+    <span>PROJECT PLANNING</span>
+  </div>
+  <div class="cover-body">
+    <div class="prepared">00 - SAMPLE TEXT (FOR)</div>
+    <h1 class="cover-title">
+      <span class="accent">A SYNTHETIC</span>
+      <span class="base">Proposal Deck Platform</span>
+    </h1>
+    <p class="cover-sub"><span class="flag">[MISSING: subtitle]</span></p>
+  </div>
+  <div class="footer">
+    <span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + 00 - With Neutral (Words) · PROJECT PLANNING · <span class="flag">[MISSING: deck_date]</span> · 00 / 00</span>
+    <span>ONLY SAMPLE TEXT FOR PLATFORM</span>
+  </div>
+</section>
+
+<!-- ===================== SLIDE 2 — THE OPPORTUNITY ===================== -->
+<section class="slide" data-slide="2">
+  <div class="kicker">The Opportunity</div>
+  <h2 class="headline">A Synthetic PROPOSAL Deck with Neutral Words Only Sample Text 000FOR A</h2>
+  <p class="summary"><span class="flag">[MISSING: opportunity_summary]</span></p>
+  <div class="body">
+    <div class="opp-grid">
+      <div class="cols2">
+        <div class="panel panel--today">
+          <div class="panel-head">TODAY</div>
+          <div class="metrics">
+            <div class="metric"><div class="val">00.0%</div><span class="lbl">Synthetic EBITDA margin</span></div>
+            <div class="metric"><div class="val">$0</div><span class="lbl">Proposal EBITDA</span></div>
+          </div>
+          <ul class="bullets">
+            <li>Deck With Neutral Words EBITDA margin only sample text 00.0% for A0000 synthetic 00.0% proposal DECK0000</li>
+          </ul>
+        </div>
+        <div class="panel panel--after">
+          <div class="panel-head">AFTER - TARGET WITH ~00 MONTHS</div>
+          <div class="metrics">
+            <div class="metric"><div class="val">0.0–0.0neutral</div><span class="lbl">EBITDA margin words</span></div>
+          </div>
+          <ul class="bullets">
+            <li>Only sample text for a synthetic proposal 00 deck with (neutral, words only, sample text). Target 00% for a.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="build-band">
+        <div class="bt">THE 00-MONTH BUILD</div>
+        <div class="build-phases">
+          <div class="ph">
+            <div class="pn">Phase 0: Synthetic Proposal (Deck with)</div>
+            <div class="pd">Project 000 neutral, Words ONLY Sample Text for 00A synthetic, 00% proposal deck</div>
+          </div>
+          <div class="ph">
+            <div class="pn">Phase 0: With Neutral (Months 0–0)</div>
+            <div class="pd">Words only sample text for a synthetic 00 proposal deck (with, neutral words, only sample). Target 00% text for.</div>
+          </div>
+          <div class="ph">
+            <div class="pn">Phase 0: A Synthetic (Months 0–00)</div>
+            <div class="pd">Proposal deck WITH neutral words only sample, text for, a synthetic. Proposal deck with neutral words only.</div>
+          </div>
+          <div class="ph">
+            <div class="pn">Phase 0: Sample Text (Months 00–00)</div>
+            <div class="pd">For a synthetic and proposal deck with. Neutral words only sample text for a.</div>
+          </div>
+          <div class="ph">
+            <div class="pn">Phase 0: Synthetic Proposal Deck (Months 00–00)</div>
+            <div class="pd">Target 00%+ with (Neutral Year 0 words). Only sample text, for a.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="brand-foot"><span class="logo-mark logo-mark--sm" aria-label="QofAI"></span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + 00 - Synthetic Proposal (Deck) · PROJECT PLANNING · <span class="flag">[MISSING: deck_date]</span> · 00 / 00</span>
+    <span>With NEUTRAL Words Only Platform</span>
+  </div>
+</section>
+
+<!-- ===================== SLIDE 3 — THE PLATFORM ===================== -->
+<section class="slide" data-slide="3">
+  <div class="kicker">The Platform</div>
+  <h2 class="headline">Sample text for a SYNTHETIC proposal, deck with Neutral WORDS only sample</h2>
+  <p class="summary">Text FOR a synthetic proposal, deck with and neutral words, only sample text for a synthetic, proposal deck with neutral words only and sample text for.</p>
+  <div class="body">
+    <div class="cards" style="grid-template-columns:repeat(4,1fr)">
+      <div class="card">
+        <div class="num">00</div>
+        <div class="kick">A synthetic</div>
+        <h3>Proposal deck with</h3>
+        <p>Neutral words only sample text for a SYNTHETIC proposal (deck, with neutral, words only, sample text) and for a synthetic proposal deck with</p>
+      </div>
+      <div class="card">
+        <div class="num">00</div>
+        <div class="kick">Neutral words only</div>
+        <h3>Sample text for</h3>
+        <p>A of synthetic proposal, deck with neutral, and words only sample text for and a synthetic proposal deck with neutral</p>
+      </div>
+      <div class="card">
+        <div class="num">00</div>
+        <div class="kick">Words ONLY sample</div>
+        <h3>Text FOR a</h3>
+        <p>Synthetic proposal deck WITH (neutral Words only [00]) sample text for</p>
+      </div>
+      <div class="card">
+        <div class="num">00</div>
+        <div class="kick">A synthetic</div>
+        <h3>Proposal deck</h3>
+        <p>With neutral words Only Sample text for a, synthetic proposal (deck/with), and neutral words</p>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="brand-foot"><span class="logo-mark logo-mark--sm" aria-label="QofAI"></span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + 00 - Only Sample (Text) · PROJECT PLANNING · <span class="flag">[MISSING: deck_date]</span> · 00 / 00</span>
+    <span>For A Synthetic Proposal Platform</span>
+  </div>
+</section>
+
+<!-- ===================== SLIDE 4 — PHASED ROLLOUT ===================== -->
+<section class="slide" data-slide="4">
+  <div class="kicker">Deck Rollout</div>
+  <h2 class="headline">With neutral, words only sample, text for, a synthetic</h2>
+  <p class="summary">Project 000 proposal, Deck WITH Neutral Words only 00SAMPLE text, 00% for a Synthetic proposal deck with neutral words only 00 sample text (for, a synthetic, proposal deck). Target 00% with neutral. Words only SAMPLE text for a synthetic, proposal deck, with neutral. Words only sample text for a. Synthetic proposal deck and with neutral words. Only sample text for a synthetic proposal. Target 00%+ deck (With Year 0 neutral). Words only sample, text for.</p>
+  <div class="body">
+    <div class="gantt">
+      <div class="gantt-head" style="--weeks:24">
+        <div class="corner">MONTH →</div>
+        <div class="wk" style="grid-column:1 / 2">MONTHS 0–0</div>
+        <div class="wk" style="grid-column:2 / 8">0–0</div>
+        <div class="wk" style="grid-column:8 / 14">0–00</div>
+        <div class="wk" style="grid-column:14 / 20">00–00</div>
+        <div class="wk" style="grid-column:20 / 26">00–00</div>
+      </div>
+      <div class="gantt-rows">
+        <div class="trow" style="--weeks:24">
+          <div class="rlabel">Phase 0: A Synthetic (Proposal deck)</div>
+          <div class="bar phase-1" style="grid-column:1 / 2">Phase 0: With Neutral (Words only)</div>
+        </div>
+        <div class="trow" style="--weeks:24">
+          <div class="rlabel">Phase 0: Sample Text (Months 0–0)</div>
+          <div class="bar phase-2" style="grid-column:2 / 8">Phase 0: For A (Months 0–0)</div>
+        </div>
+        <div class="trow" style="--weeks:24">
+          <div class="rlabel">Phase 0: Synthetic Proposal (Months 0–00)</div>
+          <div class="bar phase-3" style="grid-column:8 / 14">Phase 0: Deck With (Months 0–00)</div>
+        </div>
+        <div class="trow" style="--weeks:24">
+          <div class="rlabel">Phase 0: Neutral Words (Months 00–00)</div>
+          <div class="bar phase-4" style="grid-column:14 / 20">Phase 0: Only Sample (Months 00–00)</div>
+        </div>
+        <div class="trow" style="--weeks:24">
+          <div class="rlabel">Phase 0: Text For A (Months 00–00)</div>
+          <div class="bar phase-5" style="grid-column:20 / 26">Phase 0: Synthetic Proposal Deck (Months 00–00)</div>
+        </div>
+      </div>
+      <div class="milestones">
+        <div class="ms"><div class="dot">WITH0</div><div class="mtxt"><strong>MILESTONE 0</strong><span>MONTH 0</span></div></div>
+        <div class="ms"><div class="dot">NEUTRAL0</div><div class="mtxt"><strong>MILESTONE 0</strong><span>MONTH 0</span></div></div>
+        <div class="ms"><div class="dot">WORDS0</div><div class="mtxt"><strong>MILESTONE 0</strong><span>MONTH 00</span></div></div>
+        <div class="ms"><div class="dot">ONLY0</div><div class="mtxt"><strong>MILESTONE 0</strong><span>MONTH 00</span></div></div>
+        <div class="ms"><div class="dot">SAMPLE0</div><div class="mtxt"><strong>MILESTONE 0</strong><span>MONTH 00</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="brand-foot"><span class="logo-mark logo-mark--sm" aria-label="QofAI"></span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + 00 - Text For (A) · PROJECT PLANNING · <span class="flag">[MISSING: deck_date]</span> · 00 / 00</span>
+    <span>Synthetic PROPOSAL Deck With Platform</span>
+  </div>
+</section>
+
+<!-- ===================== SLIDE 5 — COMMERCIAL TERMS ===================== -->
+<section class="slide" data-slide="5">
+  <div class="kicker">Commercial Terms</div>
+  <h2 class="headline">Commercial terms.</h2>
+  <p class="summary">Neutral QofAI words, only the sample text, and for a synthetic proposal.</p>
+  <div class="body">
+    <div class="comm">
+      <div class="terms-strip" style="grid-template-columns:repeat(1,1fr)">
+        <div class="tbox tbox--empty">
+          <span class="flag">[MISSING: commercial_rows]</span>
+          <span class="flag">DECK COMMERCIAL TERMS WITH</span>
+        </div>
+      </div>
+      <div class="caption"><span class="flag">[MISSING: client_retention]</span></div>
+      <div class="downside"><span class="flag">[MISSING: downside_protection]</span></div>
+      <div class="valuemap">
+        <div class="vm-head">
+          <div class="vm-title">Neutral EBITDA words only sample 0-year text</div>
+          <div class="vm-legend">
+            <span class="vm-key"><i class="k-comp"></i>QofAI for</span>
+            <span class="vm-key"><i class="k-ret"></i>A synthetic EBITDA</span>
+            <span class="vm-key"><i class="k-ev"></i>Proposal deck with neutral</span>
+          </div>
+        </div>
+        <div class="vm-rows">
+          <div class="vm-row">
+            <div class="vm-label">
+              <div class="vm-scenario">Conservative</div>
+              <div class="vm-gain">+0.0words · $0/yr</div>
+            </div>
+            <div class="vm-track">
+              <div class="vm-comp-tag"><span class="flag">[MISSING: qofai_comp]</span></div>
+              <div class="vm-bar">
+                <div class="vm-seg comp" style="width:8%"></div>
+                <div class="vm-seg ret" style="width:40%"><span class="flag">[MISSING: client_retained_ebitda]</span></div>
+                <div class="vm-seg ev" style="width:40%"><span class="flag">[MISSING: enterprise_value]</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="vm-row">
+            <div class="vm-label">
+              <div class="vm-scenario">Optimistic</div>
+              <div class="vm-gain">+0.0only · $0/yr</div>
+            </div>
+            <div class="vm-track">
+              <div class="vm-comp-tag"><span class="flag">[MISSING: qofai_comp]</span></div>
+              <div class="vm-bar">
+                <div class="vm-seg comp" style="width:8%"></div>
+                <div class="vm-seg ret" style="width:40%"><span class="flag">[MISSING: client_retained_ebitda]</span></div>
+                <div class="vm-seg ev" style="width:40%"><span class="flag">[MISSING: enterprise_value]</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mechanics">
+        <div class="mt">SAMPLE TEXT FOR</div>
+        <div class="mech-steps">
+          <div class="st"><span class="flag">[MISSING: payment_mechanics]</span></div>
+        </div>
+      </div>
+      <div class="footnote"><span class="flag">[MISSING: terms_footnote]</span></div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="brand-foot"><span class="logo-mark logo-mark--sm" aria-label="QofAI"></span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + 00 - A Synthetic (Proposal) · PROJECT PLANNING · <span class="flag">[MISSING: deck_date]</span> · 00 / 00</span>
+    <span>Deck WITH Neutral Words Platform</span>
+  </div>
+</section>
+
+<!-- ===================== SLIDE 6 — NEXT STEPS ===================== -->
+<section class="slide slide--dark" data-slide="6">
+  <div class="kicker">Next Steps</div>
+  <h2 class="headline">Only the sample text, for a SYNTHETIC proposal deck with</h2>
+  <p class="summary">NEUTRAL words only of sample text for, a synthetic proposal deck of with neutral words, and only sample text.</p>
+  <div class="body">
+    <div class="steps">
+      <div class="step">
+        <div class="stop">
+          <div class="num">00</div>
+          <div class="tag"><span class="flag">[MISSING: week]</span> · <span class="flag">[MISSING: owner]</span></div>
+        </div>
+        <h3>For a synthetic proposal deck of with neutral words</h3>
+        <p>Only sample text for a of synthetic proposal deck (with neutral words only sample) text for the $0.0–0.0A synthetic</p>
+      </div>
+      <div class="step">
+        <div class="stop">
+          <div class="num">00</div>
+          <div class="tag"><span class="flag">[MISSING: week]</span> · <span class="flag">[MISSING: owner]</span></div>
+        </div>
+        <h3>Proposal deck with neutral words of only sample text</h3>
+        <p><span class="flag">[MISSING: description]</span></p>
+      </div>
+      <div class="step">
+        <div class="stop">
+          <div class="num">00</div>
+          <div class="tag"><span class="flag">[MISSING: week]</span> · <span class="flag">[MISSING: owner]</span></div>
+        </div>
+        <h3>For Phase 0 (a synthetic) proposal deck Project 000 / With NEUTRAL words</h3>
+        <p><span class="flag">[MISSING: description]</span></p>
+      </div>
+      <div class="step">
+        <div class="stop">
+          <div class="num">00</div>
+          <div class="tag"><span class="flag">[MISSING: week]</span> · <span class="flag">[MISSING: owner]</span></div>
+        </div>
+        <h3>Only sample EBITDA text for a synthetic Proposal deck with neutral words</h3>
+        <p><span class="flag">[MISSING: description]</span></p>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="brand-foot"><span class="logo-mark logo-mark--sm" aria-label="QofAI"></span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + 00 - Only Sample (Text) · PROJECT PLANNING · <span class="flag">[MISSING: deck_date]</span> · 00 / 00</span>
+    <span>For A Synthetic Proposal Platform</span>
+  </div>
+</section>
+
+</body>
+</html>

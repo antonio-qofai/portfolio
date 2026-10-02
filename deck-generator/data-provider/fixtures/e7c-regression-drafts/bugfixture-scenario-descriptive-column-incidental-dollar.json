@@ -1,0 +1,14 @@
+{
+  "_fixture": {
+    "kind": "hand-authored parser regression snippet, not a captured paper excerpt",
+    "authored": "2026-08-16",
+    "rule": "N/A -- every name and figure below is invented; nothing here is real client content, so data-provider/SCRUBBING.md's capture/scrub/verify procedure does not apply. Built to reproduce a false positive found on live data by the E7d live re-measurement, not by any of the eight corpus fixtures or the six e7c-regression-drafts fixtures.",
+    "bug": "E7d's fix to _pick_row (2026-08-15) requires only that a candidate row's own cells parse as money, dropping the old requirement that every column after the label parse. That is correct for a genuine trailing Confidence/Basis/Timing column whose cell is plain text ('High', 'Medium'). It is wrong when a descriptive column's cell states a dollar figure inside supporting prose rather than as the cell's own value: 'Basis' here reads '4-6% of CY2025 administrative payroll ($1.93M) [27]', and _money's old check (1 to 2 dollar-shaped substrings found anywhere in the cell) accepts it, because the parenthetical dollar aside is found the same way a genuine case value would be. The parser then reports two cases instead of one: the real 'Annual EBITDA Impact' figure, and a fabricated second case named 'Basis' worth $1.93M, a payroll figure with nothing to do with the impact estimate. This is the missing-vs-wrong failure the golden rule forbids: pre-fix, this row was correctly rejected outright (the 'Confidence' cell, 'High', fails to parse as money, so the old all-columns-must-parse check failed the whole row); post-fix it is wrongly accepted with a wrong number.",
+    "source": "E7d live re-measurement, 2026-08-16, orchestration review, corresponds to opportunity 00000018-0000-4000-8000-000000000018 in the live corpus"
+  },
+  "opportunity": {
+    "id": "00000007-0000-4000-8000-000000000007",
+    "stage": "published",
+    "research_paper_natural": "## Projected Impact\n\n| Value Stream | Annual EBITDA Impact | Confidence | Basis |\n|---|---|---|---|\n| Reporting Labor Savings (quantified) | $0.10M–$0.15M | High | 4-6% of CY2025 administrative payroll ($1.93M) [27] |\n"
+  }
+}

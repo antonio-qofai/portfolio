@@ -1,0 +1,14 @@
+{
+  "_fixture": {
+    "kind": "hand-authored parser regression snippet, not a captured paper excerpt",
+    "authored": "2026-08-15",
+    "rule": "N/A -- every name and figure below is invented; nothing here is real client content, so data-provider/SCRUBBING.md's capture/scrub/verify procedure does not apply. Built to reproduce one specific E7c parser finding structurally, with realistic-scale but entirely synthetic numbers.",
+    "bug": "_pick_row's span is range(1, len(header)) -- EVERY column after the case label, not just the case's own dollar columns. The one row that would otherwise qualify ('Total Annual Impact', label contains the IMPACT_WORD 'impact') fails _all_parse because its 'Confidence' cell ('Medium') is not a dollar amount. This single structural gap in _pick_row / _pick_column explains most of E7c's scenario-dollar misses: any real per-case dollar table that also carries a trailing Confidence/Basis/Timing column is rejected outright.",
+    "source": "E7c diagnosis, 2026-08-15, the dominant recurring bug: corresponds to opportunities 00000027-0000-4000-8000-000000000027, 00000017-0000-4000-8000-000000000017, 0000001e-0000-4000-8000-00000000001e, 0000000f-0000-4000-8000-00000000000f, 0000000a-0000-4000-8000-00000000000a, 00000024-0000-4000-8000-000000000024 in the live corpus"
+  },
+  "opportunity": {
+    "id": "00000004-0000-4000-8000-000000000004",
+    "stage": "published",
+    "research_paper_natural": "## Projected Impact\n\n| Value Stream | Conservative | Optimistic | Confidence |\n|---|---|---|---|\n| Reporting Labor Savings | $80K | $150K | High |\n| Client Retention Upside | $60K | $100K | Medium |\n| **Total Annual Impact** | **$140K** | **$224K** | **Medium** |\n"
+  }
+}

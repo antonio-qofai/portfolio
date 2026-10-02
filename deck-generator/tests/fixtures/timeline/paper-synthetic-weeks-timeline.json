@@ -1,0 +1,15 @@
+{
+  "_fixture": {
+    "kind": "HAND-BUILT synthetic paper, not a capture",
+    "built": "2026-08-18",
+    "why": "All eight committed excerpts under data-provider/fixtures/ are month-denominated, so nothing there exercises the week branch of the unit-carrying timeline fill (E11 Stage 1). The 12-paper corpus survey of 2026-08-18 found week-denominated plans in published papers (\"Phase 1: Foundation (Weeks 1-6)\"), so the branch is real and shipping it untested would ship an untested branch.",
+    "not_evidence_about_the_corpus": "This file is evidence about the CODE only. It is hand-built, it was never captured from a paper, and it must never be counted in a corpus census. It lives outside data-provider/fixtures/ for exactly that reason: the parser census tests glob that directory.",
+    "contains_no_client_data": "Neutral phase names, a neutral chart name, no company, no project, no figure. Nothing here needs scrubbing because nothing here came from a client.",
+    "shape": "One horizontal floating-bar <Chart>, the structural predicate chart_timeline_parser.is_timeline selects on: type bar, options.indexAxis y, every dataset value a two-element span. The dataset label and every phase label state weeks, so data unit and label unit agree and no unit_conflict is reported."
+  },
+  "opportunity": {
+    "id": "OPP-SYNTHETIC-WEEKS",
+    "stage": "synthetic",
+    "research_paper_natural": "# Implementation Approach\n\n## Timeline\n\nThe plan runs in three phases.\n\n<Chart\n  name=\"Implementation Timeline\"\n  description=\"Phase durations, week-denominated.\"\n  config='{\n  \"type\": \"bar\",\n  \"data\": {\n    \"labels\": [\n      \"Phase 1: Foundation (Weeks 1-6)\",\n      \"Phase 2: Expansion (Weeks 6-12)\",\n      \"Phase 3: Optimization (Weeks 12-18)\"\n    ],\n    \"datasets\": [\n      {\n        \"label\": \"Duration (weeks)\",\n        \"data\": [\n          [\n            0,\n            6\n          ],\n          [\n            6,\n            12\n          ],\n          [\n            12,\n            18\n          ]\n        ],\n        \"backgroundColor\": \"#2f6fb2\"\n      }\n    ]\n  },\n  \"options\": {\n    \"indexAxis\": \"y\",\n    \"responsive\": true\n  }\n}'\n/>\n\n## Resources Required\n\nProse omitted.\n"
+  }
+}

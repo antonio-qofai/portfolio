@@ -1,0 +1,14 @@
+{
+  "_fixture": {
+    "kind": "hand-authored parser regression snippet, not a captured paper excerpt",
+    "authored": "2026-08-15",
+    "rule": "N/A -- every name and figure below is invented; nothing here is real client content, so data-provider/SCRUBBING.md's capture/scrub/verify procedure does not apply. Built to reproduce one specific E7c parser finding structurally, with realistic-scale but entirely synthetic numbers.",
+    "bug": "baseline_parser._resolve requires a period marker on the ROW label or the COLUMN label to accept a table cell. 'LTM Revenue' resolves because the row label itself carries 'LTM'. The very next row, bare 'EBITDA', carries no period of its own, and the generic 'Value' column header carries none either, so _resolve returns None and the row is silently dropped, despite sitting in the same cited table, same implicit period, as the figure that did parse.",
+    "source": "E7c diagnosis, 2026-08-15, corresponds to opportunity 0000001e-0000-4000-8000-00000000001e in the live corpus"
+  },
+  "opportunity": {
+    "id": "00000002-0000-4000-8000-000000000002",
+    "stage": "published",
+    "research_paper_natural": "## Financial Analysis\n\n### Current State\n\n| Metric | Value | Source |\n|---|---|---|\n| LTM Revenue | ~$18.5M | Company context |\n| EBITDA | ~$4.2M (~22.7% margin) | Company context |\n| Forming Equipment Units | ~14 units | Company context |\n"
+  }
+}

@@ -1,0 +1,181 @@
+# Deck-wide fields (apply to every slide)
+client_full: Ridgeline Site Services
+client_short: Ridgeline
+pe_firm: Woodgrove Partners
+project_name: Operational Intelligence Platform
+deck_date: JULY 6 2026
+confidentiality: QOFAI CONFIDENTIAL
+deck_type_label: PROJECT PLANNING
+
+## Slide 1 — Title / Cover
+deck_kicker: PROJECT PLANNING · JULY 6 2026
+prepared_for: RIDGELINE SITE SERVICES · Woodgrove Partners
+project_title: Operational Intelligence Project Planning.
+subtitle: Standing up the data foundation, the mobile field app, and real-time dashboards — one integrated build, delivered in phases.
+footer_left: QOFAI CONFIDENTIAL
+footer_right: OPERATIONAL INTELLIGENCE PLATFORM
+
+## Slide 2 — The Opportunity (Today vs. After)
+opportunity_headline: Mobile Field Capture & Project Dashboards.
+opportunity_summary: A connected tablet app that replaces paper field tickets, feeding live project, equipment, and fuel margin — so cost overruns get caught while the job is still open.
+today_metric_1: −41.2 – +58.4% · Month-over-month EBITDA % swings, with little real-time visibility
+today_metric_2: ~26 days · Reporting lag after project close prevents real-time intervention
+today_pain_bullets:
+- Foremen handwrite daily field tickets on paper; keyed into Excel next morning (12–24h lag)
+- Fuel and equipment-hour entry is optional; ~52 active jobs live in disconnected workbooks
+after_horizon: AFTER — TARGET IN ~16 WEEKS
+after_metric_1: +1.6–2.7pp · EBITDA margin uplift — $1.5M–$2.6M / yr direct
+after_metric_2: <24 hrs · Data latency — real-time field sync from job sites
+after_capability_bullets:
+- Connected tablet app with enforced daily fuel + equipment-hour capture and automatic job allocation
+- Live per-job production and financial performance
+build_summary: THE 16-WEEK BUILD
+PHASE 1 · WKS 1–8 · FOUNDATION & PILOT — Cloud data warehouse + accounting connector, the Operations dashboard, and a single-crew field-capture pilot run in parallel with paper.
+PHASE 2 · WKS 8–16 · FLEET ROLLOUT — Fleet-wide capture, the fuel/equipment-allocation engine, CEO / Finance dashboards with variance alerts, combined-entity reporting, and asset-tracking integration.
+
+## Slide 3 — The Platform / Solution (numbered components)
+platform_headline: One Operational Intelligence Platform, two connected layers.
+platform_summary: A mobile capture layer that replaces clipboards, and an analytics layer that turns captured data into live metrics — layered on top of the accounting and asset systems, not replacing them.
+components:
+1.
+  number: 01
+  kicker: INPUTS · MOBILE FIELD CAPTURE
+  title: Capture crew activity one time, in real-time.
+  description: Connected tablet app: a guided, button-driven workflow with dependent dropdowns, the full earthwork + equipment-delay taxonomy, crew, and enforced fuel — buffering locally through connectivity dropouts.
+2.
+  number: 02
+  kicker: DATA FOUNDATION
+  title: Integrate into one data store.
+  description: A cloud warehouse joining field data, fuel, and accounting financials. Accounting + GL/fuel-card connectors, asset-tracking and pipeline ingestion, scheduled batch where APIs are constrained.
+3.
+  number: 03
+  kicker: OUTPUTS · DASHBOARDS & ALERTS
+  title: Live project performance, role by role.
+  description: Operations, CEO, and Finance dashboards with drill-down from fleet → job → crew → day.
+
+## Slide 4 — Phased Rollout / Project Plan (timeline)
+plan_headline: 8 weeks to a validated pilot, 16 weeks to fleet-wide live.
+plan_summary: Cloud data warehouse + accounting connector, the Operations dashboard, and a single-crew field-capture pilot run in parallel with paper. Fleet-wide capture, the fuel/equipment-allocation engine, CEO / Finance dashboards with variance alerts, combined-entity reporting, and asset-tracking integration.
+timeline_columns:
+- 1–2
+- 3–4
+- 5–6
+- 7–8
+- 9–10
+- 11–12
+- 13–14
+- 15–16
+timeline_rows:
+1.
+  phase: PHASE 1 · BUILD & PILOT — WKS 1–8
+  workstream: Scoping & setup · Lock scope
+  weeks: 1–2
+2.
+  phase: PHASE 1 · BUILD & PILOT — WKS 1–8
+  workstream: Data foundation — warehouse + connectors · Accounting + GL connectors
+  weeks: 2–6
+3.
+  phase: PHASE 1 · BUILD & PILOT — WKS 1–8
+  workstream: Field application development · Daily-ticket forms + real-time sync
+  weeks: 3–7
+4.
+  phase: PHASE 1 · BUILD & PILOT — WKS 1–8
+  workstream: Operations dashboard · Fleet production & downtime
+  weeks: 5–8
+5.
+  phase: PHASE 1 · BUILD & PILOT — WKS 1–8
+  workstream: Single-crew field-capture pilot · Parallel paper + digital
+  weeks: 6–8
+6.
+  phase: PHASE 2 · FLEET ROLLOUT — WKS 8–16
+  workstream: Fleet-wide field-capture rollout · Crew-by-crew; retire paper
+  weeks: 8–14
+7.
+  phase: PHASE 2 · FLEET ROLLOUT — WKS 8–16
+  workstream: Fuel & equipment-allocation engine · Auto-allocate by job
+  weeks: 9–13
+8.
+  phase: PHASE 2 · FLEET ROLLOUT — WKS 8–16
+  workstream: CEO / Finance dashboards + alerts · EBITDA, variance & fuel alerts
+  weeks: 11–15
+9.
+  phase: PHASE 2 · FLEET ROLLOUT — WKS 8–16
+  workstream: Reporting package + asset tracking · Combined-entity + Job Post-Mortem
+  weeks: 13–16
+milestones:
+1.
+  id: M0
+  week: 2
+  label: SCOPE LOCKED
+2.
+  id: M1
+  week: 8
+  label: PILOT VALIDATED
+3.
+  id: M2
+  week: 16
+  label: FLEET LIVE
+
+## Slide 5 — Commercial Terms / How QofAI Gets Paid
+terms_headline: A partnership built on performance.
+terms_summary: We invest. We deliver. You retain the value. QofAI bears all up-front build, licensing, and hosting cost; the client only pays from realized EBITDA gains — and keeps the rest.
+downside_protection: If margins don't improve above your locked baseline, QofAI earns nothing.
+qofai_investment: $275,000 · Engineering, deployment, and all implementation risk — fully absorbed before the client pays a dollar. (unconfirmed, see gaps)
+client_upfront: $0 · No capital outlay. No per-seat BI licensing. Tablets (~18, rugged cases) procured by client — not in contract.
+comp_schedule: YEAR 1 20% · YEAR 2 10% · YEAR 3 5% · YEAR 4+ 0% · Capped at 2.5× initial investment or 3 years, whichever first; ~$19K/yr support after that.
+client_retention: Client retains 80–84%, 100% thereafter.
+value_mapping:
+1.
+  scenario: CONSERVATIVE
+  ebitda_gain: +1.6pp · $1,500,000/yr
+  qofai_comp: $640,000
+  client_retained_ebitda: $3,600,000
+  enterprise_value: $10,700,000
+2.
+  scenario: BASE CASE
+  ebitda_gain: +2.2pp · $2,050,000/yr
+  qofai_comp: $685,000
+  client_retained_ebitda: $4,900,000
+  enterprise_value: $14,000,000
+3.
+  scenario: OPTIMISTIC
+  ebitda_gain: +2.7pp · $2,600,000/yr
+  qofai_comp: $685,000 (cap)
+  client_retained_ebitda: $6,200,000
+  enterprise_value: $17,300,000
+payment_mechanics [render under heading "HOW PAYMENT WORKS"]: Measured monthly. Actual job & fleet EBITDA margin is compared to the client's locked pre-launch baseline; improvement is expressed in margin points.
+Converted to EBITDA. The margin-point gain is applied to financial performance at the contribution basis locked at signing for the term.
+Share paid that month. QofAI receives the year's share (20% / 10% / 5%) of that figure — paid monthly until the 2.5× cap or the 3-year term.
+terms_footnote: Enterprise value at exit assumes a 6× EBITDA multiple on the annual uplift, plus a 0.25× reporting-readiness multiple improvement on ~$6.9M adjusted EBITDA. Directional, for decision support.
+
+## Slide 6 — Next Steps (numbered actions with owners)
+next_steps_headline: Four moves to launch the build.
+next_steps_summary: Each action has a named owner and a target week.
+action_items:
+1.
+  number: 01
+  week: WK 0
+  owner: CLIENT LEADERSHIP
+  title: Approve Project Plan
+  description: Leadership reviews and approves the platform scope, the two-phase plan, and the 16-week timeline before the build begins.
+2.
+  number: 02
+  week: WK 0
+  owner: QOFAI + CLIENT LEADERSHIP
+  title: Sign Performance-Based Contract
+  description: Execute the performance-based agreement: QofAI bears all upfront cost and is paid from realized EBITDA gains, capped at 2.5× cost over a three-year term.
+3.
+  number: 03
+  week: WK 1–2
+  owner: QOFAI ENGINEERING
+  title: Kick Off QofAI FDEs
+  description: QofAI's forward-deployed engineers begin the build — standing up the cloud warehouse, the accounting connector, and the Operations dashboard.
+4.
+  number: 04
+  week: WK 1–2
+  owner: OPERATIONS
+  title: Select the pilot crew & foreman
+  description: Choose a tech-receptive foreman for the single-crew pilot; lock Phase 1 scope to the daily ticket, fuel, and the financial dashboard.
+
+---
+END OF DESIGN PROMPT. This is a draft for Claude Design and requires human review before anything ships. Not a finished or sendable deck.

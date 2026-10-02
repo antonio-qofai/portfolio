@@ -1,0 +1,14 @@
+{
+  "_fixture": {
+    "kind": "hand-authored parser regression snippet, not a captured paper excerpt",
+    "authored": "2026-08-15",
+    "rule": "N/A -- every name and figure below is invented; nothing here is real client content, so data-provider/SCRUBBING.md's capture/scrub/verify procedure does not apply. Built to reproduce one specific E7c parser finding structurally, with realistic-scale but entirely synthetic numbers.",
+    "bug": "_is_dollar_label rejects a column if ANY NOT_IMPACT_WORDS token appears anywhere in its label, with no distinction between the column's real subject and an incidental word in its own explanatory parenthetical. Here 'EBITDA Contribution (Revenue x 55% Gross Margin)' is excluded purely because the word 'Revenue' appears in the formula description, even though the header word is 'Contribution', a real IMPACT_WORD, and the column plainly carries the per-case EBITDA dollar figures the field needs.",
+    "source": "E7c diagnosis, 2026-08-15, corresponds to opportunity 00000009-0000-4000-8000-000000000009 in the live corpus (also present as a secondary cause on 00000024-0000-4000-8000-000000000024's 'Revenue Forecast Accuracy & Cash Flow' row label)"
+  },
+  "opportunity": {
+    "id": "00000005-0000-4000-8000-000000000005",
+    "stage": "published",
+    "research_paper_natural": "## Projected Impact\n\n| Scenario | Production Improvement | EBITDA Contribution (Revenue x 55% Gross Margin) |\n|---|---|---|\n| Conservative | 3% | $1.10M |\n| Base Case | 4% | $1.45M |\n| Optimistic | 5% | $1.80M |\n"
+  }
+}

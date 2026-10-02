@@ -1,0 +1,14 @@
+{
+  "_fixture": {
+    "kind": "hand-authored parser regression snippet, not a captured paper excerpt",
+    "authored": "2026-08-15",
+    "rule": "N/A -- every name and figure below is invented; nothing here is real client content, so data-provider/SCRUBBING.md's capture/scrub/verify procedure does not apply. Built to reproduce one specific E7c parser finding structurally, with realistic-scale but entirely synthetic numbers.",
+    "bug": "Three compounding baseline_parser misses: (a) a parenthetical period range between a metric word and its value splits them into separate _statements segments (ref [1]: 'LTM Revenue (Jan 2025-Dec 2025) of $18.5M' loses revenue while EBITDA in the same sentence survives); (b) a colon between label and value is unreadable by _figure_near, which only recognizes a connector word or direct adjacency (ref [2]: 'Revenue: $18,500,000' -- entirely unread); (c) is_company_source excludes an entire reference line if ANY NOT_BASELINE word appears anywhere in it, even when the actual figure of interest is a plain actual (ref [3]: 'growth analysis' kills a line that also states 'CY2025 revenue: $18.5M' as a plain fact).",
+    "source": "E7c diagnosis, 2026-08-15, corresponds to opportunities 00000013-0000-4000-8000-000000000013 and 0000000a-0000-4000-8000-00000000000a in the live corpus"
+  },
+  "opportunity": {
+    "id": "00000001-0000-4000-8000-000000000001",
+    "stage": "published",
+    "research_paper_natural": "## Financial Analysis\n\n### Current State\n\nRiverstone Fabrication Group operates at approximately $18.5M in LTM revenue [1][2].\n\n## References\n\n[1] Company Financial Statements: Monthly P&L analysis, Jan 2024-Dec 2025. LTM Revenue (Jan 2025-Dec 2025) of $18.5M and LTM EBITDA of $4.2M.\n[2] Company Financial Statements: CY2025 P&L summary. Revenue: $18,500,000; Adjusted EBITDA: $4,200,000; adjusted EBITDA margin: 22.7%.\n[3] Company Financial Statements: Revenue and cost growth analysis. CY2025 revenue: $18.5M; CY2024 revenue: $15.1M (+22.5%).\n"
+  }
+}

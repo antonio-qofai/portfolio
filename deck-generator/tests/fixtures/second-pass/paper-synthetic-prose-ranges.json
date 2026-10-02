@@ -1,0 +1,20 @@
+{
+  "_fixture": {
+    "kind": "HAND-BUILT synthetic paper, not a capture",
+    "built": "2026-08-19",
+    "why": "E11 Stage 2e carries a stated RANGE to the deck instead of dropping it, and no committed excerpt can exercise that on the percentage-point leaf: every pp cell in every table under data-provider/fixtures/ states a single figure (verified 2026-08-19 by running packet_assembly over all eight). Two of them do state a scenario uplift as a dollar range, so the USD half has committed coverage; this file is where the pp half, the two range notations, and a single figure standing beside a range in the same case set are exercised.",
+    "not_evidence_about_the_corpus": "This file is evidence about the CODE only. It is hand-built, it was never captured from a paper, and it must never be counted in a corpus census. It lives outside data-provider/fixtures/ for exactly that reason: the parser census tests glob that directory.",
+    "contains_no_client_data": "No company, no project, no person, no real figure. Every number is invented and every sentence was written for this file.",
+    "shape": "Readable by NO parser in this repo, which is what makes it a second-pass fixture, and the same shape as paper-synthetic-prose.json beside it. Verified 2026-08-19 by running the real packet_assembly over it: data_completeness reads 0.00 and all six roster fields record an absence. There is no <Chart>, so chart_timeline_parser finds no timeline; the baseline is stated in prose alone, which baseline_parser deliberately does not read; and there is no scenario table at all, so scenario_table_parser reports no scenario impact table. Everything it states is therefore material only the second pass can reach.",
+    "the_ranges_it_states_and_why_each_one": {
+      "baseline.revenue_ttm_usd": "$84.0M–$88.0M. Stated so the test can show packet_fill._one is UNCHANGED: the baseline leaves stay absent on a range, which is the Stage 2e scope line. Measured, not moved.",
+      "margin_gain_pp": "0.9–1.9pp on the Conservative case (en dash, the notation the live corpus writes 157 times), a single 3.1pp on the Base Case, and 4.1 to 4.9pp on the Optimistic case (the word `to`, written 30 times). A single figure sitting in the same case set as two ranges is what shows nothing that was a number became a string.",
+      "direct_uplift_usd_yr": "A dollar range on all three cases, en dash. `to` is deliberately NOT used on a dollar figure: scenario_table_parser._money refuses `to` as residue, so it would drop the whole record (the leaf is required) and the fixture would be testing the residue check instead."
+    }
+  },
+  "opportunity": {
+    "id": "OPP-SYNTHETIC-PROSE-RANGES",
+    "stage": "synthetic",
+    "research_paper_natural": "# Operations Data Platform\n\n## Executive Summary\n\nThe company runs its scheduling and quoting on spreadsheets, and the analysis\nbelow states each figure as the range it supports rather than as a point.\n\n## Financial Analysis\n\n### Current State\n\nThe company reported LTM revenue of $84.0M–$88.0M for the trailing twelve months, the spread being two disputed contracts, and adjusted EBITDA of $12.6M over the same period.\n\nAverage quote turnaround runs 9 days against an industry norm nearer three, and\non-time delivery sits at 71% across the last four quarters.\n\n### Projected Impact\n\nIn the Conservative case the platform carries an EBITDA margin impact of 0.9–1.9pp, worth $900K–$1.8M a year against the current revenue base.\n\nIn the Base Case it carries an EBITDA margin impact of 3.1pp, worth $1.8M–$2.9M a year.\n\nIn the Optimistic case it carries an EBITDA margin impact of 4.1 to 4.9pp, worth $3.8M–$4.6M a year.\n\n## The Proposed Solution\n\nPricing rules move out of the spreadsheet and into a rules engine every quote\nis priced against.\n\n## Implementation Approach\n\n### Timeline\n\nProse omitted.\n\n### Resources Required\n\nProse omitted.\n"
+  }
+}

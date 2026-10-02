@@ -1,0 +1,39 @@
+{
+  "_comment": [
+    "QofAI's standing commercial language, for the studio's one-click default on a",
+    "proposal deck's Commercial Terms slide. Content, kept out of the code that",
+    "writes it so the wording is edited here and reviewed as text.",
+    "",
+    "WHAT BELONGS HERE: the payment MECHANISM and the risk-reversal clause, which",
+    "are the same on every engagement because they describe how QofAI is paid at",
+    "all rather than what any one deal pays (Antonio, 2026-08-20: mechanism only).",
+    "",
+    "WHAT DOES NOT: any figure, share, cap, or term. Percentages, a comp schedule,",
+    "an investment total and a contract length are per-deal, they are sensitive, and",
+    "the deck asks a reviewer for them by name. A default that carried last deal's",
+    "numbers into this deal's deck is the exact failure the [MISSING: ...] markers",
+    "exist to prevent, and it would arrive looking like a considered figure.",
+    "",
+    "NO CLIENT DETAIL EITHER. This text goes onto a deck for any client, so it says",
+    "'the client' and names no company, industry, or asset. The FBK packet's own",
+    "wording, which this is derived from, said 'project & fleet EBITDA margin'; the",
+    "fleet is FBK's and does not belong in a default."
+  ],
+
+  "downside_protection": "If margins don't improve above your locked baseline, QofAI earns nothing.",
+
+  "payment_mechanics": [
+    {
+      "lead": "Measured monthly.",
+      "rest": "Actual EBITDA margin is compared to the client's locked pre-launch baseline; improvement is expressed in margin points."
+    },
+    {
+      "lead": "Converted to EBITDA.",
+      "rest": "The margin-point gain is applied to financial performance at the contribution basis locked at signing for the term."
+    },
+    {
+      "lead": "Share paid that month.",
+      "rest": "QofAI receives its contracted share of that figure, paid monthly under the agreed comp schedule."
+    }
+  ]
+}
