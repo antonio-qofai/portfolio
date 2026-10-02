@@ -2,8 +2,8 @@
 # identifier belongs in ~/.config/portfolio-sync/private.toml, not here.
 
 # Order of projects in the README list. Others follow alphabetically.
-readme_order = ["deck-generator", "internship-search", "trip-planner", "content-calendar-agent",
-                "apartment-chores", "life-dashboard", "pe-research-agent"]
+readme_order = ["qofai-deck-generator", "internship-search", "trip-planner", "qofai-content-calendar",
+                "apartment-chores", "life-dashboard", "qofai-pe-research-agent"]
 
 exclude_everywhere = [
     ".env", ".env.*", "*.db", "*.db-*", "*.pem", "credentials*.json", "token*.json",
@@ -99,7 +99,7 @@ with = "tools/overlays/internship-search/rubric-candidate.md"
 # QofAI projects. Synced by hand after review, never by a hook. Overlays stand in
 # for files built from real client material; real names live in the private config.
 
-[projects.deck-generator]
+[projects.qofai-deck-generator]
 subdir = "repos/project-status-deck-generator"
 hook = false
 exclude = [
@@ -114,7 +114,7 @@ exclude = [
     "*.pdf", "*.png", "*.jpg", "*.docx", "*.pptx", "*.xlsx", "*.ipynb",
 ]
 
-[projects.content-calendar-agent]
+[projects.qofai-content-calendar]
 subdir = "repos/thought-leadership-calendar-manager"
 hook = false
 exclude = [
@@ -124,7 +124,7 @@ exclude = [
     "*.pdf", "*.png", "*.jpg", "*.docx", "*.pptx", "*.xlsx", "*.ipynb",
 ]
 
-[projects.pe-research-agent]
+[projects.qofai-pe-research-agent]
 hook = false
 exclude = [
     "README.md", "PLAYBOOK.md", "runs/*", "sources/*", "dossiers/*", "evals/*", "audits/*",
@@ -132,83 +132,88 @@ exclude = [
     "*.pdf", "*.png", "*.jpg", "*.docx", "*.pptx", "*.xlsx", "*.ipynb",
 ]
 
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 # Same slide spec; every example value is invented.
 path = "templates/proposal-template.md"
-from = "tools/overlays/deck-generator/templates/proposal-template.md"
+from = "tools/overlays/qofai-deck-generator/templates/proposal-template.md"
 
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 # A second synthetic proposal packet, in place of one built from a real client.
 path = "templates/packets/proposal-data-packet-fbk.md"
-from = "tools/overlays/deck-generator/templates/packets/proposal-data-packet-fbk.md"
+from = "tools/overlays/qofai-deck-generator/templates/packets/proposal-data-packet-fbk.md"
 
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 path = "templates/status-template.md"
-from = "tools/overlays/deck-generator/templates/status-template.md"
+from = "tools/overlays/qofai-deck-generator/templates/status-template.md"
 
-[[projects.content-calendar-agent.overlay]]
+[[projects.qofai-content-calendar.overlay]]
 # Same ids and shape as the real taxonomy, with every claim and note replaced.
 path = "narrative/threads.yaml"
-from = "tools/overlays/content-calendar-agent/narrative/threads.yaml"
+from = "tools/overlays/qofai-content-calendar/narrative/threads.yaml"
 
-[[projects.content-calendar-agent.overlay]]
+[[projects.qofai-content-calendar.overlay]]
 # A synthetic month the repair tests break and mend, in place of a real calendar.
 path = "state/window-jordan-2026-10.json"
-from = "tools/overlays/content-calendar-agent/state/window-jordan-2026-10.json"
+from = "tools/overlays/qofai-content-calendar/state/window-jordan-2026-10.json"
 
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 path = "README.md"
-from = "tools/overlays/deck-generator/README.md"
+from = "tools/overlays/qofai-deck-generator/README.md"
 
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 path = "PORTFOLIO.md"
-from = "tools/overlays/deck-generator/PORTFOLIO.md"
+from = "tools/overlays/qofai-deck-generator/PORTFOLIO.md"
 
-[[projects.content-calendar-agent.overlay]]
+[[projects.qofai-content-calendar.overlay]]
 path = "README.md"
-from = "tools/overlays/content-calendar-agent/README.md"
+from = "tools/overlays/qofai-content-calendar/README.md"
 
-[[projects.content-calendar-agent.overlay]]
+[[projects.qofai-content-calendar.overlay]]
 path = "PORTFOLIO.md"
-from = "tools/overlays/content-calendar-agent/PORTFOLIO.md"
+from = "tools/overlays/qofai-content-calendar/PORTFOLIO.md"
 
-[[projects.pe-research-agent.overlay]]
+[[projects.qofai-pe-research-agent.overlay]]
 path = "README.md"
-from = "tools/overlays/pe-research-agent/README.md"
+from = "tools/overlays/qofai-pe-research-agent/README.md"
 
-[[projects.pe-research-agent.overlay]]
+[[projects.qofai-pe-research-agent.overlay]]
 path = "PORTFOLIO.md"
-from = "tools/overlays/pe-research-agent/PORTFOLIO.md"
+from = "tools/overlays/qofai-pe-research-agent/PORTFOLIO.md"
 
 # Text-gate fixtures rendered from synthetic packets (Fabrikam proposal, Vantgo
 # status), in place of renders of real client decks.
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 path = "tests/fixtures/text_gate/proposal-pre-gate.html"
-from = "tools/overlays/deck-generator/tests/fixtures/text_gate/proposal-pre-gate.html"
+from = "tools/overlays/qofai-deck-generator/tests/fixtures/text_gate/proposal-pre-gate.html"
 
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 path = "tests/fixtures/text_gate/status-pre-gate.html"
-from = "tools/overlays/deck-generator/tests/fixtures/text_gate/status-pre-gate.html"
+from = "tools/overlays/qofai-deck-generator/tests/fixtures/text_gate/status-pre-gate.html"
 
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 path = "tests/fixtures/text_gate/status-current.html"
-from = "tools/overlays/deck-generator/tests/fixtures/text_gate/status-current.html"
+from = "tools/overlays/qofai-deck-generator/tests/fixtures/text_gate/status-current.html"
 
 # Screenshots of a synthetic run, checked by eye: images skip both automatic gates.
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 path = "docs/screenshots/review-studio.png"
-from = "tools/overlays/deck-generator/docs/screenshots/review-studio.png"
+from = "tools/overlays/qofai-deck-generator/docs/screenshots/review-studio.png"
 
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 path = "docs/screenshots/status-deck-tracking.png"
-from = "tools/overlays/deck-generator/docs/screenshots/status-deck-tracking.png"
+from = "tools/overlays/qofai-deck-generator/docs/screenshots/status-deck-tracking.png"
 
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 path = "docs/screenshots/status-deck-workstream.png"
-from = "tools/overlays/deck-generator/docs/screenshots/status-deck-workstream.png"
+from = "tools/overlays/qofai-deck-generator/docs/screenshots/status-deck-workstream.png"
 
 # The missing-values fixture with every word of visible text replaced by filler. Only its
 # thirty markers, tags and slide structure matter to the tests that use it.
-[[projects.deck-generator.overlay]]
+[[projects.qofai-deck-generator.overlay]]
 path = "tests/fixtures/missing-values/proposal-deck-30-markers.html"
-from = "tools/overlays/deck-generator/tests/fixtures/missing-values/proposal-deck-30-markers.html"
+from = "tools/overlays/qofai-deck-generator/tests/fixtures/missing-values/proposal-deck-30-markers.html"
+
+# Screenshot of the served calendar on a synthetic month with invented posts, checked by eye.
+[[projects.qofai-content-calendar.overlay]]
+path = "docs/screenshots/calendar.png"
+from = "tools/overlays/qofai-content-calendar/docs/screenshots/calendar.png"

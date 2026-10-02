@@ -10,18 +10,18 @@ every day, and some are agents I built during the internship.
 
 ## Start here
 
-[deck-generator](deck-generator/) is my largest project. It writes the proposal and status
+[qofai-deck-generator](qofai-deck-generator/) is my largest project. It writes the proposal and status
 decks QofAI brings to a client, from the company's internal data or an uploaded PRD. Most of
 the code makes sure a deck never states something its sources do not, and about 2,400 tests
 hold it to that.
 
-![The deck generator's review studio, showing a generated status deck](deck-generator/docs/screenshots/review-studio.png)
+![The deck generator's review studio, showing a generated status deck](qofai-deck-generator/docs/screenshots/review-studio.png)
 
 ## Projects
 
 <!-- projects:start -->
 
-### [deck-generator](deck-generator/)
+### [qofai-deck-generator](qofai-deck-generator/)
 
 Built during my internship at QofAI, this agent writes the proposal and status check-in
 decks QofAI brings to a client engagement. It pulls a project's data from the company's
@@ -63,7 +63,7 @@ tests.
 
 TypeScript, React, Vite, Vercel Functions, Neon Postgres, Claude API, Open-Meteo, SerpApi.
 
-### [content-calendar-agent](content-calendar-agent/)
+### [qofai-content-calendar](qofai-content-calendar/)
 
 Built during my internship at QofAI, this agent plans the founders' LinkedIn calendar. It
 does not write posts. Each morning it reads what the company's other content agents produced,
@@ -97,7 +97,7 @@ Still in progress.
 
 Python, uv, Google Calendar and Gmail APIs (read-only OAuth), Open-Meteo, Claude API.
 
-### [pe-research-agent](pe-research-agent/)
+### [qofai-pe-research-agent](qofai-pe-research-agent/)
 
 Built during my internship at QofAI, as pre-work, this agent writes a sourced dossier on a
 middle-market private equity firm, covering the firm, its portfolio companies, estimated
