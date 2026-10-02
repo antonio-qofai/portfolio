@@ -1,0 +1,495 @@
+# =====================================================================
+# How the calendar decides what goes where.
+#
+# This file is the whole sequencing policy. `assemble.py` contains no
+# criterion, no cadence number, no model name, and no prompt text of its
+# own: it reads them here and builds the request. Changing how the
+# calendar thinks is an edit to this file, never to the Python.
+#
+# Why a model call rather than a scored taxonomy. The earlier plan scored
+# a proposed ordering against `narrative/threads.yaml`, which meant every
+# piece of content had to be hand-tagged and the tag set kept current.
+# Two things killed it. The tags carried no usable signal, since
+# `pilot-to-production-gap` sat on 8 of 8 atomizer posts while most other
+# threads appeared exactly once, so "these two posts are similar" never
+# fired in between. And the taxonomy is a fixed vocabulary describing a
+# company that repositioned once in three weeks, so it goes stale faster
+# than anyone will maintain it. `narrative/voice.md` already warned that
+# the corpus is about to be regenerated and told us not to invest in
+# item-level tagging. A model reading the posts answers the same question
+# at read time with nothing to maintain. Decided 2026-09-02.
+#
+# The taxonomy still exists and is still read, for approval horizons, the
+# lens vocabulary, and the monthly anchor. It is no longer a scoring
+# vocabulary, and tagging every item is no longer an obligation.
+# =====================================================================
+
+version: 1
+last_reviewed: 2026-09-02
+reviewed_with_jordan: false
+
+# ---------------------------------------------------------------------
+# The model call itself.
+# ---------------------------------------------------------------------
+model:
+  id: claude-opus-5
+  # Thinking depth. This runs once a month plus once a week over a corpus
+  # of roughly eight items, so the volume is negligible and there is no
+  # reason to economize on the one judgment call the agent makes.
+  effort: high
+  # Raised from 16000 on 2026-09-23. With the season brief in the prompt,
+  # Jordan's nine-post answer ran out of room mid-JSON. Kept under about
+  # 21000, where the SDK starts refusing a call that does not stream.
+  max_tokens: 20000
+  # Adaptive thinking is on by default on this model. Kept explicit so a
+  # reader knows it was a decision rather than an omission.
+  thinking: adaptive
+
+# ---------------------------------------------------------------------
+# Which calendar gets assembled. Null means "the v1 lens declared in
+# narrative/threads.yaml", so the three-calendar version is a taxonomy
+# change rather than an edit here.
+# ---------------------------------------------------------------------
+lens: null
+
+# ---------------------------------------------------------------------
+# Cadence. Jordan set one to two on the 2026-08-19 founder call ("probably
+# not more than that and not less than that"). Resolved to a flat two on
+# 2026-09-07 by the owner, who made two posts a week the priority rather
+# than the ceiling.
+#
+# That resolution settles a contradiction this file carried without
+# noticing it. Section 9 of `narrative/linkedin-post-voice-and-rubric.md`,
+# the canonical LinkedIn document, sets a three-day minimum between posts
+# and a Tuesday-or-Wednesday morning slot. Tuesday and Wednesday are one
+# day apart, so those two rules together cap the calendar at one post a
+# week no matter how much content exists, which is most of why the first
+# assembled window held five slots rather than eight. The model found this
+# and said so in its supply note before anyone here did.
+#
+# The three-day minimum is deleted for sequencing purposes and the day
+# rule is replaced, both by owner decision on 2026-09-07. Section 9's own
+# closing note says its underlying research is one independent benchmark
+# plus recycled marketing blogs, and that the direction is sound while the
+# specific numbers are soft, which is the argument for overriding the
+# numbers and keeping the direction.
+#
+# This file wins over the canonical document on cadence and posting days
+# and on nothing else. Voice, structure, length, and distribution stay
+# the canonical document's, and it is read as context so the model can
+# see what it is being asked to depart from.
+# (high confidence, private document: founder call 2026-08-19, 04:59,
+#  plus owner decision 2026-09-07)
+# ---------------------------------------------------------------------
+cadence:
+  posts_per_week_min: 2
+  posts_per_week_max: 2
+
+# Which days posts go out. Monday and Thursday, set by the owner on
+# 2026-09-07 on the reasoning that opening the week with a post is
+# strong. Three days from Monday to Thursday and four back to Monday, so
+# the spacing is even without a minimum-gap rule to enforce it.
+#
+# This replaces section 9's Tuesday-or-Wednesday slot rather than widening
+# it. Kept as data rather than prose so changing the days is an edit here
+# and the prompt follows.
+posting_days:
+  - Monday
+  - Thursday
+
+# Per-lens overrides of `cadence` and `posting_days`. Added 2026-09-23 by
+# the owner. With one shared Monday/Thursday list, the three October
+# calendars put all three founders on 1 and 12 October and two of them on
+# 5 and 8 October. The three posts reach mostly the same audience, so on
+# one morning they compete for the same feed, and a founder who is posting
+# cannot also comment early on the others' posts. Separate days give
+# QofAI a presence on four weekdays instead of two.
+#
+# Casey and Blake drop to one post a week. Their October corpora hold
+# four and three posts, so two a week never filled their calendars
+# anyway (FOUNDER-QUESTIONS-2026-09-23.md, question 2), and Tuesday and
+# Wednesday are the slot the canonical LinkedIn document's section 9
+# recommended before the 2026-09-07 override. A lens missing here uses
+# the top-level values, so Jordan keeps two a week on Monday and Thursday.
+# Only `cadence` and `posting_days` may be overridden; `validate_criteria`
+# refuses any other key, so the per-lens block cannot fork the policy.
+lenses:
+  casey:
+    cadence:
+      posts_per_week_min: 1
+      posts_per_week_max: 1
+    posting_days:
+      - Tuesday
+  blake:
+    cadence:
+      posts_per_week_min: 1
+      posts_per_week_max: 1
+    posting_days:
+      - Wednesday
+
+already_placed:
+  # A post another calendar for the same lens already holds is not a
+  # candidate. Added 2026-09-18: until then nothing stopped November
+  # re-scheduling October's posts, and on that date every candidate for every
+  # lens (jordan 9, casey 4, blake 3) was already in October, so Jordan would
+  # have been asked to approve the same posts twice.
+  #
+  # Which placements count. On a window still running (its range not fully
+  # passed), a post is spoken for in any of these states. Rejected is left
+  # out on purpose: Jordan declined it for that date, and whether it belongs
+  # on another date is exactly what the model is asked. On a window that has
+  # passed, only a post that went out counts, so a draft nobody got to
+  # returns to the pool rather than being lost.
+  enabled: true
+  running_window_states: [draft, approved, published]
+  past_window_states: [approved, published]
+  #
+  # When every schedulable post is already placed, the window is written
+  # empty with no model call, because there is nothing to sequence and
+  # admit-a-thin-month already says an honest short calendar beats a padded
+  # one. That is a finding, not a failure, and these are the words the
+  # window carries so it reads as one. {count} and {windows} are filled in.
+  empty_window_arc: >
+    Nothing new to place yet. All {count} schedulable posts for this lens
+    already sit on another calendar ({windows}), and a post goes out once,
+    so this month holds nothing rather than repeating one. It fills as the
+    content agents ship new posts: the weekly refresh proposes placements
+    for this month as soon as new schedulable content arrives.
+  empty_window_supply_note: >
+    Assembled without a model call. There were {count} schedulable posts and
+    every one was already placed on {windows}, so there was nothing to
+    sequence. This is the corpus, not a fault in the agent.
+
+# When next month's calendar gets assembled. Read by
+# synthesis/monthly_assembly.py, which the monthly-assembly workflow runs
+# every day and which does nothing until the day is due.
+#
+# The 15th: mid-month, so next month's calendar exists a clear two weeks
+# before the month it covers begins, leaving time to read it, move something,
+# or notice the corpus is thin. Nothing downstream depends on the exact day.
+#
+# It was briefly derived from approved_horizon_days instead, which landed on
+# the 15th or 16th depending on the month's length. That was wrong on
+# 2026-09-18, and not by a day. The approval horizon had just been taken off
+# the page (d9d3ffb, "The calendar stops telling a founder he is late")
+# because this calendar does not hand founders deadlines. Deriving the spend
+# schedule from that number kept it governing the agent where nobody could
+# see it, and made the code argue a position the owner had rejected. A plain
+# day says what it means.
+#
+# Jordan has not named an assembly date (PRD Section 7). When he does, it is
+# this one line.
+# (medium confidence, owner decision 2026-09-19, pending Jordan)
+assembly_schedule:
+  day_of_month: 15
+  # Every attempt that reaches a lens is appended here, including the ones
+  # that refused. A not-yet-due day records nothing, so a quiet day does not
+  # make a commit.
+  run_store: assembly_runs
+
+# How many alternatives each slot carries, and what they are for.
+#
+# Jordan said "here are the six options that you have to choose from"
+# (founder call 2026-08-19, 10:54), which read as a slot offering a
+# shortlist to pick from. The owner resolved it differently on
+# 2026-09-07: every posting day gets one definite recommended post, and
+# the optionality lives in being able to reorder the calendar rather than
+# in a menu under each date. A calendar that asks six questions per slot
+# is not a calendar, it is a quiz.
+#
+# So these are swap candidates, not options awaiting a choice. The
+# display shows the set post for each day and offers the alternatives as
+# what to swap in if a date is wrong. Two is what a nine-item corpus
+# supports without offering the same handful under every date.
+# (high confidence, owner decision 2026-09-07, resolving founder call
+#  2026-08-19, 10:54)
+alternatives_per_slot: 2
+
+# How far back the founders' decline reasons reach into an assembly.
+#
+# When a founder declines a post they have to say why, and since 2026-09-23
+# that reason goes into the model's prompt, both for next month's assembly
+# and for the weekly refresh that re-proposes a declined date. Counted in
+# that founder's calendar windows, newest first, so "3" is roughly the last
+# three months. Remove the key to use every window on disk.
+# (medium confidence, owner decision 2026-09-23 that reasons feed the agent;
+#  the number is a first guess at how long feedback stays relevant)
+feedback_lookback_windows: 3
+
+# How long the prose the model writes is allowed to be.
+#
+# From the 2026-09-15 recording, where all three complaints were length:
+# the arc was "too long", the per-post text was "too long", and the page
+# had no room left for the calendar itself. The numbers live here rather
+# than in the prompt text or the renderer because they are a judgement
+# about how much an operating partner will read on a call, and that
+# judgement should be editable without touching either.
+#
+# Carried three ways, the same way `alternatives_per_slot` is: stated in
+# the system prompt, repeated in the output schema's field descriptions,
+# and checked on the way back in. The check warns rather than truncating,
+# because a rationale chopped mid-sentence is worse on the page than a
+# long one and a model that has stopped honouring the bound is something
+# to see rather than to hide.
+# (medium confidence, private inference from the owner recording
+#  2026-09-15; the right numbers are whatever survives Thursday)
+limits:
+  # What the post argues. One or two sentences on the card.
+  summary_words: 35
+  # Why it is on this date. Sits behind a toggle, so it can run longer
+  # than the summary, but it is still read aloud on a call.
+  rationale_words: 45
+  # The window's argument, above the grid. Two to three sentences,
+  # decided 2026-09-15.
+  arc_sentences: 3
+
+# ---------------------------------------------------------------------
+# Where schedulable content comes from. Closed to these two on the
+# 2026-08-19 call, with the atomizer as the catch-all for anything of
+# Jordan's own. Conference rows and the market scan are context for the
+# arc, never slot content, which is why they are not listed here.
+# (high confidence, private document: founder call 2026-08-19)
+# ---------------------------------------------------------------------
+candidate_sources:
+  - id: content-atomizer
+    # Only posts written in the calendar lens's persona are eligible. The
+    # Blake and Casey personas belong to calendars that do not exist yet.
+    filter_by_persona: true
+  - id: value-creation-briefing
+    filter_by_persona: true
+    # The assembled monthly briefings are not posts. Jordan's cadence
+    # splits between a dogfood post and a larger post tied to the VCB,
+    # which makes a briefing the thing a post points at rather than a
+    # thing that occupies a slot.
+    include_briefings: false
+
+# ---------------------------------------------------------------------
+# Context the model reads to place the posts. None of this is
+# schedulable; all of it shapes the order.
+# ---------------------------------------------------------------------
+context:
+  # The arc the posts were written for, since 2026-09-23. Content Atomizer
+  # writes its posts against a season brief (eight anchors in a set order,
+  # each with a thesis), and the calendar schedules those posts, so the
+  # season is what drives the arc and the order. `north-star.md` below stays
+  # as positioning context. The newest season file wins by its number, so
+  # when the atomizer adds Season 2 the arc follows it with no edit here.
+  season_arc:
+    enabled: true
+    root: ../content-atomizer
+    pattern: season-*-anchor-post-briefs.md
+    label: >-
+      The content agent's current season, the arc these posts were written
+      for. Authoritative on the window's arc and on the order of the
+      season's own anchor posts
+
+  # "What is the outside world publishing this week." Jordan tied this to
+  # the arc rather than to timing (founder interview, 21:15). Read live
+  # from C2's own market scan, not from another agent.
+  #
+  # Value Creation Briefing's daily Briefing Insights table. Built and then
+  # disabled on 2026-09-22. It is consulting-firm AI research (McKinsey,
+  # BCG, KPMG, Margie Advisory), the same material VCB's own posts are written from, so
+  # as the arc's outside world it mostly repeated what the posts already
+  # say and carried no PE deal news, which is what the openers use. When
+  # enabled it is read first and the RSS scan is the fallback.
+  # base_id is Robin's base, from repos/value-creation-briefing/PRD.md.
+  briefing_insights:
+    enabled: false
+    base_id: appXXXXXXXXXXXXXX
+    table: Briefing Insights
+    lookback_days: 14
+    max_items: 25
+    relevance: [High, Medium]
+  # max_items raised from 25 to 60 on 2026-09-22. At 25 the newest-first cut
+  # kept only the last morning's items; 60 fits every feed's six newest
+  # (see max_items_per_source in ingestion/market_scan_sources.yaml), so the
+  # fourteen days are real. About 5k tokens of prompt.
+  market_scan:
+    enabled: true
+    lookback_days: 14
+    max_items: 60
+
+  # What QofAI itself is doing and saying. No agent produces this as a
+  # feed, so it is hand-maintained prose read straight off disk. If these
+  # files go stale the arc goes stale with them, which is the tradeoff
+  # for having any answer here at all.
+  narrative_files:
+    - path: narrative/north-star.md
+      label: QofAI's current positioning and north star
+    # Added 2026-09-07. This is the canonical LinkedIn voice, structure,
+    # and distribution document, owned by Jordan and versioned the day of
+    # the founder call. `voice.md` opens by saying it is not the authority
+    # and that this file is, and that where the two disagree this one wins
+    # and voice.md is wrong. Synthesis was reading only the derived
+    # summary, so the single model call in this agent was working from a
+    # file that disclaims its own authority. Both are loaded now, in this
+    # order, because voice.md holds the two things this document does not:
+    # the gap between the standard and what is actually shipping, and the
+    # window-level checks only a calendar can run.
+    - path: narrative/linkedin-post-voice-and-rubric.md
+      label: >-
+        Canonical LinkedIn voice, structure and distribution rules, owned by
+        Jordan. Authoritative on everything except cadence and posting days,
+        which this sequencing policy overrides deliberately
+    - path: narrative/voice.md
+      label: >-
+        Where the shipping pipeline departs from the canonical document, plus
+        the window-level checks. Not authoritative on voice
+    - path: conversations/2026-08-13-internship-sync-jordan-positioning.md
+      label: The 2026-08-13 repositioning, in Jordan's own words
+
+  # Posts already published. They are not schedulable, and the arc is
+  # supposed to continue from them: Jordan's stated mechanic is that what
+  # went out in the last 30 days frames the next 30.
+  published_history:
+    - path: narrative/sources/jordan-published-linkedin-posts.md
+      label: Posts Jordan has already published
+
+# ---------------------------------------------------------------------
+# The rules the ordering has to satisfy. These are handed to the model
+# verbatim and numbered in the order given, so this list is the policy.
+# Add, cut, or reword a rule here and the next assembly obeys it.
+# ---------------------------------------------------------------------
+criteria:
+  - id: follow-the-season
+    rule: >
+      The content agent's season brief is the arc. Write the window's arc
+      as the season's argument, in the season's terms. Schedule the
+      season's anchor posts in the season's own order (the brief's slot
+      numbers), skipping any that are not candidates, and place posts from
+      outside the season around them where they support the anchor they
+      sit next to. Positioning documents and the market scan shape how a
+      post is framed and why it is timely, never the order of the anchors.
+      Name in each anchor's rationale which slot of the season it is.
+    why: >
+      The posts were written for that season, so the season is the arc they
+      make. An arc invented afresh each month from a positioning file goes
+      stale with the file, and in September it re-ordered Season 1 as 3, 6,
+      5, 7, 1, 2, which breaks the sequels the season built in.
+
+  - id: no-repeat-ideas
+    rule: >
+      Do not schedule two posts that make the same argument in the same
+      week. Judge this by reading the posts, not by comparing labels.
+    why: >
+      Two posts a week is the ceiling, so a repeated argument inside one
+      week costs half that week's output and reads as if nobody checked.
+
+  - id: no-repeat-evidence
+    rule: >
+      Do not schedule two posts leaning on the same statistic or the same
+      cited source within the same week, even when their arguments
+      differ. Name the collision in the rationale when you avoid one.
+    why: >
+      Distinct from repeated arguments and easy to miss. The Deloitte
+      "11 percent in production, 72 percent in pilots" figure appears in
+      all eight atomizer posts and the Jennifer Li quote appears across
+      every August briefing draft, so posts that argue different things
+      still often carry identical support.
+
+  - id: each-builds-on-the-last
+    rule: >
+      Order the posts so each one follows from the one before it. Say in
+      the rationale what the previous post set up that this one uses.
+      Where a post explicitly answers or continues an earlier published
+      post, put it after that post and record the dependency.
+    why: >
+      Jordan's framing puts the arc ahead of the individual posts. A
+      concrete instance already exists: the atomizer post
+      `anchor-01-the-consultant-with-leverage` opens by answering
+      pushback on "the pyramid post," which is one of Jordan's published
+      posts, so it is a sequel and ordering it first would break it.
+
+  - id: answer-the-moment
+    rule: >
+      Give the month an impetus. Where the market scan or QofAI's own
+      current positioning makes a particular argument timely, say in the
+      rationale what makes it timely right now, and schedule a post from
+      outside the season earlier for it. Timeliness never reorders the
+      season's anchors.
+    why: >
+      Jordan asked for the outside-world read and tied it to the narrative
+      arc rather than to post timing (founder interview, 21:15). Without
+      it the calendar is a well-ordered list that could have been built
+      any month of the year.
+
+  - id: state-the-arc
+    rule: >
+      Write the window's arc as the argument the month makes as a whole,
+      not as a summary of the posts in it. A reader should be able to tell
+      from the arc alone what changed between the first post and the last.
+      Keep it inside the sentence limit you have been given: say what the
+      month argues and stop, rather than walking through the month's posts.
+    why: >
+      PRD Section 2 requires a stated, coherent narrative arc rather than
+      a list of dated topics, and the display renders it above the grid.
+      It was a paragraph and nobody read it; an arc that is not read is
+      not stating anything.
+
+  - id: respect-approved-slots
+    rule: >
+      When a standing calendar is supplied, treat every slot already
+      marked approved or published as fixed. Do not move it, replace it,
+      or reword its rationale. Sequence around it and propose changes
+      only to draft slots.
+    why: >
+      Section 2 makes the first one to two weeks human-approved. The
+      weekly refresh re-asks whether the standing window is still right,
+      and a refresh that rewrites what Jordan already signed off on
+      destroys the reason he signed anything off.
+
+  - id: say-why-not-just-what
+    rule: >
+      Every slot carries two pieces of prose that answer different
+      questions, and neither may stand in for the other. The summary says
+      what the post argues, in your own words, for a reader deciding
+      whether to open it. The rationale says why that post is on that
+      date: cite the specific criterion that drove the placement, and do
+      not write a rationale that would be true of any post on any date.
+      Both stay inside the word limits you have been given. Neither is a
+      title: do not open either one with a headline for the post, and do
+      not propose a name for a post that has none.
+    why: >
+      Jordan asked twice on the founder call for the reasoning behind a
+      placement rather than a score. The reasoning is the deliverable.
+      The summary is separate because a card carrying only a placement
+      rationale tells a reader why a post is on Thursday without telling
+      them what it says, which was the 2026-09-15 complaint.
+
+  - id: hold-the-lane-mix
+    rule: >
+      Section 2 of the canonical LinkedIn document sets three lanes and a
+      mix: lane A is the named-account lane aimed at deal partners and
+      operating partners and is the default, lane B is recruitment aimed
+      at senior MBB consultants and runs at roughly one post in five while
+      recruiting is not the priority, and lane C is topic authority used
+      as connective tissue between A posts. Judge a post's lane by who it
+      addresses and what it is trying to cause, not by a tag, because the
+      corpus carries no lane tags. Aim for that mix across the window
+      rather than within any one week, put lane B posts where a lane A
+      post has already earned the attention, and state the mix you ended
+      up with in the supply note whenever it departs from the target.
+    why: >
+      This is the last of the three window-level checks in
+      narrative/voice.md that had no owner but this agent, and the only
+      one still unimplemented: a post cannot be in violation of a mix, a
+      month can. It is a target rather than a quota on purpose, because
+      the schedulable corpus is about nine items and holding a hard ratio
+      on a corpus that thin would mean leaving dates empty to protect an
+      arithmetic proportion. Saying which mix the window actually got is
+      the part that has to happen every time, since that is what tells
+      Jordan whether the corpus is drifting away from the audience he
+      sells to.
+
+  - id: admit-a-thin-month
+    rule: >
+      If the eligible content cannot fill the window at the configured
+      cadence, schedule what it honestly supports and say so in the arc.
+      Never pad the calendar by scheduling a weak fit, and never repeat a
+      post to fill a date.
+    why: >
+      The Jordan-lens corpus is roughly eight items against a window that
+      wants four to eight slots, so running short is the expected case
+      rather than an error. A calendar that hides a supply problem by
+      padding is worse than one that reports it.

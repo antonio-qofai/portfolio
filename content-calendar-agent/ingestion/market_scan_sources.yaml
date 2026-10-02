@@ -1,0 +1,207 @@
+# Weekly market scan sources for the Thought Leadership Calendar Manager.
+#
+# What this file is for: Jordan asked for a "secondary agent check" on "the
+# current state of the world today" to inform the narrative arc (founder
+# interview, 21:15). market_scan_reader.py loads this file at runtime. The
+# reader contains no publication names, no topics, and no dates. Changing
+# what the scan watches is an edit here, never an edit to Python.
+#
+# PROVISIONAL AND UNCONFIRMED. Jordan has not told us which publications he
+# actually reads. PRD.md Section 7 carries that as an open question for him,
+# and this list is our guess standing in until he answers it, not his answer.
+# It was assembled to cover the two halves of his framing, what is being
+# published about AI and what is being published about private equity, with
+# a deliberate lean toward the middle market QofAI sells into. Every source
+# below was fetched live on 2026-08-18 and returned parseable, current items.
+# Replace freely: the reader only needs `id`, `name`, and `url`.
+
+version: 1
+status: provisional
+reviewed_with_jordan: false
+last_verified: 2026-08-18
+last_tuned: 2026-09-22
+
+# How far back a run looks. Jordan framed this as "what's happening this
+# week", so the default is a week. This is the only date logic in the
+# system; the reader has no calendar of its own.
+lookback_days: 7
+
+# Limits, so one high-volume feed cannot dominate a scan. openai-news
+# returns over a thousand items in a single response (measured 2026-08-18),
+# which is why per-source capping exists at all.
+#
+# Tuned 2026-09-22 from 15 to 6. Assembly keeps the newest N items across
+# every feed, so at 15 the highest-volume feeds filled the prompt: a live run
+# that day gave the model 25 items all published that morning, 10 of them
+# TechCrunch, out of a nominal fourteen-day window. At 6, each feed can offer
+# only its six newest, so the slow PE trade feeds and the fast AI feeds reach
+# the model in comparable numbers and the window actually spans two weeks.
+max_items_per_source: 6
+max_items_total: 120
+
+# Items whose feed gives no parseable date. "include" keeps them and leaves
+# published_at null; "exclude" drops them. Include is the safer default for
+# a secondary check: a missing timestamp is a formatting failure upstream,
+# not evidence the item is old.
+undated_items: include
+
+summary_max_chars: 400
+
+http:
+  timeout_seconds: 20
+  # Some publishers reject the stdlib/library default agent outright. A
+  # descriptive agent is both politer and more likely to be served.
+  user_agent: "qofai-thought-leadership-calendar-manager/0.1 (market scan; contact owner@example.com)"
+
+# Relevance filter. This is editorial policy, so it lives here.
+#   mode: any  - keep an item if it matches at least one term
+#        all  - keep an item only if it matches every term
+#        off  - keep everything the feeds return, filter nothing
+# Matching is case-insensitive substring matching over the named fields.
+# Terms are deliberately broad: the scan is a read on the conversation, and
+# a false positive costs a line of output while a false negative loses a
+# signal the arc should have responded to.
+relevance:
+  mode: any
+  match_fields: [title, summary]
+  terms:
+    - artificial intelligence
+    - " ai "
+    - "ai-"
+    - agent
+    - automation
+    - machine learning
+    - llm
+    - private equity
+    - buyout
+    - portfolio company
+    - middle market
+    - ebitda
+    - exit
+    - carve-out
+    - value creation
+    - due diligence
+    - fundraising
+    - dry powder
+    - take-private
+    - lbo
+  # Dropped whatever the mode, matched against titles only. Added 2026-09-22
+  # after reading a live run: house ads and consumer or speculative AI made
+  # up about 40% of what reached the model. Kept short and specific, since a
+  # broad exclusion would silently drop a real signal.
+  exclude_fields: [title]
+  exclude_terms:
+    - share your
+    - take the
+    - off-duty
+    - agenda revealed
+    - kill us all
+    - smartphone
+
+# Sources. `id` is stable and is what per-item identifiers are namespaced
+# by, so renaming an id makes previously seen items look new. `lens` is
+# advisory metadata for the synthesis step, matching the lens vocabulary in
+# narrative/threads.yaml; the reader passes it through without acting on it.
+sources:
+  # --- What is being published about AI -------------------------------
+  - id: mit-technology-review-ai
+    name: MIT Technology Review, Artificial Intelligence
+    url: https://www.technologyreview.com/topic/artificial-intelligence/feed/
+    lens: all
+    note: Research-adjacent AI coverage written for a general executive reader.
+
+
+
+  - id: mckinsey-insights
+    name: McKinsey Insights
+    url: https://www.mckinsey.com/insights/rss
+    lens: jordan
+    note: >
+      Closest thing in the list to what a PE operating partner reads on
+      enterprise AI adoption. Its dates are date-only (no time component),
+      which the reader handles.
+
+  - id: crunchbase-news
+    name: Crunchbase News
+    url: https://news.crunchbase.com/feed/
+    lens: jordan
+    note: >
+      Where capital is going, which is the half of "what's out there" the
+      trade press covers late. Highest match rate of any source tried,
+      9 of 10 items on 2026-08-18.
+
+  # --- What is being published about private equity -------------------
+  - id: middle-market-growth
+    # Every item is PE trade news, so the keyword filter only drops good
+    # items (PE Hub's "X acquires Y" headlines match no term). Off since 2026-09-22.
+    relevance: "off"
+    name: Middle Market Growth (ACG)
+    url: https://middlemarketgrowth.org/feed/
+    lens: jordan
+    note: >
+      The most on-target source in the list: ACG's publication covers the
+      exact $25M-$1B band QofAI sells into. Its feed uses the `media:`
+      namespace prefix without declaring it, which makes it fail a strict
+      XML parse. The reader repairs that case and warns.
+
+  - id: pe-hub
+    relevance: "off"
+    name: PE Hub
+    url: https://www.pehub.com/feed/
+    lens: jordan
+    note: Deal news, mostly North American mid-market.
+
+  - id: buyouts
+    relevance: "off"
+    name: Buyouts
+    url: https://www.buyoutsinsider.com/feed/
+    lens: jordan
+    note: Fundraising, exits, and GP-level activity.
+
+  - id: private-equity-international
+    relevance: "off"
+    name: Private Equity International
+    url: https://www.privateequityinternational.com/feed/
+    lens: jordan
+    note: LP-side and fundraising coverage.
+
+  - id: private-equity-wire
+    relevance: "off"
+    name: Private Equity Wire
+    url: https://www.privateequitywire.co.uk/feed/
+    lens: jordan
+    note: Fund and deal coverage, more European than the rest of the list.
+
+# Sources tried on 2026-08-18 and deliberately left out, recorded so the
+# next person does not spend the same hour rediscovering it:
+#   pitchbook.com/news/rss              HTTP 403 to a non-browser agent
+#   bain.com/insights/rss               HTTP 404
+#   a16z.com/feed                       HTTP 404
+#   bcg.com/rss.aspx                    HTTP 403
+#   reuters.com/technology/rss          HTTP 401
+#   institutionalinvestor.com/rss       HTTP 404
+# And removed on 2026-09-22 after being in the list:
+#   theverge.com/rss/ai-artificial-intelligence   Consumer AI coverage. It
+#       was second only to TechCrunch in what reached the model and carried
+#       nothing a PE or operator lens uses. It was the only Atom feed, and
+#       the Atom parser path is still covered by the reader's own tests.
+#   techcrunch.com/category/artificial-intelligence   Consumer AI, chips,
+#       startup valuations and its own event promos. Nothing it carried on
+#       2026-09-22 served a PE, operator or technical lens, and excluding its
+#       promos only let the next promo in. Crunchbase News covers funding.
+#   anthropic.com/news/rss.xml          HTTP 404 (no public feed found)
+#   hai.stanford.edu/news/rss.xml       returns an HTML page with HTTP 200
+#   feeds.hbr.org/harvardbusiness       TLS failure against this Python's LibreSSL
+#   feeds.a.dj.com/rss/RSSMarketsMain   HTTP 200, newest item ~19 months stale
+#   openai.com/news/rss.xml             works, but returns 1136 items per fetch
+#   ft.com/alphaville?format=rss        parses cleanly, matched 0 of 25 items:
+#                                       its descriptions are one-line jokes
+#                                       ("Fear factor"), so there is nothing
+#                                       for a term filter to read
+#   blog.google/technology/ai/rss       parses cleanly, matched 0 of 20 items:
+#                                       its descriptions are image alt text
+#                                       and its titles name products, not the
+#                                       category ("Get closer to the game with
+#                                       Gemini and Pixel")
+#   secondariesinvestor.com/feed        parses cleanly, matched 1 of 10; too
+#                                       narrow a slice of the asset class

@@ -1,0 +1,7 @@
+# Session handoff notes are local-only working scratch, not a tracked artifact.
+# (Got swept into a commit once by a broad `git add`; keep it out of git.)
+HANDOFF.md
+
+# Bytecode from running the modules and the tests directly.
+__pycache__/
+*.pyc

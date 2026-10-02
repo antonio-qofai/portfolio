@@ -1,0 +1,160 @@
+# What each input is expected to do, for gap detection (PRD.md build order
+# item 11).
+#
+# gap_detection.py loads this file at runtime and contains no source names, no
+# intervals, and no severities of its own. Changing what counts as late is an
+# edit here, never an edit to Python, the same rule market_scan_sources.yaml
+# and narrative/threads.yaml already follow.
+#
+# WHAT A "GAP" IS HERE. Not "the source returned nothing today". A source can
+# answer every day with the same items it gave yesterday, which means nothing
+# new has arrived and is exactly the condition worth flagging. So freshness is
+# measured from the last time an item was seen for the *first* time, read out
+# of the ingestion_log's append history, not from the last time a reader ran.
+#
+# THE TWO STORES THIS READS, AND WHY BOTH. `ingestion_log` says what arrived.
+# `ingest_runs` says what was asked. Neither alone can tell a quiet source
+# from an unasked one, and treating those as the same thing is the failure
+# calendar_model/state_store.py exists to prevent.
+#
+# Field notes:
+#   id                  the source-agent name daily_ingest.py records under.
+#                       Must match exactly or the source reads as never asked.
+#   cadence             continuous     - new items expected to keep arriving
+#                       monthly_anchor - the month's tentpole; timing comes
+#                                        from narrative/threads.yaml
+#                       deferred       - not read in v1; never flagged, and
+#                                        listed so its absence is a decision
+#                                        on the page rather than an omission
+#   max_silence_days    days without a first sighting before this is a gap
+#   severity            tentpole | flag | note, worst first
+#   volatile            true where the upstream row count moves both ways, so
+#                       a drop is reported as an observation and never as a
+#                       gap on its own
+#   note                why the number is what it is, for whoever changes it
+
+version: 1
+last_reviewed: 2026-08-26
+reviewed_with_jordan: false
+
+defaults:
+  # Applied to any source that does not set its own. Two days rather than one
+  # because a source read daily can legitimately produce nothing on a given
+  # day, and a detector that cries wolf every quiet Sunday gets ignored, which
+  # costs more than the day of latency.
+  max_silence_days: 7
+  severity: flag
+
+# How stale the run record itself may get before the run is the finding. This
+# is deliberately separate from any source's patience: when the daily workflow
+# stops firing, every source goes silent at once, and reporting four silent
+# sources instead of one dead schedule points the reader at four innocent
+# dependency agents. Above this age, gap_detection reports the run and
+# suppresses the per-source silence findings it can no longer trust.
+run_staleness_days: 2
+
+# The operational reading of the taxonomy's "first week of month". Which
+# source is the month's anchor is editorial and is read from
+# `sequencing.monthly_anchor` in narrative/threads.yaml rather than restated
+# here; this is only the day number that phrase means, kept as a config key
+# because parsing the phrase out of English would be a fragile way to learn
+# something a number can state. The anchor check stays silent until this day
+# has passed, so a not-yet-late briefing is never reported as late.
+anchor_deadline_day: 7
+
+sources:
+  - id: content-atomizer
+    cadence: continuous
+    max_silence_days: 10
+    severity: flag
+    note: >
+      Alex's posts are the calendar's main supply. At one to two slots a week
+      (founder call, 2026-08-19) a 30-day window needs four to eight items,
+      so ten days without a new post is the point where the next window
+      starts competing with the current one for the same content.
+
+  - id: value-creation-briefing
+    cadence: monthly_anchor
+    severity: tentpole
+    note: >
+      Jordan called the VCB "a seminal piece of information" scheduled at a
+      fixed point with the rest arranged around it (founder interview,
+      08:18). A late VCB is a missing tentpole rather than a missing input,
+      which is why this is the one source whose severity is its own level.
+      The expected timing is not repeated here: it lives in the
+      `sequencing.monthly_anchor` block of narrative/threads.yaml, which is
+      where editorial sequencing belongs, and gap_detection reads it there.
+
+  - id: conference-event-intelligence
+    cadence: continuous
+    max_silence_days: 30
+    severity: note
+    volatile: true
+    note: >
+      A conference directory, not a content feed: rows are added in batches
+      and removed as events pass, and the table went from 80 rows on
+      2026-07-24 to 61 on 2026-08-26 with no filter applied. So thirty days,
+      and `volatile: true` so the shrinkage is reported as an observation.
+      Severity is note rather than flag because nothing in the v1 calendar is
+      blocked by a quiet month here; speaking-slot planning is, and that is
+      not a v1 output. The sentence that followed this one until 2026-09-21
+      called this the one source whose token is unset. That stopped being true
+      on 2026-09-02, when CALENDAR_AGENT_AIRTABLE_TOKEN was set and the source
+      read 68 rows live. The mechanism it described still holds: an
+      unconfigured source is reported as its own finding at flag severity
+      regardless of what is set here.
+
+  - id: market-scan
+    cadence: continuous
+    max_silence_days: 3
+    severity: flag
+    note: >
+      Eight public feeds read on a seven-day lookback. Three days of nothing
+      new across all eight means the fetching broke, not that the world went
+      quiet, which makes this the fastest-tripping and most diagnostic entry
+      in the file.
+
+  - id: linkedin-post-engagement
+    cadence: deferred
+    note: >
+      Renamed from `linkedin-content-outreach` on 2026-09-21, when the reader
+      was built. The old id named the agent this was once expected to come
+      from; engagement actually reaches the portal from one central
+      PhantomBuster pull, so the new id names the data. Nothing had ever been
+      recorded under the old name, so this renames a plan.
+      Still `deferred`, and that is the whole point of the cadence: the reader
+      exists (`ingestion/portal_reader.py`) and the daily run asks for it, but
+      C2 has no `PORTAL_TOKEN` yet, so every morning it reports `unconfigured`.
+      Flagging that would redden the daily build every day until Maria issues a
+      token from the portal's /admin page, which is a red build nobody can act
+      on and everybody learns to ignore. Exactly the reasoning that rejected `--fail-on tentpole` on
+      2026-09-17.
+      THE EDIT AT ONBOARDING: change this to `cadence: continuous` with a
+      `max_silence_days`, on the day the token is set. From then on an
+      unconfigured or broken engagement read is a real finding.
+
+  - id: published-content
+    cadence: deferred
+    note: >
+      New on 2026-09-21, with the reader. What actually went out, from the
+      portal's Content Library, which is the only place it exists: nothing in
+      the program publishes to LinkedIn, so the record is whatever a person
+      entered.
+      Deferred for the same reason as the entry above, and with the same edit
+      to make at onboarding. One extra thing to decide then that does not
+      apply to engagement: an empty library is not obviously a gap. Nobody has
+      committed to recording published posts there, so a long silence may mean
+      the posting is not being logged rather than that nothing was posted, and
+      those want different responses. Ask before setting a number.
+
+  - id: client-lifecycle-tracker
+    cadence: deferred
+    note: >
+      Deferred (build order item 5), and the one entry here that a portal
+      token does not unblock. Morgan's agent is built but reads PostHog and
+      writes a Slack digest plus an Airtable ledger (base appXXXXXXXXXXXXXX),
+      with no portal path and no interface C2 can read. Re-checked
+      2026-09-21: still true. Unblocking it means either asking him to publish
+      one or reading his Airtable base directly the way the conference reader
+      reads Taylor's, and neither is worth doing before anyone has said what
+      client engagement data would change about a content calendar.

@@ -1,0 +1,181 @@
+# The two inputs C2 can only get from the QofAI Agent Portal, and how to ask
+# for them.
+#
+# WHY THIS FILE EXISTS SEPARATELY from gap_expectations.yaml and
+# market_scan_sources.yaml: same rule as both of those. `portal_reader.py`
+# holds no endpoint, no filter value and no column name of its own, so
+# adapting to what the portal actually returns on the day we first call it is
+# an edit here rather than an edit to Python.
+#
+# NOTHING HERE HAS BEEN VERIFIED AGAINST A LIVE PORTAL. Every value below was
+# read out of the portal's own source in this monorepo on 2026-09-21, which is
+# the best available evidence and is not the same as a response. The files it
+# came from are named per block. C2 has no portal token yet, so the first real
+# call is the verification step, and `ingestion/portal_reader.py` reports every
+# read as unverified until someone records that it has happened.
+#
+# WHO ISSUES THE TOKEN. Maria. He has owned the portal and its `/admin`
+# agent-onboarding page, which is where a `qap_` token is minted, since Pat
+# handed it to him on 2026-08-24 (`gtm-portal/portal/HANDOFF.md`). The portal's
+# own `contrib/ONBOARDING.md` still says to ask Pat and is stale; Pat has
+# left QofAI. That file is not ours to edit, so this note exists instead.
+# Maria also owns `linkedin-content-outreach`, which is the one agent that has
+# actually consumed the engagement rows below, so he is the right person twice
+# over. If he is not reachable, Blake is the fallback: he is already the
+# Workspace admin behind the portal's Google client.
+
+version: 1
+recorded: 2026-09-21
+verified_against_live_portal: false
+
+# From gtm-portal/portal/contrib/ONBOARDING.md. Overridden by PORTAL_URL,
+# which is what the onboarding doc tells every agent to set, so this default
+# exists to make a local check possible rather than to be authoritative.
+portal_url: https://portal.example.test
+
+# Seconds. The portal may be waiting on Airtable behind a read, which is why
+# its own client (contrib/portal_gtm.py) uses 30 rather than the 15 its
+# reporting client uses.
+timeout_seconds: 30
+
+sources:
+
+  # ---------------------------------------------------------------------
+  # Post engagement: who reacted to and commented on what.
+  #
+  # PRD Section 3 records this as portal-only, and that is still true, but the
+  # reason is worth stating precisely because it is not "the portal owns
+  # engagement". One paid PhantomBuster account runs the scrapes for the whole
+  # program (decided on the 2026-07-27 call) and its output lands in the
+  # portal's central LinkedIn store, so reading it anywhere else would mean
+  # running a second scrape against the same accounts.
+  #
+  # Phantom 03, "Monitor - Post Commenter and Liker Scraper", is the one that
+  # produces these rows. It is tagged `source: post-engagement` by the central
+  # pull. Source of truth: scripts/linkedin_pull_config.json at the monorepo
+  # root, and .github/workflows/linkedin-post-engagement-chain.yml for when it
+  # runs (11:15 UTC, copied into the portal at 12:00 UTC).
+  # ---------------------------------------------------------------------
+  post_engagement:
+    path: /api/v1/linkedin/rows
+    params:
+      # Which phantom's rows. Not "linkedin rows": 01 exports a search, 02
+      # scrapes profiles, and only 03 is about a post.
+      source: post-engagement
+      # Whose network the scrape saw. Only `jordan` is configured today; the
+      # store supports more and a reader that ignored this would mix them.
+      network: jordan
+      # Every row, not the latest per person, and this is the one parameter
+      # here that would be silently wrong the other way. The endpoint dedupes
+      # by person unless asked not to, so a founder who reacted to five posts
+      # would arrive as one row and four engagements would vanish. Engagement
+      # is an event per (person, post), not a state per person.
+      all: true
+      limit: 5000
+
+    # The pull log for this store. Read whenever the rows come back empty,
+    # because the endpoint's own note says so: no rows and no pull are
+    # different answers, and treating them as one is how a missing baseline
+    # goes unnoticed. This is what lets the reader return `empty` rather than
+    # `missing` honestly.
+    pulls_path: /api/v1/linkedin/pulls
+
+    # The scrape's own columns, taken from a working consumer rather than
+    # guessed.
+    #
+    # An earlier version of this block guessed these from the portal's storage
+    # model, which only promises five keys of its own (profile_url,
+    # pull_source, pull_network, pull_started_at, scraped_at) and stores the
+    # rest of PhantomBuster's CSV verbatim. The guesses were wrong in a way
+    # that would have returned zero engagements while reporting a healthy
+    # read: the post column is `postsUrl`, plural, which was not in the list,
+    # and there is no `action` column at all.
+    #
+    # These names come from `repos/linkedin-content-outreach/agent_core/
+    # engagement_source.py`, which has mapped these exact rows since
+    # 2026-08-12, and from the fixtures in that agent's
+    # `tests/test_engagement_source.py`. That is a second agent reading the
+    # same store and is much better evidence than the storage model. It is
+    # still not a response to our own call, so the list stays a list: the
+    # header is PhantomBuster's and changes without warning, which is why
+    # theirs carries fallbacks too.
+    #
+    # Each list is tried in order and the first key present on the row wins.
+    # When none matches, the row is still kept and counted, and the reader
+    # reports which fields it could not resolve, because "rows arrived and we
+    # could not read them" has to be distinguishable from "no rows".
+    columns:
+      post_url:
+        - postsUrl
+        - postUrl
+        - post_url
+      profile_url:
+        - profile_url
+        - profileUrl
+      # Not a column anyone has seen, and listed anyway because it costs
+      # nothing and the panel shows names when it can. Maria's mapper does not
+      # read one, so expect this to stay unresolved and the display to fall
+      # back to the profile URL. An unresolved name is not a failure; an
+      # unresolved post is.
+      engager_name:
+        - fullName
+        - firstName
+        - name
+      engaged_at:
+        - lastCommentedAt
+        - timestamp
+        - scraped_at
+
+    # What kind of engagement it was. Not a column: PhantomBuster gives two
+    # boolean-ish flags, and they round-trip through the portal as the strings
+    # "true" and "", never as real booleans, so a plain truthiness check would
+    # read the string "false" as true. Both can be true on one row, and a row
+    # with neither still means the scrape saw that person engage with that
+    # post, so it is an engagement rather than nothing. Same reading as
+    # `engagement_source.row_to_engagement_event`, deliberately, because two
+    # agents disagreeing about what a row means is worse than either reading.
+    flags:
+      comment:
+        - hasCommented
+      like:
+        - hasLiked
+    flag_true_value: "true"
+    flag_default: engagement
+
+  # ---------------------------------------------------------------------
+  # Published post history: what actually went out, so a placement can reason
+  # about what preceded it.
+  #
+  # PRD Section 3 calls this portal-only because it is "created by a manual
+  # human posting step": no agent in the program publishes to LinkedIn, so the
+  # record of what was published exists only where a person recorded it, which
+  # is the portal's Content Library.
+  #
+  # Source of truth for the shape: gtm-portal/portal/app/routers/intake/
+  # gtm_records.py, `_CONTENT_KEYS` and `list_content`.
+  # ---------------------------------------------------------------------
+  published_content:
+    path: /api/v1/content
+    params:
+      # The endpoint filters case-insensitively on a row's own status column
+      # and sorts by date_published descending. Left unset deliberately: we do
+      # not know what values that column actually takes, and guessing
+      # "Published" would filter the whole library away if it says "Live".
+      # Filtering happens here instead, on date_published being present, which
+      # is a fact rather than a vocabulary.
+      limit: 200
+    # Rows the portal returns with no publish date are dropped by the reader.
+    # A content row with no date is a plan, not a history, and it cannot be
+    # placed on a timeline.
+    require_publish_date: true
+    # These are the portal's own documented keys rather than a scrape's, so
+    # they are named directly. A missing one is reported, not guessed at.
+    fields:
+      - title
+      - url
+      - channel
+      - themes
+      - target_audience
+      - date_published
+      - status
+      - notes

@@ -1,0 +1,37 @@
+# Runtime dependencies for this agent, so the daily workflow installs from a
+# file rather than from a package list written into the YAML.
+#
+# Three. `requests` is the Airtable REST call in
+# ingestion/conference_reader.py and the feed fetches in
+# ingestion/market_scan_reader.py; `pyyaml` is the taxonomy, the corpus tags,
+# the market scan source list, and the sequencing policy; `anthropic` is the
+# one model call the agent makes, in synthesis/assemble.py, which is where
+# the calendar's ordering is decided. Everything else in this folder is
+# standard library on purpose, because the daily run has to work on a bare
+# CI runner.
+#
+# `anthropic` is imported lazily inside the call itself, so every other
+# module, and the whole test suite, still runs on a machine that does not
+# have it. The daily ingest does not touch it: ingestion never calls a model.
+#
+# Not pinned here: `urllib3<2`. That pin is in README.md as a local macOS
+# workaround (system Python 3.9 is built against LibreSSL, and urllib3 v2
+# needs OpenSSL 1.1.1+). It is a property of one laptop, not of this agent,
+# and pinning it for everyone would hold CI back on a two-year-old transport
+# for no reason.
+requests
+pyyaml
+anthropic
+
+# Added 2026-09-15 for `ui/app.py`, the served calendar. The page was a file
+# until then and a file cannot record an approval, which is the whole reason
+# the server exists. Flask because it is one route and one POST: the app has
+# no forms, no sessions, no ORM and no templates, since the page is already
+# rendered by display/render_calendar.py and the server hands it over.
+#
+# `gunicorn` is for the hosted version and does nothing locally. It is listed
+# now rather than at deploy time because the portal's start command names it,
+# and a missing runtime dependency discovered on Railway costs a round trip
+# through someone else's deploy access.
+flask
+gunicorn

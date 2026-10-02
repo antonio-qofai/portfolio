@@ -1,0 +1,91 @@
+# Weekly calendar refresh policy, PRD.md build order item 17.
+#
+# The refresh asks one question every week: is the standing calendar still the
+# right calendar? This file holds the whole answer to "when is it worth asking
+# the model again", so `refresh.py` carries no threshold, no trigger, and no
+# reason text of its own. A test builds a report from a policy with
+# deliberately different numbers and asserts the verdict follows this file, so
+# a constant that creeps back into the code cannot pass.
+#
+# Why there are triggers at all, rather than a weekly model call.
+# Re-proposing a calendar that nothing has changed is worse than not running.
+# It spends a request to produce a different-but-equivalent ordering, and every
+# such re-ordering moves posts under a person who has already read the reasons
+# for where they were. Churn erodes a plan that Jordan is meant to be able to
+# rely on between reviews. So the refresh always reports, and only proposes
+# when something it can name has actually changed.
+
+version: 4
+updated: 2026-09-13
+
+# What makes a re-proposal worth a model call. Each trigger is independent and
+# any one of them firing is enough; the report names which fired and why.
+triggers:
+
+  new_schedulable_content:
+    enabled: true
+    minimum: 1
+    reason: >
+      Content that arrived after the window was written was not available to
+      the assembly that produced it, so the standing calendar cannot have
+      considered it. One new post is enough, because at this corpus size one
+      post is a meaningful fraction of the month.
+
+  content_declined:
+    enabled: true
+    reason: >
+      A declined slot leaves a date with nothing on it. That is the case the
+      refresh most obviously exists for, and it is the only signal here that
+      represents a decision rather than an arrival.
+
+  narrative_changed:
+    enabled: true
+    reason: >
+      The narrative documents are the standing positioning, and a mid-month
+      shift in them is exactly what this build added the refresh to absorb.
+      The 2026-08-13 repositioning would otherwise have sat unapplied for up
+      to four weeks while the approved horizon kept publishing against it.
+      Compared by content digest rather than by modification time: git leaves
+      a working copy's mtime alone unless the text changes, so mtime looks
+      right on a laptop and is wrong in CI, where a checkout stamps every
+      file with the checkout time and this trigger would fire on every run.
+      The first run against a window records the digests and reports no
+      change, because there is nothing yet to compare against.
+
+  window_running_out:
+    enabled: true
+    days_left_at_or_below: 10
+    reason: >
+      Reports that it is time to assemble the next window. It does not
+      assemble one: that is the monthly assembly's job, and a refresh that
+      quietly started producing next month's calendar would make two
+      different jobs indistinguishable in the log.
+    proposes: false
+
+# Set true to re-propose every run regardless of the triggers. Off, because a
+# weekly unconditional call is the churn this policy exists to avoid. Useful
+# for a one-off forced refresh from the command line via --force.
+always: false
+
+# Where a proposal goes. Never over the standing window: the refresh proposes
+# and a human disposes, and a job that rewrote the calendar it was reviewing
+# would break the approval guarantee in Section 2 by removing the thing that
+# was approved. `calendar_model/slots.newest_window_path` treats any window
+# carrying a further qualifier as not-a-calendar, so a proposal cannot be
+# picked up by the page or the approval queue as the standing calendar.
+output:
+  proposal_suffix: .proposed
+  record_runs: true
+  store: refresh_runs
+
+# The supply half of the report, which the founder call asked for directly:
+# which drafts exist, whether they are ordered, and whether anything should be
+# slotted in. This is computed from the corpus and the window with no model
+# call, so it prints every week whether or not a proposal is made.
+supply:
+  runway_warn_weeks: 4
+  reason: >
+    Below this many weeks of unscheduled content, the calendar is consuming
+    the corpus faster than the content agents refill it and the report says
+    so. Four weeks is one assembly cycle: less than that means the next
+    monthly assembly has nothing new to work with.

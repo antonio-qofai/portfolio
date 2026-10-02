@@ -1,0 +1,430 @@
+# Synthetic stand-in for narrative/threads.yaml, which holds real positioning and is not
+# published. Same ids and shape, so the validators and tests run unchanged; every claim,
+# description and piece of evidence is a placeholder.
+version: 1
+status: synthetic
+policy: Synthetic taxonomy for tests. The thread, form and lens ids are the real ones the code names;
+  every name, claim and note is invented.
+last_reviewed: 2026-08-18
+reviewed_with_jordan: false
+sequencing:
+  monthly_anchor:
+    source: value-creation-briefing
+    expected: first week of month
+    note: A monthly anchor piece is placed first and the rest is arranged around it.
+    confidence: high
+    source_type: synthetic
+  approved_horizon_days: 14
+  draft_horizon_days: 30
+lenses:
+- id: jordan
+  name: Lens Jordan
+  person: Founder
+  calendar: true
+  v1: true
+- id: casey
+  name: Lens Casey
+  person: Founder
+  calendar: true
+  v1: true
+- id: blake
+  name: Lens Blake
+  person: Founder
+  calendar: true
+  v1: true
+- id: all
+  name: Lens All
+  person: Everyone
+  calendar: false
+  v1: false
+threads:
+- id: exit-preparation
+  name: Exit preparation
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: named
+  origin: source-1
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: margin-capture
+  name: Margin capture
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: named
+  origin: source-1
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: decision-architecture
+  name: Decision architecture
+  claim: Synthetic claim used only by tests.
+  lens: all
+  status: named
+  origin: source-1
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: forecast-underwriting
+  name: Forecast underwriting
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: named
+  origin: source-1
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: democratized-infrastructure
+  name: Democratized infrastructure
+  claim: Synthetic claim used only by tests.
+  lens: all
+  status: candidate
+  origin: source-1
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: economic-model-alignment
+  name: Economic model alignment
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: candidate
+  origin: source-1
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: organizational-change-management
+  name: Organizational change management
+  claim: Synthetic claim used only by tests.
+  lens: all
+  status: named
+  origin: source-3
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: every third post
+- id: pilot-to-production-gap
+  name: Pilot to production gap
+  claim: Synthetic claim used only by tests.
+  lens: all
+  status: observed
+  origin: source-2
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: compounding-capability
+  name: Compounding capability
+  claim: Synthetic claim used only by tests.
+  lens: all
+  status: observed
+  origin: source-2
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: exit-multiple-premium
+  name: Exit multiple premium
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-2
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: consulting-model-inversion
+  name: Consulting model inversion
+  claim: Synthetic claim used only by tests.
+  lens: all
+  status: observed
+  origin: source-2
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: post-gtd-management
+  name: Post gtd management
+  claim: Synthetic claim used only by tests.
+  lens: all
+  status: observed
+  origin: source-2
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: naming-the-category
+  name: Naming the category
+  claim: Synthetic claim used only by tests.
+  lens: all
+  status: observed
+  origin: source-2
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: fleet-governance
+  name: Fleet governance
+  claim: Synthetic claim used only by tests.
+  lens: casey
+  status: observed
+  origin: source-2
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: dogfooding-in-public
+  name: Dogfooding in public
+  claim: Synthetic claim used only by tests.
+  lens: all
+  status: observed
+  origin: source-2
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: resolution-gap
+  name: Resolution gap
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-2
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: orchestration-layer-value
+  name: Orchestration layer value
+  claim: Synthetic claim used only by tests.
+  lens: blake
+  status: observed
+  origin: source-2
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: last-mile-data-moat
+  name: Last mile data moat
+  claim: Synthetic claim used only by tests.
+  lens: blake
+  status: observed
+  origin: source-2
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: ai-spend-visibility
+  name: Ai spend visibility
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-5
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: roi-metric-shift
+  name: Roi metric shift
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-5
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: data-readiness
+  name: Data readiness
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-5
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: labor-cost-model-gap
+  name: Labor cost model gap
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-5
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: governance-ownership
+  name: Governance ownership
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-5
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: named-workflow-targets
+  name: Named workflow targets
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-5
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: emerging-diligence-items
+  name: Emerging diligence items
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: candidate
+  origin: source-5
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: competitive-window
+  name: Competitive window
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: candidate
+  origin: source-5
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: return-math-changed
+  name: Return math changed
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-4
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: judgment-premium
+  name: Judgment premium
+  claim: Synthetic claim used only by tests.
+  lens: all
+  status: observed
+  origin: source-4
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: incumbent-dilemma
+  name: Incumbent dilemma
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-4
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: multidisciplinary-bottleneck
+  name: Multidisciplinary bottleneck
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-4
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: value-based-pricing
+  name: Value based pricing
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: observed
+  origin: source-4
+  confidence: high
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+- id: middle-market-is-better-work
+  name: Middle market is better work
+  claim: Synthetic claim used only by tests.
+  lens: jordan
+  status: candidate
+  origin: source-4
+  confidence: medium
+  source_type: synthetic
+  evidence:
+  - synthetic
+  cadence: null
+forms:
+- id: research-anchored-gap
+  name: Research anchored gap
+  description: Synthetic post form used only by tests.
+  evidence:
+  - synthetic
+- id: see-it-for-yourself
+  name: See it for yourself
+  description: Synthetic post form used only by tests.
+  evidence:
+  - synthetic
+- id: the-question-worth-asking
+  name: The question worth asking
+  description: Synthetic post form used only by tests.
+  evidence:
+  - synthetic
+- id: historical-analogy
+  name: Historical analogy
+  description: Synthetic post form used only by tests.
+  evidence:
+  - synthetic
+- id: named-case-with-receipts
+  name: Named case with receipts
+  description: Synthetic post form used only by tests.
+  evidence:
+  - synthetic
+- id: briefing-launch
+  name: Briefing launch
+  description: Synthetic post form used only by tests.
+  evidence:
+  - synthetic
+- id: ask-at-the-close
+  name: Ask at the close
+  description: Synthetic post form used only by tests.
+  evidence:
+  - synthetic
+tensions: []
+open_questions: []
