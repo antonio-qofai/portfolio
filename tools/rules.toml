@@ -2,8 +2,8 @@
 # identifier belongs in ~/.config/portfolio-sync/private.toml, not here.
 
 # Order of projects in the README list. Others follow alphabetically.
-readme_order = ["qofai-deck-generator", "internship-search", "trip-planner", "qofai-content-calendar",
-                "apartment-chores", "life-dashboard", "qofai-pe-research-agent"]
+readme_order = ["qofai-deck-generator", "qofai-content-calendar", "qofai-pe-research-agent",
+                "internship-search", "trip-planner", "apartment-chores", "life-dashboard"]
 
 exclude_everywhere = [
     ".env", ".env.*", "*.db", "*.db-*", "*.pem", "credentials*.json", "token*.json",
