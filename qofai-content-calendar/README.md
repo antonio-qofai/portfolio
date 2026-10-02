@@ -1,4 +1,4 @@
-# content-calendar-agent
+# qofai-content-calendar
 
 Built during my internship at QofAI. A teammate started this agent and I took it over and
 rebuilt it, so most of the code here is mine. It plans the founders' LinkedIn posting
@@ -9,6 +9,10 @@ every post and records when it went out.
 
 This is a sanitized copy. People are renamed, and the narrative files, real calendars and
 run history are left out. See "What was changed for publication" below.
+
+![The served calendar for one month, with a post open in the side panel](docs/screenshots/calendar.png)
+
+The screenshot uses a synthetic month and invented posts.
 
 ## How it works
 
