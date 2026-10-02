@@ -1,4 +1,4 @@
-# pe-research-agent
+# qofai-pe-research-agent
 
 Built as pre-work for my internship at QofAI. It produces a sourced dossier on a
 middle-market private equity firm: the firm's profile, its portfolio companies, revenue and
