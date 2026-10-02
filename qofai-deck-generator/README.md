@@ -1,4 +1,4 @@
-# deck-generator
+# qofai-deck-generator
 
 Built during my internship at QofAI, which builds AI agents for middle-market private equity
 firms and their portfolio companies. This agent writes the client-facing decks QofAI brings
