@@ -74,8 +74,10 @@ fake fixture. Anything real becomes a private redaction.
 ## QofAI projects
 
 QofAI work is published with a cofounder's approval, on the condition that the owner reviews
-it first. Those repos live on the other Mac and are synced by hand, with no post-commit hook,
-so later changes never publish without review. Do not install hooks for them.
+it first. Those repos live on the work Mac, not the one that holds the personal projects. They
+are synced by hand, with no post-commit hook, so later changes never publish without review.
+Their sections in `rules.toml` set `hook = false`, which makes `--install-hooks` skip them.
+Do not install hooks for them.
 
 ## Writing style for README and docs
 

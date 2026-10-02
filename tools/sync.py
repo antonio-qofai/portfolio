@@ -24,8 +24,9 @@ review cannot run (no key, API down), that also stops it.
 Two config files:
   tools/rules.toml                      public: excludes, overlays, generic rules
   ~/.config/portfolio-sync/private.toml private: source paths on this machine,
-                                         redactions that name real values, and
-                                         where to find the API key
+                                         redactions that name real values, where
+                                         to find the API key, and optionally a
+                                         cheaper [review] model for trial passes
 
 Each run records its result in ~/.config/portfolio-sync/status.json.
 
@@ -111,6 +112,18 @@ Do not flag:
 - Public organisations named as targets or data sources, such as companies whose public job
   boards are polled, news sites, APIs, universities and course names.
 - The owner's university and the internship company itself, which appear on their resume.
+- The owner's own name, Antonio Rodriguez Diaz (or Antonio), as the author of the work.
+- Stand-ins the redaction rules put in place of real names, which are fictional by design:
+  companies Northwind, Fabrikam (FBK), Contoso, Tailspin (TIG), Wingtip (WTG, WTH), Litware
+  (LTS), Woodgrove, Proseware, Lucerne, Adatum, Trey, Relecloud, Coho, Margie, Lamna,
+  Salesbox, Planwright, Quotebase and Example-prefixed names; the synthetic test clients
+  Ridgeline, Vantgo, Meridian, Ashgrove and Halden; and the people Alex, Blake, Casey, Casy,
+  Jordan, Maria, Pat, Sam, Robin, Taylor, Morgan, Quentin, Charlotte, Brent, Ralph, Derek,
+  Rob and "<Name> Partner".
+- In the deck generator's scrubbed research-paper fixtures, the invented people (Owen Pratt,
+  Erin Vaughn, Neil Sanders, Marcus Doyle, Colin Reeves, Neil, Diego) and invented customers
+  (Northlake Energy, Calder Fuels, Vantera Petroleum), and regions written as "Region N".
+- Ids of the form 0000000N-0000-4000-8000-00000000000N or f000000N, which are fake.
 - Code, configuration keys, environment variable names, model names, and placeholders like
   YOUR_API_KEY.
 - Opinions, design reasoning and engineering notes, even blunt ones.
@@ -363,7 +376,11 @@ def api_key(private: dict) -> str:
         return os.environ["ANTHROPIC_API_KEY"]
     env_file = private.get("review", {}).get("env_file")
     if env_file:
-        for line in Path(env_file).expanduser().read_text().splitlines():
+        path = Path(env_file).expanduser()
+        if not path.is_file():
+            raise SyncError(f"review env_file {path} does not exist, so the review cannot run; "
+                            "nothing published")
+        for line in path.read_text().splitlines():
             key, _, value = line.partition("=")
             if key.strip() == "ANTHROPIC_API_KEY" and value.strip():
                 return value.strip().strip("'\"")
@@ -379,7 +396,7 @@ def review(name: str, diffs: list[str], private: dict) -> list[dict]:
     for batch in chunk(diffs, REVIEW_CHUNK_CHARS):
         try:
             resp = client.beta.messages.create(
-                model=REVIEW_MODEL,
+                model=private.get("review", {}).get("model", REVIEW_MODEL),
                 max_tokens=16000,
                 betas=["server-side-fallback-2026-07-01"],
                 fallbacks="default",
@@ -476,9 +493,12 @@ def notify(message: str) -> None:
                        capture_output=True)
 
 
-def install_hooks(private: dict) -> None:
+def install_hooks(rules: dict, private: dict) -> None:
     uv = shutil.which("uv") or "/opt/homebrew/bin/uv"
     for name, src in private["sources"].items():
+        if not rules["projects"].get(name, {}).get("hook", True):
+            print(f"{name}: hook = false in rules.toml, so it is synced by hand only")
+            continue
         hook = Path(src).expanduser() / ".git" / "hooks" / "post-commit"
         line = (f'( "{uv}" run --quiet --script "{REPO / "tools" / "sync.py"}" {name} '
                 f'>> "{LOG}" 2>&1 & ) {HOOK_MARK}\n')
@@ -542,7 +562,7 @@ def main() -> int:
     sources = {k: Path(v).expanduser() for k, v in private.get("sources", {}).items()}
 
     if args.install_hooks:
-        install_hooks(private)
+        install_hooks(rules, private)
         return 0
 
     names = list(sources) if args.all else args.projects

@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Vantgo — Fulfillment Automation Check-in</title>
+<style>
+:root{
+  --ink:#10202e;           /* primary dark: dark-slide bg, dark text on cream */
+  --ink-soft:#3a4a58;      /* body text on cream */
+  --paper:#f4f1ea;         /* light-slide background (cream) */
+  --panel:#ffffff;         /* cards on light slides */
+  --line:#ded7ca;          /* hairline rules / card borders */
+  --mute:#6b7784;          /* muted small-caps labels */
+  --accent:#1a6199;        /* primary accent (steel blue) */
+  --accent-strong:#124e7d; /* deeper accent for small labels */
+  --accent-soft:#5fa8db;   /* accent on dark slides */
+  --accent-tint:#e7eef5;   /* pale blue fill (comp boxes, phase bands) */
+  --pos:#2f7d4f;           /* positive / money-good metrics (green) */
+  --neg:#b1442e;           /* current-state / negative metric accent (rust) */
+  --gold:#c9a24a;          /* label accent on dark bands */
+  --val-comp:#5fa8db;      /* value-map: QofAI comp segment (light steel blue) */
+  --val-ret:#2f7d4f;       /* value-map: client-retained EBITDA (forest green) */
+  --val-ev:#d3e7d9;        /* value-map: enterprise value at exit (pale green) */
+  --on-dark:#f2efe6;       /* text on dark slides */
+  --on-dark-soft:#aeb9c1;  /* muted text on dark slides */
+  /* The Gantt phase ramp — ONE COLOR FAMILY, shades of blue, darkest to
+     lightest (Casey, 2026-07-21: the multi-hue Gantt "is kind of a bad design",
+     one blue per phase is "probably better for the different phases"). Every
+     phase on every deck type takes a step from this one ramp, so a Gantt reads
+     as one family whatever the phase count and whatever the packet's content
+     happens to call a phase. */
+  --phase-1:#14385c;
+  --phase-2:#1f5285;
+  --phase-3:#2f6fb0;
+  --phase-4:#4a86c4;
+  --phase-5:#a9cbe8;
+  /* Arial everywhere (Casey, 2026-07-21: "if you made it just everything with
+     Arial it would probably be fine" — QofAI has its own fonts but loading them
+     is a hassle and Arial is the compatible default). ONE family for every
+     character on the deck: body copy, headlines, and the small-caps labels
+     alike. Nothing is loaded, so the deck renders identically on Mac and
+     Windows with no network request. `--label` keeps the label typography its
+     own hook while resolving to the same Arial stack. */
+  --sans:Arial,Helvetica,sans-serif;
+  --label:var(--sans);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#20262c;font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;
+  display:flex;flex-direction:column;align-items:center;gap:22px;padding:22px 0}
+
+/* Each slide is exactly one fixed 16:9 frame. */
+.slide{position:relative;width:1280px;height:720px;background:var(--paper);
+  padding:40px 52px 34px;display:flex;flex-direction:column;overflow:hidden}
+/* Cover + closing slides: a flat, solid dark fill (Antonio, 2026-07-21 — the
+   earlier radial-gradient read as a "weird blue gradient"; solid colors only). */
+.slide--dark{color:var(--on-dark);background:var(--ink)}
+
+/* Structural chrome: the cover's top bar, and every slide's footer.
+   The top bar exists on the COVER ONLY and carries the header logo mark
+   (unchanged, Antonio 2026-08-06) plus the deck kicker. It has NO rule under it
+   and no confidentiality note: Casey, 2026-07-21, on the body slides — "you can
+   get rid of that line at the top and the line and then the header, just start
+   it with the eyebrow on the left" — and, on the note appearing twice, "you got
+   QofAI Confidential in two places, upper right, lower left. Lower left is good.
+   Footer is good. You'll free up more real estate on the page too." So there is
+   no top rule anywhere on any slide, and confidentiality is a footer-left string
+   only. The footer keeps its hairline (Casey: "the footer is really good"). */
+.topbar{display:flex;justify-content:space-between;align-items:baseline;
+  font-family:var(--label);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--mute);padding-bottom:10px}
+.slide--dark .topbar{color:var(--on-dark-soft)}
+.footer{margin-top:auto;display:flex;justify-content:space-between;gap:16px;
+  font-family:var(--label);font-size:9px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--mute);padding-top:12px;border-top:1px solid var(--line)}
+.slide--dark .footer{color:var(--on-dark-soft);border-color:rgba(255,255,255,.14)}
+
+/* shared section head */
+.kicker{display:flex;align-items:center;gap:8px;font-family:var(--label);font-size:11px;
+  letter-spacing:.24em;text-transform:uppercase;color:var(--accent);font-weight:700;
+  margin:4px 0 11px}   /* small top margin: the eyebrow is the slide's first element (no top bar) */
+.slide--dark .kicker{color:var(--accent-soft)}
+.kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+h1,h2,h3{font-weight:700;line-height:1.05;letter-spacing:-.012em}
+.headline{font-size:33px;max-width:1120px;margin-bottom:10px}
+.summary{font-size:14px;line-height:1.5;color:var(--ink-soft);max-width:1120px}
+.summary b,.summary strong{color:var(--ink)}
+
+/* the content region fills everything between head and footer */
+.body{flex:1;display:flex;flex-direction:column;min-height:0;margin-top:14px}
+
+/* reviewer markers — rendered verbatim, made visible */
+.flag{display:inline-block;font-family:var(--label);font-size:9px;letter-spacing:.06em;
+  background:#fff2c7;border:1px solid #d9b64a;color:#7a5a08;padding:1px 6px;border-radius:3px;
+  font-weight:700;vertical-align:middle}
+
+/* ---------- The cover slide (dark) ---------- */
+.cover-body{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:1080px}
+.prepared{font-family:var(--label);font-size:12px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--on-dark-soft);margin-bottom:28px}
+.cover-title{font-size:64px;line-height:1.02;margin-bottom:24px}
+.cover-title .accent{color:var(--accent-soft);display:block}
+.cover-title .base{color:#fff;display:block}
+.cover-sub{font-size:19px;line-height:1.45;color:var(--on-dark-soft);max-width:900px;font-weight:400}
+
+/* ---------- Gantt phase fills — the one blue family, shared by every deck ----------
+   A phase takes its ramp step by POSITION (1st phase = .phase-1, 2nd = .phase-2,
+   ...), never by a hue named in the content, so no deck can reintroduce the
+   multi-color Gantt. Deeper decks clamp at the last step. These live in the theme
+   rather than in a deck type's components because both Gantts draw from the same
+   ramp. The `.bar` geometry itself is per deck type (a proposal rollout row and a
+   status lane are different shapes) and sits with those components. */
+.bar.phase-1{background:var(--phase-1)}
+.bar.phase-2{background:var(--phase-2)}
+.bar.phase-3{background:var(--phase-3)}
+.bar.phase-4{background:var(--phase-4)}
+.bar.phase-5{background:var(--phase-5);color:#123a5c}
+
+/* ---------- Project Tracking slide — dated Gantt + TODAY marker ---------- */
+.gantt{flex:1;position:relative;display:flex;flex-direction:column;background:var(--panel);
+  border:1px solid var(--line);border-radius:7px;padding:24px 18px 10px;min-height:0;overflow:hidden}
+/* padding-top is generous so the TODAY tab can sit ABOVE the week-header row
+   (Antonio, 2026-07-23) instead of over the week labels. */
+/* One grid: a header row, then one row per lane; the TODAY marker spans all rows.
+   Set --weeks (column count) and grid-template-rows inline (auto + one 1fr per lane). */
+/* minmax(0,1fr) pins the week columns to an equal share: without it, a bar's
+   min-width:max-content (below) would inflate a track's auto-minimum and blow the
+   grid past the panel, clipping the last weeks. With it, a narrow bar grows over
+   its (empty) neighbor cells to fit its label without widening the timeline. */
+/* A trailing gutter track after the week columns gives a bar that ends on the
+   LAST week room to grow rightward to fit its label WITHOUT leaving the panel and
+   being clipped (Antonio, 2026-07-23: the timeline used to leak off the right
+   edge). Bars are still placed only on columns 2..W+1; the gutter just absorbs a
+   rightmost label's overflow inside the panel. */
+.gantt-grid{flex:1;display:grid;grid-template-columns:210px repeat(var(--weeks),minmax(0,1fr)) minmax(64px,96px);
+  column-gap:2px;min-height:0;position:relative}
+.g-corner{grid-column:1;font-family:var(--label);font-size:9px;letter-spacing:.08em;
+  color:var(--mute);font-weight:700;align-self:end;padding-bottom:7px}
+.g-col{align-self:end;text-align:center;padding-bottom:7px}
+.g-col .wid{font-family:var(--label);font-size:11px;font-weight:700;color:var(--ink)}
+.g-col .wdate{display:block;font-family:var(--label);font-size:9px;color:var(--mute);margin-top:1px}
+.g-headrule{grid-column:1 / -1;border-bottom:2px solid var(--ink);height:0;align-self:end}
+.lname{grid-column:1;font-family:var(--label);font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-soft);font-weight:700;padding-right:8px;align-self:center}
+.lane-rule{grid-column:1 / -1;border-bottom:1px solid var(--line);height:0;align-self:start;pointer-events:none}
+/* The label always sits INSIDE the colored bar (Casey/Antonio, 2026-07-21: the
+   words must be on the bar, not floating beside it). A bar whose true week span
+   is too narrow for its label keeps its colored fill and GROWS to the right to
+   contain the text (min-width:max-content, no clipping), so the label never
+   spills onto the empty lane. */
+/* Bar height is a SHARE of its lane row, not a fixed 32px (Antonio, 2026-07-24:
+   the bars left a thick empty band above and below and read as thin ribbons —
+   a bar should fill most of its lane). The lane is a 1fr track of a
+   definite-height grid, so the percentage resolves; the min/max keep a 3-lane
+   Gantt from rendering absurdly fat bars and a 9-lane one from rendering
+   hairlines, so this holds for any lane count rather than one deck's. */
+.bar{align-self:center;height:calc(100% - 20px);min-height:28px;max-height:60px;
+  border-radius:3px;display:flex;align-items:center;padding:0 9px;
+  font-size:11px;color:#fff;line-height:1.2;white-space:nowrap;min-width:max-content;z-index:1}
+/* Bar FILL comes from the theme's one blue ramp (`.phase-N`, keyed to the phase
+   category's position in the plan). The older hue-named fill classes are gone:
+   they were a multi-color scheme wearing blue paint, and content naming a hue
+   could still imply one. A phase's position is the only thing that picks a color
+   now, so nothing in the content can put a second hue on a Gantt.
+   State is annotation only: a buffer/upcoming bar reads as dashed/dimmed,
+   never a different color.
+   The buffer fill is a SOLID pale blue, not transparent (Antonio, 2026-07-24).
+   Transparent left the dashed outline looking half-empty wherever the bar grew
+   past its week span to fit its label, or wherever it sat over a neighboring
+   bar — the dashed box read as "the bar does not fill the dotted line". An
+   opaque pale fill makes the dashed box read as one filled block. */
+.bar.state-buffer{background:#e8f1fa;border:1.5px dashed var(--phase-5);color:#1f5285}
+.bar.state-upcoming{opacity:.55}
+/* z-index:0 keeps the dashed TODAY line BEHIND the bars, so it never draws over
+   a bar's label (Casey, 2026-07-21). The TODAY tab is lifted ABOVE the week-header
+   row into the panel's top padding (Antonio, 2026-07-23), so it never sits over a
+   week label or a bar. */
+.today-mark{grid-row:1 / -1;border-left:2px dashed var(--ink);position:relative;z-index:0;pointer-events:none}
+/* top:-15px seats the tab just above the dashed line's first dash (Antonio,
+   2026-07-24: at -20px it floated with a visible gap and read as detached). */
+.today-tab{position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+  font-family:var(--label);font-size:8.5px;font-weight:700;letter-spacing:.1em;
+  background:var(--ink);color:#fff;padding:2px 7px;border-radius:3px;white-space:nowrap}
+/* NO legend strip under the Gantt. The category color key went first (Antonio,
+   2026-07-23 — the bars are labeled in their lanes, so a color key is
+   redundant), and the slip/buffer callout strip went with it (Antonio,
+   2026-07-24 — two bullets reading "Deployment buffer" and a slip sentence were
+   uninterpretable next to the timeline that already shows both, and they were
+   printed in two different colors on top of it). `slip_or_buffer_markers` is now
+   annotation input only: it tells the renderer which bars carry buffer/slip
+   state, exactly as `bar_categories` tells it which phase a bar belongs to (and
+   so which ramp step it takes) without itself appearing on the slide. */
+
+/* ---------- Slide 3… — Workstream Status (two stage-selected framings) ---------- */
+.ws-body{flex:1;display:grid;grid-template-rows:minmax(0,1fr) minmax(0,1.02fr);gap:12px;min-height:0}
+.frames{display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:0}
+.frame{background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  padding:18px 22px;display:flex;flex-direction:column;min-height:0}
+/* Current state is rust and target is green, the same two roles the proposal
+   deck's TODAY / AFTER panels use — one theme, so the same meaning carries the
+   same color on both deck types. (This framing used to be maroon, from the status
+   deck's own palette.) */
+.frame--a{border-top:4px solid var(--neg)}   /* current state (TODAY / WHERE WE ARE) */
+.frame--b{border-top:4px solid var(--pos)}       /* target (AFTER / TARGET) */
+.frame-head{font-family:var(--label);font-size:12.5px;letter-spacing:.13em;text-transform:uppercase;
+  font-weight:700;margin-bottom:16px}
+.frame--a .frame-head{color:var(--neg)}
+.frame--b .frame-head{color:var(--pos)}
+.f-metrics{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:10px}
+.f-metric{flex:1;min-width:40%}
+.f-metric .val{font-size:31px;font-weight:800;line-height:1}
+.frame--a .f-metric .val{color:var(--ink)}
+.frame--b .f-metric .val{color:var(--pos)}
+.f-metric .lbl{display:block;font-size:12.5px;color:var(--ink-soft);margin-top:6px;line-height:1.4}
+.f-bullets{list-style:none;margin-top:auto;padding-top:11px}
+.f-bullets li{font-size:13.5px;color:var(--ink-soft);padding-left:17px;position:relative;
+  margin-bottom:8px;line-height:1.45}
+.f-bullets li:last-child{margin-bottom:0}
+.f-bullets li::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;
+  border-radius:50%;background:var(--accent);opacity:.6}
+.frame--b .f-bullets li::before{background:var(--pos)}
+/* progress tracker */
+.progress{background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  padding:16px 20px;display:flex;flex-direction:column;min-height:0}
+.progress-head{display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:0}
+.progress-label{font-family:var(--label);font-size:13.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--accent-strong);font-weight:700}
+.progress-right{font-family:var(--label);font-size:10.5px;letter-spacing:.1em;color:var(--mute);font-weight:700}
+/* one column per progress group, plus the workstream's next-steps box last.
+   Set grid-template-columns inline: repeat(n_groups,1fr) then 1.15fr. */
+.progress-cols{flex:1;display:grid;gap:16px;align-items:stretch;min-height:0}
+/* space-evenly distributes a group's items down the (tall, frame-filling) column
+   so residual height spreads as even gaps instead of pooling at the bottom. */
+.pgroup{display:flex;flex-direction:column;justify-content:space-evenly;min-width:0}
+.pgroup-head{display:flex;align-items:center;gap:8px;margin-bottom:0}
+.pgroup-name{font-family:var(--label);font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--ink-soft);font-weight:700}
+.badge{font-family:var(--label);font-size:10px;letter-spacing:.05em;border:1px solid var(--mute);
+  border-radius:3px;padding:2px 7px;color:var(--mute);font-weight:700;white-space:nowrap}
+.pitem{display:flex;gap:9px;align-items:flex-start;margin-bottom:0}
+.chk{width:17px;height:17px;border-radius:3px;flex-shrink:0;margin-top:1px;display:flex;
+  align-items:center;justify-content:center;font-size:11px;line-height:1}
+.chk.done{background:var(--pos);color:#fff}
+.chk.pending{background:#fff;border:1.5px solid var(--mute)}
+.chk.in_process{background:linear-gradient(90deg,var(--phase-3) 0 50%,#fff 50% 100%);
+  border:1.5px solid var(--phase-3)}
+.ptext{font-size:13.5px;color:var(--ink);line-height:1.35}
+.ptext .pdetail{display:block;font-size:11.5px;color:var(--mute);margin-top:3px;line-height:1.35}
+/* The per-workstream next-steps box is tinted by the workstream's POSITION
+   (1st / 2nd / 3rd), in shades of the one blue family — the same house rule the
+   Gantt and the closing slide follow. It used to rotate green / blue / maroon,
+   which read as three different statuses when it only ever meant "the second
+   workstream". A 4th or later workstream keeps the last step. */
+.ws-next{border-radius:6px;padding:14px 18px;border-left:4px solid;display:flex;flex-direction:column}
+.ws-next.step-1{background:#e4edf7;border-color:var(--phase-2)}
+.ws-next.step-2{background:#eaf1f8;border-color:var(--phase-3)}
+.ws-next.step-3{background:#f0f5fa;border-color:var(--phase-4)}
+.ws-next-head{font-family:var(--label);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-soft);font-weight:700;margin-bottom:0}
+.ws-next ul{list-style:none;flex:1;display:flex;flex-direction:column;justify-content:space-evenly}
+.ws-next li{font-size:13.5px;color:var(--ink);padding-left:18px;position:relative;
+  margin-bottom:0;line-height:1.4}
+.ws-next li::before{content:"\2192";position:absolute;left:0;color:inherit;font-weight:700}
+
+/* ---------- Slide N — Next Steps (dark, one column per workstream) ---------- */
+.nsteps{flex:1;display:grid;gap:36px;min-height:0}   /* grid-template-columns inline: repeat(n_cols,1fr) */
+.nscol{display:flex;flex-direction:column;min-width:0}
+.nscol-head{font-family:var(--label);font-size:13px;letter-spacing:.13em;text-transform:uppercase;
+  font-weight:700;padding-bottom:10px;border-bottom:2px solid;margin-bottom:4px}
+/* SHADES OF BLUE ONLY on the closing slide (Antonio, 2026-07-24), the same house
+   rule the Gantt follows: green / blue / maroon columns read as three unrelated
+   statuses when they are just the 1st, 2nd, and 3rd workstream. The classes are
+   positional (`step-1` = the leftmost column), so light-to-dark reads as one
+   family on the dark slide however many columns there are. */
+.nscol.step-1 .nscol-head{color:#cfe2f4;border-color:var(--phase-5)}
+.nscol.step-2 .nscol-head{color:#a1c5e6;border-color:var(--phase-4)}
+.nscol.step-3 .nscol-head{color:#78a6d8;border-color:var(--phase-3)}
+/* flex:1 makes each step cell divide the column equally and align-content:center
+   parks its content in the middle, so N steps fill the column with even bands. */
+.nstep{flex:1;display:grid;grid-template-columns:auto 1fr;gap:16px;align-content:center;
+  padding:18px 0;border-top:1px solid rgba(255,255,255,.08)}
+.nstep:first-of-type{border-top:none}
+.nsnum{font-size:34px;font-weight:800;line-height:1}
+.nscol.step-1 .nsnum{color:#cfe2f4}
+.nscol.step-2 .nsnum{color:#a1c5e6}
+.nscol.step-3 .nsnum{color:#78a6d8}
+.nstep h3{font-size:20px;color:#fff;margin-bottom:7px}
+.nstep p{font-size:13.5px;color:var(--on-dark-soft);line-height:1.55}
+
+@media print{
+  body{background:#fff;gap:0;padding:0}
+  .slide{page-break-after:always;break-after:page}
+}
+/* QofAI logo mark — mask + currentColor so it tints per slide (white on dark, ink on cream); self-contained data URI, no external file. */
+:root{--logo-src:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2027.9143%2027.9143'%3E%3Cpath%20d='M0%200V27.9143L6.97527%2020.9324V6.97527H20.9324V20.9324H13.9571V13.9571L6.97527%2020.9324V27.9143H27.9143V0H0Z'/%3E%3C/svg%3E")}
+.logo-mark{display:inline-block;flex:none;background-color:currentColor;color:var(--ink);-webkit-mask:var(--logo-src) no-repeat center/contain;mask:var(--logo-src) no-repeat center/contain}
+.slide--dark .logo-mark{color:#fff}
+.logo-mark--lg{width:30px;height:30px}
+.logo-mark--sm{width:14px;height:14px}
+.footer .brand-foot{display:inline-flex;align-items:center;gap:8px}
+
+</style>
+</head>
+<body>
+
+<!-- Slide 1 — Cover -->
+<section class="slide slide--dark" data-slide="1">
+  <div class="topbar">
+    <span class="logo-mark logo-mark--lg" aria-label="QofAI"></span>
+    <span>PROJECT CHECK-IN · JUN 15 2026</span>
+  </div>
+  <div class="cover-body">
+    <div class="prepared">PREPARED FOR VANTGO · NORTHGATE CAPITAL</div>
+    <h1 class="cover-title">
+      <span class="accent">Fulfillment</span>
+      <span class="base">Automation Check-in.</span>
+    </h1>
+    <p class="cover-sub">Status update: Dispatch Optimization, Warehouse Robotics, and Freight Audit.</p>
+  </div>
+  <div class="footer">
+    <span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + Vantgo · FULFILLMENT AUTOMATION CHECK-IN · JUN 2026 · 01 / 6</span>
+    <span>Week 5 of 16</span>
+  </div>
+</section>
+
+<!-- Slide 2 — Project Tracking -->
+<section class="slide" data-slide="2">
+  <div class="kicker">PHASED ROLLOUT · WEEK 5 OF 16</div>
+  <h2 class="headline">Project Tracking.</h2>
+  <p class="summary">Dispatch Optimization on track for pilot Week 8; Warehouse Robotics integration slips one week on WMS access; Freight Audit begins Week 7.</p>
+  <div class="body">
+    <div class="gantt">
+      <div class="gantt-grid" style="--weeks:16; grid-template-rows:auto repeat(5,1fr)">
+        <!-- Header -->
+        <div class="g-corner" style="grid-row:1">WEEK</div>
+        <div class="g-col" style="grid-column:2;grid-row:1"><span class="wid">W1</span><span class="wdate">May 18</span></div>
+        <div class="g-col" style="grid-column:3;grid-row:1"><span class="wid">W2</span><span class="wdate">May 25</span></div>
+        <div class="g-col" style="grid-column:4;grid-row:1"><span class="wid">W3</span><span class="wdate">Jun 1</span></div>
+        <div class="g-col" style="grid-column:5;grid-row:1"><span class="wid">W4</span><span class="wdate">Jun 8</span></div>
+        <div class="g-col" style="grid-column:6;grid-row:1"><span class="wid">W5</span><span class="wdate">Jun 15</span></div>
+        <div class="g-col" style="grid-column:7;grid-row:1"><span class="wid">W6</span><span class="wdate">Jun 22</span></div>
+        <div class="g-col" style="grid-column:8;grid-row:1"><span class="wid">W7</span><span class="wdate">Jun 29</span></div>
+        <div class="g-col" style="grid-column:9;grid-row:1"><span class="wid">W8</span><span class="wdate">Jul 6</span></div>
+        <div class="g-col" style="grid-column:10;grid-row:1"><span class="wid">W9</span><span class="wdate">Jul 13</span></div>
+        <div class="g-col" style="grid-column:11;grid-row:1"><span class="wid">W10</span><span class="wdate">Jul 20</span></div>
+        <div class="g-col" style="grid-column:12;grid-row:1"><span class="wid">W11</span><span class="wdate">Jul 27</span></div>
+        <div class="g-col" style="grid-column:13;grid-row:1"><span class="wid">W12</span><span class="wdate">Aug 3</span></div>
+        <div class="g-col" style="grid-column:14;grid-row:1"><span class="wid">W13</span><span class="wdate">Aug 10</span></div>
+        <div class="g-col" style="grid-column:15;grid-row:1"><span class="wid">W14</span><span class="wdate">Aug 17</span></div>
+        <div class="g-col" style="grid-column:16;grid-row:1"><span class="wid">W15</span><span class="wdate">Aug 24</span></div>
+        <div class="g-col" style="grid-column:17;grid-row:1"><span class="wid">W16</span><span class="wdate">Aug 31</span></div>
+        <div class="g-headrule" style="grid-row:1"></div>
+
+        <!-- Lane 1: SCOPING · DISPATCH -->
+        <div class="lname" style="grid-row:2">SCOPING · DISPATCH</div>
+        <div class="lane-rule" style="grid-row:2"></div>
+        <div class="bar phase-1" style="grid-column:2 / 5;grid-row:2">Discovery + routing model</div>
+
+        <!-- Lane 2: BUILD · DISPATCH -->
+        <div class="lname" style="grid-row:3">BUILD · DISPATCH</div>
+        <div class="lane-rule" style="grid-row:3"></div>
+        <div class="bar phase-2" style="grid-column:4 / 7;grid-row:3">Cycle 1 · solver core</div>
+        <div class="bar phase-2 state-upcoming" style="grid-column:7 / 10;grid-row:3">Cycle 2 · pilot</div>
+
+        <!-- Lane 3: INTEGRATION · ROBOTICS -->
+        <div class="lname" style="grid-row:4">INTEGRATION · ROBOTICS</div>
+        <div class="lane-rule" style="grid-row:4"></div>
+        <div class="bar phase-3" style="grid-column:3 / 6;grid-row:4">WMS + fleet access pull</div>
+        <div class="bar phase-3" style="grid-column:6 / 10;grid-row:4">Robotics control integration</div>
+        <div class="bar phase-3 state-upcoming" style="grid-column:10 / 14;grid-row:4">Site rollout · +2 sites</div>
+
+        <!-- Lane 4: DATA & ACCESS -->
+        <div class="lname" style="grid-row:5">DATA &amp; ACCESS</div>
+        <div class="lane-rule" style="grid-row:5"></div>
+        <div class="bar phase-4 state-upcoming" style="grid-column:8 / 9;grid-row:5">Freight rate feeds</div>
+
+        <!-- Lane 5: PHASE · GO-LIVE -->
+        <div class="lname" style="grid-row:6">PHASE · GO-LIVE</div>
+        <div class="lane-rule" style="grid-row:6"></div>
+        <div class="bar phase-3 state-upcoming" style="grid-column:14 / 17;grid-row:6">All-site rollout</div>
+        <div class="bar phase-5 state-buffer" style="grid-column:17 / 18;grid-row:6">Deployment buffer</div>
+
+        <!-- TODAY marker (W5) -->
+        <div class="today-mark" style="grid-column:6;grid-row:1 / -1"><span class="today-tab">TODAY</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="brand-foot"><span class="logo-mark logo-mark--sm" aria-label="QofAI"></span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + Vantgo · FULFILLMENT AUTOMATION CHECK-IN · JUN 2026 · 02 / 6</span>
+    <span>Week 5 of 16</span>
+  </div>
+</section>
+
+<!-- Slide 3 — Workstream: Dispatch Optimization -->
+<section class="slide" data-slide="3">
+  <div class="kicker">NEW PROJECT · STATUS</div>
+  <h2 class="headline">AI <span style="color:var(--accent)">Dispatch Optimization</span>.</h2>
+  <p class="summary">A routing engine that assigns loads to drivers against live traffic, hours-of-service, and margin. <b>Stop paying for empty miles.</b></p>
+  <div class="body">
+    <div class="ws-body">
+      <div class="frames">
+        <div class="frame frame--a">
+          <div class="frame-head">TODAY</div>
+          <div class="f-metrics">
+            <div class="f-metric"><span class="val">22%</span><span class="lbl">Empty-mile ratio across the fleet</span></div>
+            <div class="f-metric"><span class="val">3 hrs</span><span class="lbl">Manual dispatch planning per shift</span></div>
+          </div>
+          <ul class="f-bullets">
+            <li>Dispatchers plan routes by hand in spreadsheets</li>
+            <li>No margin-aware load assignment</li>
+          </ul>
+        </div>
+        <div class="frame frame--b">
+          <div class="frame-head">AFTER — TARGET IN 5 MONTHS</div>
+          <div class="f-metrics">
+            <div class="f-metric"><span class="val">&lt;15%</span><span class="lbl">Empty-mile ratio after optimization</span></div>
+          </div>
+          <ul class="f-bullets">
+            <li>Margin-aware assignment tied to live rates</li>
+            <li>Automatic hours-of-service compliance</li>
+          </ul>
+        </div>
+      </div>
+      <div class="progress">
+        <div class="progress-head">
+          <span class="progress-label">TWO-WEEK DISCOVERY SPRINT</span>
+        </div>
+        <div class="progress-cols" style="grid-template-columns:repeat(2,1fr) 1.15fr">
+          <div class="pgroup">
+            <div class="pgroup-head"><span class="pgroup-name">DATA REQUESTS</span><span class="badge">RECEIVED</span></div>
+            <div class="pitem"><span class="chk done">&#10003;</span><span class="ptext">Load history</span></div>
+            <div class="pitem"><span class="chk done">&#10003;</span><span class="ptext">Driver roster</span></div>
+          </div>
+          <div class="pgroup">
+            <div class="pgroup-head"><span class="pgroup-name">INTERVIEWS</span><span class="badge">IN PROCESS</span></div>
+            <div class="pitem"><span class="chk done">&#10003;</span><span class="ptext">Dispatch lead<span class="pdetail">Current routing heuristics</span></span></div>
+            <div class="pitem"><span class="chk in_process"></span><span class="ptext">Ops director<span class="pdetail">Margin priorities</span></span></div>
+          </div>
+          <div class="ws-next step-1">
+            <div class="ws-next-head">NEXT STEPS</div>
+            <ul>
+              <li>Deliver routing requirements document</li>
+              <li>Pilot on one terminal</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="brand-foot"><span class="logo-mark logo-mark--sm" aria-label="QofAI"></span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + Vantgo · FULFILLMENT AUTOMATION CHECK-IN · JUN 2026 · 03 / 6</span>
+    <span>Week 5 of 16</span>
+  </div>
+</section>
+
+<!-- Slide 4 — Workstream: Warehouse Robotics -->
+<section class="slide" data-slide="4">
+  <div class="kicker">EXISTING PROJECT · STATUS</div>
+  <h2 class="headline"><span style="color:var(--accent)">Warehouse Robotics</span> Orchestration.</h2>
+  <p class="summary">An orchestration layer that sequences pick-and-pack robots against real order flow.</p>
+  <div class="body">
+    <div class="ws-body">
+      <div class="frames">
+        <div class="frame frame--a">
+          <div class="frame-head">WHERE WE ARE</div>
+          <div class="f-metrics">
+            <div class="f-metric"><span class="val">Week 5/16</span><span class="lbl">Integration in progress · one week behind</span></div>
+            <div class="f-metric"><span class="val">2 sites</span><span class="lbl">Robotics online in pilot warehouses</span></div>
+          </div>
+          <ul class="f-bullets">
+            <li>Orchestrator running against staged WMS data</li>
+            <li>Fleet auth and telemetry complete</li>
+          </ul>
+        </div>
+        <div class="frame frame--b">
+          <div class="frame-head">TARGET — ALL SITES BY WEEK 16</div>
+          <div class="f-metrics">
+            <div class="f-metric"><span class="val">6 sites</span><span class="lbl">Full network rollout</span></div>
+            <div class="f-metric"><span class="val">24/7</span><span class="lbl">Autonomous pick sequencing</span></div>
+          </div>
+          <ul class="f-bullets">
+            <li>Human-in-the-loop exception handling</li>
+            <li>Per-site throughput dashboards</li>
+          </ul>
+        </div>
+      </div>
+      <div class="progress">
+        <div class="progress-head">
+          <span class="progress-label">INTEGRATION — WEEKS 2–5</span>
+          <span class="progress-right">WEEK 5 OF 16</span>
+        </div>
+        <div class="progress-cols" style="grid-template-columns:repeat(2,1fr) 1.15fr">
+          <div class="pgroup">
+            <div class="pgroup-head"><span class="pgroup-name">ACCESS</span><span class="badge">2 OF 3</span></div>
+            <div class="pitem"><span class="chk done">&#10003;</span><span class="ptext">Fleet telemetry</span></div>
+            <div class="pitem"><span class="chk pending"></span><span class="ptext">WMS live access</span></div>
+            <div class="pitem"><span class="chk done">&#10003;</span><span class="ptext">Order stream</span></div>
+          </div>
+          <div class="pgroup">
+            <div class="pgroup-head"><span class="pgroup-name">BUILD</span><span class="badge">IN PROCESS</span></div>
+            <div class="pitem"><span class="chk done">&#10003;</span><span class="ptext">Sequencing solver</span></div>
+            <div class="pitem"><span class="chk in_process"></span><span class="ptext">Exception routing</span></div>
+          </div>
+          <div class="ws-next step-2">
+            <div class="ws-next-head">NEXT STEPS</div>
+            <ul>
+              <li>Week 6: unblock WMS access with IT</li>
+              <li>Week 7+: add two more sites</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="brand-foot"><span class="logo-mark logo-mark--sm" aria-label="QofAI"></span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + Vantgo · FULFILLMENT AUTOMATION CHECK-IN · JUN 2026 · 04 / 6</span>
+    <span>Week 5 of 16</span>
+  </div>
+</section>
+
+<!-- Slide 5 — Workstream: Freight Audit -->
+<section class="slide" data-slide="5">
+  <div class="kicker">NEW PROJECT · STATUS</div>
+  <h2 class="headline">AI <span style="color:var(--accent)">Freight Audit</span> &amp; Recovery.</h2>
+  <p class="summary">An agent that audits carrier invoices against contracted rates and recovers overcharges. <b>Recover the leakage no one has time to chase.</b></p>
+  <div class="body">
+    <div class="ws-body">
+      <div class="frames">
+        <div class="frame frame--a">
+          <div class="frame-head">TODAY</div>
+          <div class="f-metrics">
+            <div class="f-metric"><span class="val">~$0</span><span class="lbl">Overcharges recovered today (no audit)</span></div>
+          </div>
+          <ul class="f-bullets">
+            <li>Invoices approved without rate verification</li>
+          </ul>
+        </div>
+        <div class="frame frame--b">
+          <div class="frame-head">AFTER — TARGET IN 4 MONTHS</div>
+          <div class="f-metrics">
+            <div class="f-metric"><span class="val">2–4%</span><span class="lbl">Freight spend recovered per year</span></div>
+          </div>
+          <ul class="f-bullets">
+            <li>Line-item audit against contracted tariffs</li>
+            <li>Automated dispute filing</li>
+          </ul>
+        </div>
+      </div>
+      <div class="progress">
+        <div class="progress-head">
+          <span class="progress-label">KICKOFF — WEEK 5</span>
+        </div>
+        <div class="progress-cols" style="grid-template-columns:repeat(1,1fr) 1.15fr">
+          <div class="pgroup">
+            <div class="pgroup-head"><span class="pgroup-name">DATA REQUESTS</span><span class="badge">1 OF 2</span></div>
+            <div class="pitem"><span class="chk done">&#10003;</span><span class="ptext">Carrier contracts</span></div>
+            <div class="pitem"><span class="chk pending"></span><span class="ptext">Invoice exports</span></div>
+          </div>
+          <div class="ws-next step-3">
+            <div class="ws-next-head">NEXT STEPS</div>
+            <ul>
+              <li>Ingest 12 months of invoices</li>
+              <li>Baseline the recovery opportunity</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="brand-foot"><span class="logo-mark logo-mark--sm" aria-label="QofAI"></span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + Vantgo · FULFILLMENT AUTOMATION CHECK-IN · JUN 2026 · 05 / 6</span>
+    <span>Week 5 of 16</span>
+  </div>
+</section>
+
+<!-- Slide 6 — Next Steps -->
+<section class="slide slide--dark" data-slide="6">
+  <div class="kicker">NEXT STEPS</div>
+  <h2 class="headline">Three tracks, parallel next moves.</h2>
+  <p class="summary">Dispatch moves to pilot; robotics unblocks WMS access; freight audit ingests invoices.</p>
+  <div class="body">
+    <div class="nsteps" style="grid-template-columns:repeat(3,1fr)">
+      <div class="nscol step-1">
+        <div class="nscol-head">DISPATCH OPTIMIZATION</div>
+        <div class="nstep">
+          <div class="nsnum">01</div>
+          <div><h3>Routing requirements document</h3><p>Document routing heuristics, margin rules, and compliance constraints for build sign-off.</p></div>
+        </div>
+        <div class="nstep">
+          <div class="nsnum">02</div>
+          <div><h3>Single-terminal pilot</h3><p>Run the solver live at one terminal against real loads for two weeks.</p></div>
+        </div>
+      </div>
+      <div class="nscol step-2">
+        <div class="nscol-head">WAREHOUSE ROBOTICS</div>
+        <div class="nstep">
+          <div class="nsnum">01</div>
+          <div><h3>Unblock WMS access</h3><p>Work with IT to grant live WMS access so the orchestrator runs against production order flow.</p></div>
+        </div>
+        <div class="nstep">
+          <div class="nsnum">02</div>
+          <div><h3>Add two sites</h3><p>Extend robotics orchestration to the next two warehouses on the rollout plan.</p></div>
+        </div>
+      </div>
+      <div class="nscol step-3">
+        <div class="nscol-head">FREIGHT AUDIT</div>
+        <div class="nstep">
+          <div class="nsnum">01</div>
+          <div><h3>Ingest invoices</h3><p>Pull 12 months of carrier invoices and normalize against contracted tariffs.</p></div>
+        </div>
+        <div class="nstep">
+          <div class="nsnum">02</div>
+          <div><h3>Baseline recovery</h3><p>Quantify the recoverable overcharge opportunity to size the build.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <span class="brand-foot"><span class="logo-mark logo-mark--sm" aria-label="QofAI"></span>QOFAI CONFIDENTIAL</span>
+    <span>QOFAI + Vantgo · FULFILLMENT AUTOMATION CHECK-IN · JUN 2026 · 06 / 6</span>
+    <span>Week 5 of 16</span>
+  </div>
+</section>
+
+</body>
+</html>

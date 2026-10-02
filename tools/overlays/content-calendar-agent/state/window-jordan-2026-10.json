@@ -1,0 +1,292 @@
+{
+  "window_id": "jordan-2026-10-01",
+  "lens": "jordan",
+  "start_date": "2026-10-01",
+  "end_date": "2026-10-31",
+  "generated_at": "2026-09-23T09:20:04+00:00",
+  "arc": "A synthetic month: the first posts set up a problem, the middle works through it, and the last posts land the conclusion.",
+  "slots": [
+    {
+      "slot_id": "jordan-2026-10-01-01",
+      "date": "2026-10-01",
+      "item_ref": "content-atomizer/item-01",
+      "lens": "jordan",
+      "threads": [
+        "judgment-premium",
+        "consulting-model-inversion",
+        "compounding-capability"
+      ],
+      "forms": [
+        "the-question-worth-asking"
+      ],
+      "approval": "draft",
+      "responds_to": [],
+      "summary": "Synthetic post 1, used only by tests.",
+      "rationale": "Placed in slot 1 to keep the month's order.",
+      "alternatives": [
+        {
+          "item_ref": "value-creation-briefing/item-02",
+          "why": "A synthetic alternative for this slot."
+        },
+        {
+          "item_ref": "content-atomizer/item-03",
+          "why": "A synthetic alternative for this slot."
+        }
+      ]
+    },
+    {
+      "slot_id": "jordan-2026-10-01-02",
+      "date": "2026-10-05",
+      "item_ref": "value-creation-briefing/item-02",
+      "lens": "jordan",
+      "threads": [
+        "ai-spend-visibility",
+        "roi-metric-shift",
+        "competitive-window",
+        "exit-preparation",
+        "emerging-diligence-items"
+      ],
+      "forms": [
+        "research-anchored-gap",
+        "ask-at-the-close"
+      ],
+      "approval": "draft",
+      "responds_to": [],
+      "summary": "Synthetic post 2, used only by tests.",
+      "rationale": "Placed in slot 2 to keep the month's order.",
+      "alternatives": [
+        {
+          "item_ref": "value-creation-briefing/item-04",
+          "why": "A synthetic alternative for this slot."
+        },
+        {
+          "item_ref": "content-atomizer/item-03",
+          "why": "A synthetic alternative for this slot."
+        }
+      ]
+    },
+    {
+      "slot_id": "jordan-2026-10-01-03",
+      "date": "2026-10-08",
+      "item_ref": "content-atomizer/item-03",
+      "lens": "jordan",
+      "threads": [
+        "post-gtd-management",
+        "fleet-governance",
+        "pilot-to-production-gap",
+        "naming-the-category"
+      ],
+      "forms": [
+        "historical-analogy"
+      ],
+      "approval": "draft",
+      "responds_to": [
+        "content-atomizer/item-01"
+      ],
+      "summary": "Synthetic post 3, used only by tests.",
+      "rationale": "Placed in slot 3 to keep the month's order.",
+      "alternatives": [
+        {
+          "item_ref": "value-creation-briefing/item-04",
+          "why": "A synthetic alternative for this slot."
+        },
+        {
+          "item_ref": "content-atomizer/item-05",
+          "why": "A synthetic alternative for this slot."
+        }
+      ]
+    },
+    {
+      "slot_id": "jordan-2026-10-01-04",
+      "date": "2026-10-12",
+      "item_ref": "content-atomizer/item-05",
+      "lens": "jordan",
+      "threads": [
+        "organizational-change-management",
+        "pilot-to-production-gap",
+        "incumbent-dilemma",
+        "competitive-window"
+      ],
+      "forms": [
+        "historical-analogy"
+      ],
+      "approval": "draft",
+      "responds_to": [
+        "content-atomizer/item-03"
+      ],
+      "summary": "Synthetic post 4, used only by tests.",
+      "rationale": "Placed in slot 4 to keep the month's order.",
+      "alternatives": [
+        {
+          "item_ref": "value-creation-briefing/item-06",
+          "why": "A synthetic alternative for this slot."
+        },
+        {
+          "item_ref": "value-creation-briefing/item-04",
+          "why": "A synthetic alternative for this slot."
+        }
+      ]
+    },
+    {
+      "slot_id": "jordan-2026-10-01-05",
+      "date": "2026-10-15",
+      "item_ref": "value-creation-briefing/item-04",
+      "lens": "jordan",
+      "threads": [
+        "data-readiness",
+        "labor-cost-model-gap",
+        "emerging-diligence-items",
+        "forecast-underwriting"
+      ],
+      "forms": [
+        "research-anchored-gap",
+        "ask-at-the-close"
+      ],
+      "approval": "draft",
+      "responds_to": [
+        "value-creation-briefing/item-02"
+      ],
+      "summary": "Synthetic post 5, used only by tests.",
+      "rationale": "Placed in slot 5 to keep the month's order.",
+      "alternatives": [
+        {
+          "item_ref": "value-creation-briefing/item-06",
+          "why": "A synthetic alternative for this slot."
+        },
+        {
+          "item_ref": "content-atomizer/item-07",
+          "why": "A synthetic alternative for this slot."
+        }
+      ]
+    },
+    {
+      "slot_id": "jordan-2026-10-01-06",
+      "date": "2026-10-19",
+      "item_ref": "content-atomizer/item-07",
+      "lens": "jordan",
+      "threads": [
+        "dogfooding-in-public",
+        "governance-ownership",
+        "pilot-to-production-gap"
+      ],
+      "forms": [
+        "see-it-for-yourself",
+        "named-case-with-receipts"
+      ],
+      "approval": "draft",
+      "responds_to": [
+        "content-atomizer/item-05"
+      ],
+      "summary": "Synthetic post 6, used only by tests.",
+      "rationale": "Placed in slot 6 to keep the month's order.",
+      "alternatives": [
+        {
+          "item_ref": "value-creation-briefing/item-06",
+          "why": "A synthetic alternative for this slot."
+        },
+        {
+          "item_ref": "content-atomizer/item-08",
+          "why": "A synthetic alternative for this slot."
+        }
+      ]
+    },
+    {
+      "slot_id": "jordan-2026-10-01-07",
+      "date": "2026-10-22",
+      "item_ref": "value-creation-briefing/item-06",
+      "lens": "jordan",
+      "threads": [
+        "last-mile-data-moat",
+        "named-workflow-targets",
+        "governance-ownership",
+        "margin-capture",
+        "exit-multiple-premium"
+      ],
+      "forms": [
+        "research-anchored-gap",
+        "ask-at-the-close"
+      ],
+      "approval": "draft",
+      "responds_to": [
+        "value-creation-briefing/item-04"
+      ],
+      "summary": "Synthetic post 7, used only by tests.",
+      "rationale": "Placed in slot 7 to keep the month's order.",
+      "alternatives": [
+        {
+          "item_ref": "content-atomizer/item-08",
+          "why": "A synthetic alternative for this slot."
+        },
+        {
+          "item_ref": "content-atomizer/item-09",
+          "why": "A synthetic alternative for this slot."
+        }
+      ]
+    },
+    {
+      "slot_id": "jordan-2026-10-01-08",
+      "date": "2026-10-26",
+      "item_ref": "content-atomizer/item-08",
+      "lens": "jordan",
+      "threads": [
+        "resolution-gap",
+        "multidisciplinary-bottleneck",
+        "pilot-to-production-gap",
+        "last-mile-data-moat"
+      ],
+      "forms": [
+        "named-case-with-receipts"
+      ],
+      "approval": "draft",
+      "responds_to": [
+        "content-atomizer/item-07"
+      ],
+      "summary": "Synthetic post 8, used only by tests.",
+      "rationale": "Placed in slot 8 to keep the month's order.",
+      "alternatives": [
+        {
+          "item_ref": "content-atomizer/item-09",
+          "why": "A synthetic alternative for this slot."
+        },
+        {
+          "item_ref": "content-atomizer/item-07",
+          "why": "A synthetic alternative for this slot."
+        }
+      ]
+    },
+    {
+      "slot_id": "jordan-2026-10-01-09",
+      "date": "2026-10-29",
+      "item_ref": "content-atomizer/item-09",
+      "lens": "jordan",
+      "threads": [
+        "orchestration-layer-value",
+        "exit-multiple-premium",
+        "last-mile-data-moat",
+        "return-math-changed",
+        "value-based-pricing"
+      ],
+      "forms": [
+        "historical-analogy",
+        "the-question-worth-asking"
+      ],
+      "approval": "draft",
+      "responds_to": [
+        "content-atomizer/item-08"
+      ],
+      "summary": "Synthetic post 9, used only by tests.",
+      "rationale": "Placed in slot 9 to keep the month's order.",
+      "alternatives": [
+        {
+          "item_ref": "value-creation-briefing/item-02",
+          "why": "A synthetic alternative for this slot."
+        },
+        {
+          "item_ref": "content-atomizer/item-05",
+          "why": "A synthetic alternative for this slot."
+        }
+      ]
+    }
+  ],
+  "supply_note": "Synthetic window for tests. Every candidate is placed and nothing is held back."
+}

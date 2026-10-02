@@ -1,11 +1,21 @@
-# Antonio Rodriguez Diaz, projects
+# Antonio Rodriguez Diaz
 
-Agents and tools I have designed and built, mostly with Claude Code. Each folder is a
-published snapshot of a working project that I use every day. The folders update
-automatically when I commit to the original repos, so what you see here is the current state
-of each project, not a frozen copy.
+I build AI agents that do real work: they pull from live systems, call Claude where judgment is
+needed, and check their own output before a person sees it. I study economics and physics at
+the University of Chicago (class of 2028), and in 2026 I built agents at QofAI, an
+AI company for middle-market private equity.
 
-Economics and physics at the University of Chicago, class of 2028.
+Every folder here is a published copy of a project that runs. Some are personal tools I use
+every day, and some are agents I built during the internship.
+
+## Start here
+
+[deck-generator](deck-generator/) is my largest project. It writes the proposal and status
+decks QofAI brings to a client, from the company's internal data or an uploaded PRD. Most of
+the code makes sure a deck never states something its sources do not, and about 2,400 tests
+hold it to that.
+
+![The deck generator's review studio, showing a generated status deck](deck-generator/docs/screenshots/review-studio.png)
 
 ## Projects
 
@@ -59,11 +69,6 @@ Python, uv, Google Calendar and Gmail APIs (read-only OAuth), Open-Meteo, Claude
 
 <!-- projects:end -->
 
-### QofAI
-
-Agentic systems built during my internship at QofAI, which builds AI for middle-market private
-equity. Coming soon, with client and internal details removed.
-
 ## How this repo is maintained
 
 Each project lives in its own private repo. [`tools/sync.py`](tools/sync.py) runs after every
@@ -75,6 +80,11 @@ details the rules did not anticipate. If either gate finds anything, nothing is 
 Each project's entry above comes from a short `PORTFOLIO.md` in its own repo, so the
 descriptions update with the projects. What to redact lives in a private file on
 my machine, because a public list of what is being hidden would reveal it.
+
+The QofAI projects are the exception. They are published with a cofounder's approval, and they
+sync only by hand after I review each change, never on commit. Their descriptions and READMEs
+live in `tools/overlays/`, and anything built from real client or company material is replaced
+with synthetic stand-ins or left out.
 
 A few documents are left out for privacy, including the internship agent's PRD and changelog.
 Some links inside the project READMEs point to those files and will not resolve here.
