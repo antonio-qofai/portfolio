@@ -174,7 +174,7 @@ fail loudly if wrong. Cover:
 - Work in modules. Finish a chunk, then start a fresh session. Leave a handoff note
   in `CHANGELOG.md` so the next session knows where things stand.
 - Do not pile multiple features into one prompt or one commit.
-- Explain things in plain English. Assume the reader is not an engineer.
+- Explain things in plain English.
 - Minimize token usage. Point at the specific files a task needs rather than
   re-reading the repo every run.
 - If the same thing has been fixed twice, stop patching and propose a restart of

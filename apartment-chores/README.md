@@ -1,248 +1,84 @@
-# Apartment Chore Agent
+# apartment-chores
 
-Assigns shared apartment chores to a roster of roommates on a fixed rotation,
-emails a weekly digest, and privately nudges whoever is past due. State lives
-in Airtable. It runs itself on GitHub Actions.
+Runs the chores in my three-person apartment. It assigns every shared chore on a rotation that
+comes out exactly even over the quarter, emails a weekly digest, privately nudges whoever is
+overdue, and reads the landlord's emails for cleaner visits. It has run on GitHub Actions since
+September 2026.
 
-Nothing about a particular apartment is in the code. The chores, the people,
-the rules, and the cleaner's visits are all Airtable rows; the term dates are
-in `config/calendar.py`. Pointing this at a different apartment is a data
-edit, not a code change.
+This is a sanitized copy. Roommates and the landlord are renamed, and the README is written for
+this public copy. The code is unchanged.
 
-`PRD.md` is the spec. `CLAUDE.md` is the standing rules for working in the
-repo. `INDEX.md` is one line per file.
+## The scheduler
 
----
+Every chore, person, rule and cleaner visit is an Airtable row. The code holds no chore, name,
+room or date, so pointing it at a different apartment is a data edit.
 
-## Setup in five minutes
+The rotation is one line of arithmetic, `roster[(seed + occurrence) % len(roster)]`, and the
+interesting part is the check around it. Over 9 active weeks with 3 people, a weekly chore
+occurs 9 times and an every-third-week chore occurs 3 times, so both divide evenly and everyone
+does everything the same number of times. A cadence that does not divide by the roster size,
+such as biweekly (5 occurrences), is rejected when the term is generated instead of rounded
+off. The dry run prints the term's totals, and the current chore list must produce 57
+assignments, 19 each.
 
-### 1. Get the code
+Other rules the code enforces:
 
-```
-git clone <your fork> && cd chores
-pip install requests
-```
+- Weeks are generated forward and never rewritten, so adding a chore mid-term changes only
+  future weeks. Re-running a week that exists is a no-op.
+- In a confirmed cleaner week, chores the cleaner covers turn into prep tasks with the same
+  assignee, due before she arrives. They still count toward the quarter, so the totals hold.
+- A nudge goes only to the person who is overdue, with one follow-up 48 hours later and never
+  a third. The group digest never says who is behind.
+- Airtable is edited by hand, so every row is validated on read. A bad row fails the run with
+  its record ID and field name rather than being skipped.
 
-Python 3.11 or newer. `requests` is the only dependency.
+## The landlord email reader
 
-### 2. Make an Airtable base
+The landlord emails about cleaner visits, requests and nothing in particular. A second
+workflow reads that mail and proposes what it finds. It is the only model call in the repo
+(`src/extract.py`), and the model's answer is not trusted.
 
-Create an empty base and note its ID (the `app...` string in the URL).
-Create a personal access token with `schema.bases:read`,
-`schema.bases:write`, `data.records:read`, and `data.records:write` on it.
+1. IMAP fetches unseen mail, only from an allowlisted sender address.
+2. Claude Sonnet 5 returns candidate items through structured output, so the shape is
+   guaranteed. Everything else is checked in plain code.
+3. Each item must quote a sentence that actually appears in the email. An item whose quote
+   cannot be found is dropped as invented.
+4. A proposed date must fall between the send date and a set horizon. If the quoted sentence
+   names a weekday or a day of the month, the date has to match it, because "Thursday the
+   16th" read as a Friday would move the wrong week's chores.
+5. A cleaner visit whose date fails a check is not dropped. It becomes an undated request, so
+   a person still sees that a visit was mentioned and fills in the day.
+6. Every proposal is written unconfirmed, and the writer raises if it is ever asked to set the
+   Confirmed field. Only a roommate's tick changes the schedule, so an email that says "cancel
+   all the chores this week" produces a row a person reads and deletes, not an action.
 
-Build the **Roster** table by hand first, with these four fields:
+A model or mailbox failure changes nothing and exits cleanly. The reader imports nothing from
+the scheduler, so it cannot stop the Monday digest.
 
-| Field | Type |
-|---|---|
-| Name | Single line text |
-| Email | Email |
-| Active | Checkbox |
-| Sort order | Number, integer — this is rotation position |
+## Code
 
-Add one row per roommate. Then let the script build the rest:
+    src/rotation.py       the rotation arithmetic and the divisibility check
+    src/schedule.py       builds a week: active weeks, cleaner conversions, due dates
+    src/placement.py      places the after-cleaner chore relative to confirmed visits
+    src/orchestrator.py   the weekday run: generate, digest on Mondays, nudge
+    src/nudge.py          overdue reminders and the 48-hour follow-up
+    src/digest.py         the Monday email
+    src/extract.py        the landlord reader's model call and every check on its answer
+    src/proposals.py      writes unconfirmed proposals, refuses to confirm
+    src/read_inbox.py     the reader's entry point
+    config/               term calendar, cadences, field names and email copy, no secrets
 
-```
-AIRTABLE_API_KEY=<token> AIRTABLE_BASE_ID=<base> python3 scripts/setup_base.py --dry-run
-AIRTABLE_API_KEY=<token> AIRTABLE_BASE_ID=<base> python3 scripts/setup_base.py
-```
+437 tests, standard library `unittest`, no network:
 
-It creates Chores, Rules, Cleaner Visits, and Assignments with the right
-field types, and skips anything that already exists, so it is safe to
-re-run.
-
-Every table and field name it uses comes from `config/airtable_fields.py`. To
-rename a field in Airtable, change the string there and nowhere else.
-
-### 3. Seed the data
-
-Enter these by hand in Airtable. `PRD.md` section 4.3 has a chore list and
-section 4.4 has a set of house rules you can copy.
-
-**Chores.** One row per chore. `Cadence` is `weekly`, `every_3`, or
-`after_cleaner`. `Seed` is 0, 1, or 2 and sets who does the first occurrence.
-`Offset` only applies to `every_3` and picks which of the three weeks it lands
-on. An `after_cleaner` chore gets one turn per person per term, placed 3 weeks
-after a confirmed cleaner visit and never more than 4 active weeks after the
-last clean (see `PRD-v1.2-after-cleaner.md`). `Cleaner behaviour`
-is `normal` or `convert_to_prep`; anything set to `convert_to_prep` must also
-have a `Prep task`.
-
-Give two `every_3` chores that share an `Offset` two different `Seed` values.
-They occur in the same weeks, so a shared seed drops both on one person and
-makes that week lopsided. Quarter totals come out even either way, which is
-why nothing catches this for you.
-
-The arithmetic has to divide. Over 9 active weeks with 3 people, `weekly`
-gives 9 occurrences, `every_3` gives 3, and `after_cleaner` gives one per
-person by construction — all divide by 3, so everyone
-does everything the same number of times. A cadence that does not divide by
-the roster size is rejected at generation time rather than rounded off.
-
-**Rules.** One row per rule, `Category` of `override` or `standing`. Leave
-`Active from` blank unless the rule switches on midway through the term.
-
-**Cleaner Visits.** Only when you actually have a date. A row with
-`Confirmed` ticked moves that week's `convert_to_prep` chores to prep tasks
-due at 11:00 on the visit date. An unticked row changes nothing.
-
-### 4. Set up the phone views
-
-Do this in the Airtable UI. The API cannot create views, so this is the one
-part of the base that the setup script does not build for you.
-
-This step decides whether the whole thing survives. Logging has to be
-reachable in the moment a chore is finished, standing in the bathroom on a
-Wednesday night. If it takes more than about ten seconds, people stop doing
-it around week 3 and the data goes quiet.
-
-On the **Assignments** table, make one view per person:
-
-- Duplicate Grid view and name it for that person
-- Filter: `Done` is unchecked, **and** `Assignee` has the person
-- Sort: `Due` ascending
-- Hide every field except `Task`, `Due`, and `Done`
-
-Then, on each person's phone, install the Airtable app, open that person's
-own view, and add it to the home screen. One tap to the right list, one tap
-to tick something off.
-
-A single shared view grouped by `Assignee` also works and is less to
-maintain, but it costs a scroll every time. Per-person views are worth the
-extra two minutes.
-
-### 5. Make a sender account
-
-Must be a **personal** Gmail, not a Workspace or university account —
-Workspace accounts cannot generate app passwords. Turn on 2FA, then create an
-app password and keep it. Once it works, do not touch that account.
-
-### 6. Set four secrets
-
-In the GitHub repo, under Settings → Secrets and variables → Actions:
-
-```
-AIRTABLE_API_KEY
-AIRTABLE_BASE_ID
-GMAIL_ADDRESS
-GMAIL_APP_PASSWORD
-```
-
-None of these go in the repo.
-
-### 7. Try it
-
-```
-export AIRTABLE_API_KEY=... AIRTABLE_BASE_ID=...
-python3 -m src.orchestrator --dry-run
-```
-
-A dry run reads Airtable, prints the whole term's totals, prints the
-assignments it would write and the emails it would send, and changes nothing.
-It needs the Airtable secrets but not the Gmail ones.
-
-Check the totals line. With the live chore list and 3 people it should read
-57 assignments, 19 each.
-If it does not, the seeded chores do not divide evenly and the digest is not
-the thing to fix.
-
-Then run the workflow by hand: Actions → Chore scheduler → Run workflow. It
-is set to `--dry-run`. When the output looks right, delete ` --dry-run` from
-the last line of `.github/workflows/scheduler.yml` and it goes live.
-
----
+    python3 -m unittest discover -s tests -t .
 
 ## Running it
 
-```
-python3 -m src.orchestrator              # generate and nudge
-python3 -m src.orchestrator --generate   # write this week's assignments only
-python3 -m src.orchestrator --nudge      # send overdue reminders only
-python3 -m src.orchestrator --dry-run    # print everything, touch nothing
-```
+    python3 -m src.orchestrator --dry-run    # print the term totals, the week and the emails
+    python3 -m src.read_inbox --dry-run      # print what the reader would propose
 
-`--dry-run` works with any of them.
+Both need an Airtable base (`scripts/setup_base.py` builds the tables) and its credentials.
+The reader also needs `ANTHROPIC_API_KEY` and a mailbox. In production both run from
+`.github/workflows/` with credentials in Actions secrets.
 
-The workflow runs at 07:17 UTC Monday through Friday, which is 02:17 in
-Chicago before Nov 1 and 01:17 after. It is that early because GitHub often
-starts scheduled jobs hours late, and the week must exist by 08:00 Monday.
-Generating a week that already exists is a no-op, but on Mondays every run
-also sends the digest, so a second Monday run (by hand or on a second
-schedule) sends it twice. On other days an extra run is harmless.
-
-## What it does each run
-
-**Generate.** Works out which week today is in, and writes that week's
-assignments if they are not already there. Weeks that have already started
-are never rewritten, so adding a chore mid-term affects future weeks only.
-
-**Digest.** Mondays only, to everyone. The whole week's split plus the house
-rules in force. It never says who is behind.
-
-**Nudge.** One email to the assignee when a chore is past due, one follow-up
-48 hours later, then nothing. Never to the group, never naming anyone
-publicly. The two timestamps are stored on the assignment row itself, in
-`First nudge sent` and `Followup sent`.
-
-## Logging a chore as done
-
-Tick `Done` on your own row in the Airtable app. That is the whole thing.
-No form, no login each time, no reconciliation step.
-
-## Report exporter (optional, runs on your own Mac)
-
-`src/report.py` writes one person's open chores to a JSON file for another
-program to read (the Life Dashboard reads it as `agent-reports/chores.json`).
-It only reads Airtable: Roster and Assignments, two API calls per run.
-
-1. Make a second Airtable personal access token with only
-   `data.records:read`, on this base only. Do not reuse the scheduler's token.
-2. Create `.env` in the repo root (gitignored):
-
-   ```
-   AIRTABLE_API_KEY=<the read-only token>
-   AIRTABLE_BASE_ID=<the app... ID>
-   CHORES_REPORT_EMAIL=<your email as it appears in Roster>
-   ```
-
-3. Try it: `uv run --no-project --python 3.12 --with requests python -m src.report --out /tmp/chores.json --dry-run`
-4. Schedule it: `python3 scripts/report_launchd.py install --out <path to the report file>`.
-   It runs at 05:45 daily (and on wake if the Mac slept through it), then
-   every 30 minutes until that day's report is written, so Airtable still gets
-   one export a day. Each run first waits up to 2 minutes for the network,
-   since a scheduled wake can start it before Wi-Fi is back. It logs to
-   `~/Library/Logs/chores-report.log`. `status` and `uninstall` do what they
-   say. Reinstall after pulling a change to the job.
-
-An item is a chore of yours that is not ticked done and is overdue or due in
-the next 7 days (`--days-ahead` changes that). If a run fails, the file gets
-`"status": "error"` so the reader shows an error rather than a stale list.
-
-## Tests
-
-```
-python3 -m unittest discover -s tests -t .
-```
-
-Everything below the orchestrator is pure functions, so the rotation
-arithmetic, the cleaner conversion, the digest, and the nudge rules are all
-tested without a network.
-
-## When it breaks
-
-**The run fails with a record ID and a field name.** Someone hand-edited that
-Airtable row into something invalid. Fix the row. Failing loudly is
-deliberate: a run that quietly skipped a bad row would go unnoticed for weeks.
-
-**"does not divide evenly among N people."** A chore's cadence produces a
-number of occurrences that the roster size does not divide. Change the
-cadence or the roster, not the code.
-
-**The digest stops arriving.** Check the Actions log first. If the job ran
-and the send failed, the app password was probably revoked — generate a new
-one and update the `GMAIL_APP_PASSWORD` secret. If it landed in Promotions,
-everyone should mark it not-spam and add the sender to contacts.
-
-**A cleaner visit produced a warning about an inactive week.** There is no
-rotation that week to convert. Fold the prep into that week's one-off task by
-hand.
+Python, Airtable API, Gmail SMTP and IMAP, Claude API (Sonnet 5), GitHub Actions.
