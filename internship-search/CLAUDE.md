@@ -1,8 +1,7 @@
 # Standing instructions for this repo
 
 This project is an internship and off-cycle opportunity tracking agent, built for the owner
-for the Summer 2027 recruiting cycle. The owner is both the founder and the builder, and he is
-not a computer science major, so explanations matter as much as code. See `PRD.md` for the
+for the Summer 2027 recruiting cycle. The owner is both the founder and the builder. See `PRD.md` for the
 full spec; it is the single specification of record.
 
 ## Rules
@@ -20,8 +19,7 @@ full spec; it is the single specification of record.
    runtime. The owner edits `rubric.md` directly to change how ranking behaves; that edit
    should never require a code change.
 
-4. **Explain changes in plain English.** the owner is an economics and physics double major,
-   not a software engineer. When you finish a change, describe what it does and why in terms
+4. **Explain changes in plain English.** When you finish a change, describe what it does and why in terms
    he can act on, not just what files moved.
 
 5. **Keep the living documents current as you build.** Four files must always reflect the
