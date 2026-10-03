@@ -8,6 +8,6 @@ Claude Sonnet 5. Each prompt carries all 53 of my Airtable labels as few-shot ex
 also pushed the prompt past Haiku's caching threshold, so every call after the first in a run
 reads it at a tenth of the input price. A hard per-run call cap bounds spending. Output goes to
 a daily email, an Airtable base and a local dashboard, on a launchd schedule with health
-alerts. About 8,500 lines of Python and 456 checks.
+alerts. About 11,000 lines of Python including tests, and 456 checks.
 
 Python, SQLite, Claude API, Airtable API, launchd.
