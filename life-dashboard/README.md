@@ -6,7 +6,7 @@ PRD.md is the source of truth for scope and design.
 
 ## Status
 
-M1 (Schedule + weather) is running and being verified over several mornings. M2 (Calendar) code is in place and waiting on Google OAuth setup. Weather is real (Open-Meteo, no key); the calendar is real once authorized. Every other connector returns stub data.
+Every connector returns real data: weather (Open-Meteo), Google Calendar (personal, UChicago, Family, Canvas and QofAI calendars), Gmail (personal and UChicago), chores and job search (agent report files), portfolio sync status, NYT and the AI Daily Brief. Email triage and Pressing actions call Claude, with rules as the fallback. M0 through M8 are built; M9 (actions) has not started.
 
 ## Run locally
 
@@ -42,7 +42,7 @@ Every thread where you didn't send the last message (and that didn't come from o
 
 ## Pressing actions
 
-Each build makes two Claude calls (`actions.model`, Opus 5.5, at `actions.effort`). First, every personal calendar event in the next `calendar.lookahead_days` (title, calendar and start time only) is rated for importance and lead time (`prompts/lead_time.md`); events inside their lead time show under Coming up on the Calendar card. Then today's personal events, pressing email, chores, job search and those upcoming events are ranked into at most `actions.cap` Pressing actions, each with a one-line why (`prompts/rank_actions.md`). QofAI items never enter either call. Chore descriptions are left out of the ranking prompt.
+Each build makes two Claude calls (`actions.model`, Opus 5.5, at `actions.effort`). First, every calendar event in the next `calendar.lookahead_days` (title, calendar and start time only) is rated for importance and lead time (`prompts/lead_time.md`); personal events inside their lead time show under Coming up on the Calendar card, and QofAI events get a prep note on the QofAI card. Then today's personal events, pressing email, chores, job search and those upcoming events are ranked into at most `actions.cap` Pressing actions, each with a one-line why (`prompts/rank_actions.md`). QofAI events go to the lead-time call only (title and start time); no QofAI item enters the ranking. Chore descriptions are left out of the ranking prompt.
 
 Each action has a check-off box, and each action and Coming up event has "too early / too late / not needed" buttons. The serve job stores clicks in `data/checked.json` and `data/feedback.jsonl`; the last `actions.feedback_limit` feedback entries go into both prompts on the next build. A checked-off or not-needed item stays out of Pressing actions until it changes (new due date, new message in the thread). If a call fails, rules stand in (items with urgency hints, deadlines within 3 days) and the card says so.
 

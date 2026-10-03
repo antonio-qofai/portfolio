@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+Docs.
+
+### Changed
+
+- PORTFOLIO.md rewritten from what runs today: live sources, where Claude is called and on which model, safeguards, and the test count.
+- README Status said every connector but weather and calendar was a stub; all are live now. The Pressing actions section said QofAI items enter neither Claude call; QofAI events do go to the lead-time call (title and start time), and only the ranking excludes them.
+
+
 Portfolio sync.
 
 ### Added
