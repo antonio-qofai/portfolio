@@ -71,15 +71,19 @@ Python, Claude Code subagents, Claude API.
 
 #### [internship-search](internship-search/)
 
-An agent that watches about 175 company job boards and three aggregator feeds on a schedule,
-stores every posting in SQLite, works out what is new and what has closed, and filters out
-anything that does not apply. Survivors go through a staged LLM ranker. A cheap model
-scores every posting against a rubric with fixed anchors, and only the strongest go to a
-larger model. The results reach me as a daily email digest, an Airtable base I label, and a
-local dashboard. My labels feed back into the ranker as few-shot examples. It also has
-mutation-tested health alerting and runs itself on a launchd schedule.
+Tracks internship postings across 179 company job boards (Greenhouse, Lever, Ashby, Workday)
+and three aggregator feeds, four times a day. As of October 2026 it has tracked 40,659
+postings. A rules filter defined as data cuts the 27,968 open ones to 2,485 (8.9%). Claude
+Haiku 4.5 reads the term and weekly hours once from each new posting that passes the first
+rules and that no feed has already labelled. A two-stage ranker then scores survivors against a
+fixed-anchor rubric. Haiku scores every posting, and only those above a routing threshold go to
+Claude Sonnet 5. Each prompt carries all 53 of my Airtable labels as few-shot examples, which
+also pushed the prompt past Haiku's caching threshold, so every call after the first in a run
+reads it at a tenth of the input price. A hard per-run call cap bounds spending. Output goes to
+a daily email, an Airtable base and a local dashboard, on a launchd schedule with health
+alerts. About 8,500 lines of Python and 456 checks.
 
-Python, SQLite, Claude API, Airtable API, Greenhouse/Lever/Ashby/Workday fetchers, launchd.
+Python, SQLite, Claude API, Airtable API, launchd.
 
 #### [trip-planner](trip-planner/)
 
