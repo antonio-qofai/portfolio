@@ -71,7 +71,7 @@ Python, Claude Code subagents, Claude API.
 
 #### [internship-search](internship-search/)
 
-Tracks internship postings across 179 company job boards (Greenhouse, Lever, Ashby, Workday)
+Tracks internship postings across 180 company job boards (Greenhouse, Lever, Ashby, Workday)
 and three aggregator feeds, four times a day. As of October 2026 it has tracked 40,659
 postings. A rules filter defined as data cuts the 27,968 open ones to 2,485 (8.9%). Claude
 Haiku 4.5 reads the term and weekly hours once from each new posting that passes the first
