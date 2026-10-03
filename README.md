@@ -87,15 +87,16 @@ Python, SQLite, Claude API, Airtable API, launchd.
 
 #### [trip-planner](trip-planner/)
 
-The first agent I built, for the University of Chicago AI integration program in winter 2026,
-since refined into a live product. A group shares one link and everyone answers a short form
-on their phone. A deterministic planner picks the dates and the destination that works for the
-most people, using real weather for those dates, estimated flight times, and live flight and
-hotel prices from each person's own airport. Claude reads everyone's free-text notes ("I use a
-wheelchair", "my passport is expired") into constraints the planner enforces, and writes the
-itinerary, which must pass the plan's checks or go back for another draft. Every outside call
-has a fallback, so a plan always comes back. Live at grouptrip-planner.vercel.app, with 69
-tests.
+Plans a group trip from one shared link and a two-minute form per person. A deterministic
+planner filters 61 destinations on hard constraints (passports, each person's budget against
+their real cost, maximum flight time). It scores the rest on five weighted factors, including
+coverage for the least-served traveler. It re-ranks the top five on Open-Meteo weather for the
+actual dates and prices live flights and hotels through SerpApi. Claude Opus 5.5 handles the
+two language tasks. It converts free-text notes ("I use a wheelchair") into constraints, with
+structured output limited to tags the planner recognizes. It also writes the itinerary, which
+gets three drafts to pass validation before a template takes over. Every external call has a
+fallback. Built for a UChicago AI program in winter 2026 and since deployed at
+grouptrip-planner.vercel.app, with 69 tests.
 
 TypeScript, React, Vite, Vercel Functions, Neon Postgres, Claude API, Open-Meteo, SerpApi.
 
