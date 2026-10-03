@@ -232,6 +232,12 @@ MIGRATIONS = {
         # actually keep current. Revisit only if he asks to see past rounds.
         "next_event_at": "TEXT",
         "next_event_note": "TEXT",
+        # When the board a feed posting links to stopped answering for it, so
+        # triage.detail_pass stops asking. Its own column rather than a flag,
+        # because flags are pushed to Airtable and read by the ranker and this
+        # is neither's business. Never read as a closure, which only the watcher
+        # decides. Added 2026-10-03.
+        "detail_unavailable_at": "TEXT",
     },
 }
 
@@ -605,6 +611,64 @@ def needs_description(
     ]
 
 
+def feed_needs_description(conn: sqlite3.Connection) -> list[dict]:
+    """Feed postings still waiting on a description, before any budget.
+
+    The feed half of the detail pass. Unlike `needs_description` this includes
+    postings already surfaced, because on 2026-10-03 1,988 of them had been
+    scored with no text at all, and a description arriving late is exactly what
+    should send one back to the ranker.
+
+    Whether a posting's link points at a board this repo can read is decided in
+    Python by `fetchers.locate_job`, not here, so the caller applies its budget
+    after that filter rather than spending it on links nothing can fetch.
+    Pending first, so a new posting is never queued behind the backlog, then
+    oldest first.
+    """
+    return [
+        dict(r)
+        for r in conn.execute(
+            "SELECT * FROM postings "
+            "WHERE prefilter_verdict IN ('pending', 'surface') "
+            "AND closed_detected_at IS NULL AND COALESCE(closed_by_me, 0) = 0 "
+            "AND ats_platform = 'feed' AND detail_unavailable_at IS NULL "
+            "AND TRIM(COALESCE(description, '')) = '' "
+            "ORDER BY prefilter_verdict = 'surface', first_seen"
+        )
+    ]
+
+
+def mark_detail_unavailable(conn: sqlite3.Connection, posting_id: int) -> None:
+    """The linked board no longer lists this job. Stop asking; close nothing."""
+    conn.execute(
+        "UPDATE postings SET detail_unavailable_at = ? WHERE id = ?",
+        (now(), posting_id),
+    )
+
+
+# Exactly the columns `record_score` writes as a verdict, and nothing else.
+# tools.rescore and triage.detail_pass both clear through this list, so if
+# record_score starts writing another column it grows here once.
+SCORE_COLUMNS = ("fit_score", "reach_score", "tier", "reason", "scored_at", "scored_by")
+
+
+def clear_score(conn: sqlite3.Connection, posting_id: int) -> bool:
+    """Forget the ranker's verdict on one posting so it is judged again.
+
+    Leaves the owner's overrides, labels, applied status and every alert stamp
+    alone, the same promise tools.rescore makes. A posting he has overridden is
+    not cleared at all, because the model's opinion no longer decides its tier.
+    True if a score was actually cleared.
+    """
+    sets = ", ".join(f"{c} = NULL" for c in SCORE_COLUMNS)
+    cur = conn.execute(
+        f"UPDATE postings SET {sets} WHERE id = ? AND fit_score IS NOT NULL "
+        "AND fit_override IS NULL AND reach_override IS NULL",
+        (posting_id,),
+    )
+    return cur.rowcount > 0
+
+
 def set_description(conn: sqlite3.Connection, posting_id: int, text: str) -> None:
     """Store a description fetched after discovery.
 
@@ -831,6 +895,16 @@ def carryover(conn: sqlite3.Connection, hours: float) -> list[dict]:
     The window is what keeps this from turning into the backlog report. Every
     posting older than it stays where it is; releasing those is
     tools.backlog_report --mark-alerted, and the owner's call.
+
+    "Recently" means found OR scored inside the window, since 2026-10-03. Keyed
+    on discovery alone, a posting whose score arrived late never reached the
+    inbox: a Walleye Capital internship first seen 2026-10-02 was rescored from
+    tier 4 to tier 1 once its description was fetched, and no email would ever
+    have carried it, because it was already more than 36 hours old. A new
+    posting is found and scored in the same run, so for it nothing changes. What
+    this releases is exactly the postings the ranker judged inside the window
+    and no email has carried, which is what "new to the owner" actually means. An
+    already-emailed posting is never sent again; alerted_at still decides that.
     """
     cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).isoformat(
         timespec="seconds"
@@ -841,9 +915,9 @@ def carryover(conn: sqlite3.Connection, hours: float) -> list[dict]:
             "SELECT * FROM postings "
             "WHERE closed_detected_at IS NULL AND prefilter_verdict = 'surface' "
             "AND COALESCE(closed_by_me, 0) = 0 "
-            "AND alerted_at IS NULL AND first_seen >= ? "
+            "AND alerted_at IS NULL AND (first_seen >= ? OR scored_at >= ?) "
             "ORDER BY company, title",
-            (cutoff,),
+            (cutoff, cutoff),
         )
     ]
 
@@ -928,7 +1002,8 @@ def roundup_candidates(
 
     Bounded by a window for the same reason carryover() is: unbounded, the first
     roundup empties the seeded backlog into one email, and releasing that is
-    The owner's call through tools.backlog_report, not the schedule's.
+    The owner's call through tools.backlog_report, not the schedule's. Found or
+    scored inside the window, for the reason given in carryover().
     """
     clause, params = _tier_clause(tiers)
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat(
@@ -940,9 +1015,10 @@ def roundup_candidates(
             "SELECT * FROM postings "
             "WHERE closed_detected_at IS NULL AND prefilter_verdict = 'surface' "
             "AND COALESCE(closed_by_me, 0) = 0 "
-            f"AND alerted_at IS NULL AND {clause} AND first_seen >= ? "
+            f"AND alerted_at IS NULL AND {clause} "
+            "AND (first_seen >= ? OR scored_at >= ?) "
             "ORDER BY tier, fit_score DESC, company, title",
-            params + [cutoff],
+            params + [cutoff, cutoff],
         )
     ]
 

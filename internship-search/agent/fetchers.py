@@ -8,6 +8,7 @@ posting closed.
 
 import collections
 import hashlib
+import html
 import re
 import time
 import typing
@@ -21,6 +22,13 @@ from .sources import Company
 
 class SourceError(RuntimeError):
     """A source could not be polled. Never treated as evidence a posting closed."""
+
+
+class NotFound(SourceError):
+    """The address answered 404. For a board that means a wrong token; for one
+    job it means the board no longer lists it. Still never evidence a posting
+    closed, because the watcher alone decides that from a board it polled whole.
+    A subclass so every caller already catching SourceError keeps working."""
 
 
 @dataclass
@@ -121,15 +129,20 @@ def resolve_identities(postings: list[Posting]) -> list[Posting]:
     return postings
 
 
-def _strip_html(html: str | None) -> str:
-    if not html:
+def _strip_html(markup: str | None) -> str:
+    """Plain text from a description, whichever way the board encoded it.
+
+    Unescaped before the tags are stripped, not after. Greenhouse sends its
+    content entity-escaped, `&lt;p&gt;` rather than `<p>`, so stripping first
+    found no tags at all and the unescape that followed put them back as text.
+    Until 2026-10-03 that left 21,184 of 21,587 stored Greenhouse descriptions
+    full of markup, which spent the 4,000 characters kept and the 2,500 the
+    ranker reads on `<div class="content-intro">` instead of the job.
+    """
+    if not markup:
         return ""
-    text = re.sub(r"<[^>]+>", " ", html)
-    text = (
-        text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">")
-        .replace("&nbsp;", " ").replace("&#39;", "'").replace("&quot;", '"')
-    )
-    return _clean(text)
+    text = re.sub(r"<[^>]+>", " ", html.unescape(markup))
+    return _clean(html.unescape(text))
 
 
 def _get(client: httpx.Client, url: str) -> dict | list:
@@ -138,7 +151,7 @@ def _get(client: httpx.Client, url: str) -> dict | list:
         try:
             resp = client.get(url)
             if resp.status_code == 404:
-                raise SourceError(f"404, token is probably wrong: {url}")
+                raise NotFound(f"404, token is probably wrong: {url}")
             resp.raise_for_status()
             return resp.json()
         except SourceError:
@@ -459,6 +472,138 @@ def workday_description(client: httpx.Client, company: Company, url: str) -> str
     data = _get(client, endpoint.detail_url(url[len(prefix):]))
     info = data.get("jobPostingInfo") or {}
     return _strip_html(info.get("jobDescription"))
+
+
+# ------------------------------------------------------------ feed postings
+#
+# An aggregator feed hands over a title, a company, a location and a link, and
+# no description. Until 2026-10-03 that is what the ranker scored: 80 percent of
+# open surfaced postings were judged on "(no description available)", which is
+# how a Walleye Capital internship about building AI agents for the firm landed
+# in tier 4 with the reason "no AI or ML component mentioned".
+#
+# Most of those links point at a board one of the fetchers above already reads,
+# and each of those boards answers for a single job by id. So the board, the
+# token and the id are read out of the link itself, generically, and the
+# description is fetched from the same public API the watcher uses. Nothing
+# below names a company; a link either has a recognisable shape or it does not.
+# CLAUDE.md rule 2.
+
+
+class JobRef(typing.NamedTuple):
+    """Where one job lives: which board software, whose board, which job."""
+
+    ats: str
+    token: str
+    job_id: str
+    region: str = ""  # Lever runs a separate EU host with its own API
+
+
+_UUID = r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+
+
+def _ref_from_url(url: str) -> JobRef | None:
+    parsed = httpx.URL(url) if url else None
+    if parsed is None or not parsed.host:
+        return None
+    host = parsed.host.lower()
+    parts = [p for p in parsed.path.split("/") if p]
+
+    if host == "greenhouse.io" or host.endswith(".greenhouse.io"):
+        # The board's own page, job-boards.greenhouse.io/<token>/jobs/<id>, or
+        # the embed form, which carries both as query parameters instead.
+        if len(parts) >= 3 and parts[1] == "jobs" and parts[2].isdigit():
+            return JobRef("greenhouse", parts[0], parts[2])
+        token = parsed.params.get("for", "")
+        job_id = parsed.params.get("token", "") or parsed.params.get("gh_jid", "")
+        if token and job_id.isdigit():
+            return JobRef("greenhouse", token, job_id)
+        return None
+
+    if host in ("jobs.lever.co", "jobs.eu.lever.co"):
+        if len(parts) >= 2 and re.fullmatch(_UUID, parts[1]):
+            return JobRef("lever", parts[0], parts[1], "eu" if ".eu." in host else "")
+        return None
+
+    if host == "jobs.ashbyhq.com":
+        if len(parts) >= 2 and re.fullmatch(_UUID, parts[1]):
+            return JobRef("ashby", parts[0], parts[1].lower())
+        return None
+
+    return None
+
+
+def _ref_from_external_id(external_id: str) -> JobRef | None:
+    """A feed that writes its id as <ats>:<token>:<job id>.
+
+    The zshah sweep does, which matters when its link is a company's own
+    careers page wrapping a Greenhouse board: the link then names no board and
+    the id still does. Read only for the boards a fetcher exists for.
+    """
+    bits = (external_id or "").split(":")
+    if len(bits) != 3 or not all(bits):
+        return None
+    ats, token, job_id = bits
+    if ats == "greenhouse" and job_id.isdigit():
+        return JobRef(ats, token, job_id)
+    if ats in ("lever", "ashby") and re.fullmatch(_UUID, job_id):
+        return JobRef(ats, token, job_id.lower() if ats == "ashby" else job_id)
+    return None
+
+
+def locate_job(url: str | None, external_id: str | None = None) -> JobRef | None:
+    """The board and job a posting's link points at, or None if it is not one
+    this repo can read. The link wins; the id is the fallback."""
+    try:
+        ref = _ref_from_url(url or "")
+    except Exception:
+        ref = None  # a malformed link is just a link we cannot read
+    return ref or _ref_from_external_id(external_id or "")
+
+
+def _greenhouse_job(client, ref: JobRef, boards: dict) -> str:
+    data = _get(client, f"https://boards-api.greenhouse.io/v1/boards/{ref.token}/jobs/{ref.job_id}")
+    return _strip_html(data.get("content"))
+
+
+def _lever_job(client, ref: JobRef, boards: dict) -> str:
+    api = "api.eu.lever.co" if ref.region == "eu" else "api.lever.co"
+    data = _get(client, f"https://{api}/v0/postings/{ref.token}/{ref.job_id}")
+    return _strip_html(data.get("descriptionPlain") or data.get("description"))
+
+
+def _ashby_job(client, ref: JobRef, boards: dict) -> str:
+    """Ashby publishes no single-job endpoint, so the board is read whole, once
+    per run per board, and every posting on it is answered from that one read."""
+    if ref.token not in boards:
+        data = _get(client, f"https://api.ashbyhq.com/posting-api/job-board/{ref.token}"
+                            "?includeCompensation=false")
+        boards[ref.token] = {
+            str(j.get("id", "")).lower(): _strip_html(j.get("descriptionPlain") or j.get("descriptionHtml"))
+            for j in data.get("jobs", [])
+        }
+    board = boards[ref.token]
+    if ref.job_id not in board:
+        raise NotFound(f"ashby board {ref.token} no longer lists job {ref.job_id}")
+    return board[ref.job_id]
+
+
+_JOB_DESCRIPTIONS = {
+    "greenhouse": _greenhouse_job,
+    "lever": _lever_job,
+    "ashby": _ashby_job,
+}
+
+
+def job_description(client: httpx.Client, ref: JobRef, boards: dict) -> str:
+    """The description for one job a link pointed at.
+
+    `boards` is a per-run cache the caller owns, which is what keeps Ashby at
+    one request per board rather than one per posting. Raises NotFound when the
+    board no longer lists the job, SourceError for anything else; neither is
+    ever evidence the posting closed.
+    """
+    return _JOB_DESCRIPTIONS[ref.ats](client, ref, boards)
 
 
 FETCHERS = {

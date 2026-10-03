@@ -27,6 +27,14 @@ prefer_company_boards = true
 # close them on its own schedule rather than adding a second closure path beside it.
 require_visible = true
 
+# How many feed postings one run goes back to the source for a description. A
+# feed carries a link and no text, so without this the ranker scores a title.
+# Only links to Greenhouse, Lever and Ashby boards are followed; see
+# agent/triage.detail_pass. One request each, except Ashby, which is one per
+# board. A posting the cap does not reach is first in line next run. Added
+# 2026-10-03 against a backlog of 247 such postings already scored blind.
+max_details_per_run = 150
+
 [[feed]]
 key = "simplify"
 name = "SimplifyJobs Summer 2027"

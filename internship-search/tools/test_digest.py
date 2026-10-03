@@ -307,6 +307,32 @@ def test_roundup_window_leaves_the_backlog_alone():
     )
 
 
+def test_a_late_score_is_still_new():
+    # 2026-10-03. A posting found weeks ago and scored only now, because its
+    # description arrived late, is new to the owner and must reach an email.
+    conn = make_db()
+    add(conn, n=0, hash="rescored", identity="a", tier=1, fit_score=8,
+        first_seen=ts(30), scored_at=ts(0.5))
+    add(conn, n=1, hash="stale", identity="b", tier=1, fit_score=8,
+        first_seen=ts(30), scored_at=ts(20))
+    add(conn, n=2, hash="sent", identity="c", tier=1, fit_score=8,
+        first_seen=ts(30), scored_at=ts(0.5), alerted_at=ts(25))
+    check(
+        "carryover takes a posting scored inside the window, however old",
+        [r["hash"] for r in db.carryover(conn, 36)],
+        ["rescored"],
+    )
+    add(conn, n=3, hash="r3", identity="d", tier=3, fit_score=5,
+        first_seen=ts(60), scored_at=ts(2))
+    add(conn, n=4, hash="old3", identity="e", tier=3, fit_score=5,
+        first_seen=ts(60), scored_at=ts(40))
+    check(
+        "so does the roundup, and still never the unrescored backlog",
+        [r["hash"] for r in db.roundup_candidates(conn, [3], 8)],
+        ["r3"],
+    )
+
+
 def test_emails_build_and_suppress():
     conn = make_db()
     add(conn, n=0, hash="a", identity="a", tier=1, fit_score=9, reach_score=3,
@@ -745,6 +771,7 @@ def main() -> int:
         test_urgent_triggers,
         test_roundup_is_owed_by_the_week_not_by_the_day,
         test_roundup_window_leaves_the_backlog_alone,
+        test_a_late_score_is_still_new,
         test_emails_build_and_suppress,
         test_referrals_reach_the_email,
         test_killed_closures_are_counted_not_listed,

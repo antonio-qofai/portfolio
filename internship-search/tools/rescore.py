@@ -35,10 +35,10 @@ import sys
 
 from agent import config, db
 
-# Exactly the columns `db.record_score` writes, and nothing else. Kept beside
-# that function in spirit: if it starts writing another column, this list has to
-# grow with it or a re-score leaves half the old verdict behind.
-SCORE_COLUMNS = ("fit_score", "reach_score", "tier", "reason", "scored_at", "scored_by")
+# Exactly the columns `db.record_score` writes, and nothing else. Lives in
+# agent/db.py beside that function since 2026-10-03, because the detail pass
+# clears scores too and two copies of this list would drift.
+SCORE_COLUMNS = db.SCORE_COLUMNS
 
 
 def build_filter(args) -> tuple[str, list]:

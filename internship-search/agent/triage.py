@@ -6,9 +6,10 @@ in this order, and the order is the cost control.
 
     1. Hard exclusions. Every posting the prefilter has not seen. No term
        needed, no model call, most of the volume dies here.
-    1.5 Descriptions, for boards that publish none in their listing. One HTTP
-       request per surviving posting, then the hard rules run again now that
-       there is text for them to read. Workday only.
+    1.5 Descriptions, for postings that arrived without one. One HTTP request
+       per surviving posting, then the hard rules run again now that there is
+       text for them to read. Workday company boards, and since 2026-10-03
+       feed postings whose link points at a Greenhouse, Lever or Ashby board.
     2. Stage 0 tagging. Only survivors of pass 1, and only the ones whose
        aggregator feed did not already state the term.
     3. Timing rules. Only survivors of pass 1 that pass 2 has answered for.
@@ -120,6 +121,124 @@ def detail_pass(conn, max_fetches=None, verbose=False) -> dict:
     return stats
 
 
+def feed_detail_pass(conn, max_fetches=None, client=None, verbose=False) -> dict:
+    """The detail pass for aggregator feed postings, which arrive as a link.
+
+    Built 2026-10-03 after a Walleye Capital internship about building AI agents
+    sat in tier 4, never emailed, because both feeds carrying it had no text and
+    the ranker wrote "no AI or ML component mentioned" about a description it
+    never saw. That was 1,988 of 1,990 blind-scored postings, and it is the
+    failure this agent exists to prevent.
+
+    Follows only links that `fetchers.locate_job` can place on a Greenhouse,
+    Lever or Ashby board, the same public APIs the watcher reads. Anything else
+    is left exactly as it was.
+
+    Three outcomes per posting, and the second is the one to keep straight:
+
+      text arrived  stored, the hard rules run again, and a stored score is
+                    cleared so the ranker judges the posting with its text.
+                    Overrides and every alert stamp survive (rule 10).
+      404           the board no longer lists it. Marked so it is not asked
+                    again, and NOT closed: closing is the watcher's job alone,
+                    from a feed it polled whole, and a feed still listing a job
+                    the board dropped is the watcher's problem to notice.
+      other error   left untouched and asked again next run.
+
+    `client` is accepted so tools.test_details can hand in a fake board.
+    """
+    settings = sources.load_feed_settings()
+    budget = (settings.get("max_details_per_run", 150)
+              if max_fetches is None else max_fetches)
+    stats = {"fetched": 0, "killed": 0, "rescored": 0, "unavailable": 0,
+             "remaining": 0, "errors": []}
+
+    queue = []
+    for posting in db.feed_needs_description(conn):
+        ref = fetchers.locate_job(posting["url"], posting["external_id"])
+        if ref is not None:
+            queue.append((posting, ref))
+    if not queue or budget <= 0:
+        stats["remaining"] = len(queue)
+        return stats
+
+    rules = prefilter.load_rules()
+    owns_client = client is None
+    client = client or fetchers.make_client()
+    boards: dict = {}   # Ashby answers per board, so read each board once
+    answers: dict = {}  # two feeds often link the same job; ask once
+    asked = 0
+    try:
+        for posting, ref in queue:
+            if ref not in answers:
+                if asked >= budget:
+                    # Not break: a later row may share a job already answered,
+                    # and serving it from that answer costs nothing.
+                    continue
+                asked += 1
+                try:
+                    answers[ref] = fetchers.job_description(client, ref, boards)
+                except fetchers.NotFound as exc:
+                    answers[ref] = exc
+                except Exception as exc:
+                    answers[ref] = None
+                    stats["errors"].append(
+                        (posting["company"], posting["title"],
+                         f"{type(exc).__name__}: {exc}")
+                    )
+                if owns_client:
+                    time.sleep(config.POLITE_DELAY)
+
+            text = answers[ref]
+            if text is None:
+                continue
+            if isinstance(text, fetchers.NotFound):
+                db.mark_detail_unavailable(conn, posting["id"])
+                stats["unavailable"] += 1
+                continue
+            if not text.strip():
+                # The board answered with an empty description. Nothing new to
+                # judge, so leave the score; mark it so it is not asked again.
+                db.mark_detail_unavailable(conn, posting["id"])
+                stats["unavailable"] += 1
+                continue
+
+            db.set_description(conn, posting["id"], text)
+            posting["description"] = text
+            stats["fetched"] += 1
+
+            verdict = prefilter.evaluate_hard(posting, rules)
+            if verdict.killed:
+                db.record_verdict(conn, posting, verdict)
+                stats["killed"] += 1
+                if verbose:
+                    print(f"  kill  {posting['company']}: {posting['title']}"
+                          f"  ({verdict.reason})")
+            elif posting["prefilter_verdict"] == prefilter.SURFACE:
+                # Already through the timing rules, so it stays surfaced with
+                # its timing reason; only flags the text added are merged in.
+                # Writing PENDING here would hide it until the timing pass ran.
+                db.record_verdict(conn, posting, prefilter.Verdict(
+                    prefilter.SURFACE, posting["prefilter_reason"], verdict.flags))
+            else:
+                db.record_verdict(conn, posting, verdict)
+
+            if not verdict.killed and db.clear_score(conn, posting["id"]):
+                stats["rescored"] += 1
+            if stats["fetched"] % COMMIT_EVERY == 0:
+                conn.commit()
+    finally:
+        if owns_client:
+            client.close()
+        conn.commit()
+
+    stats["remaining"] = sum(
+        1 for p in db.feed_needs_description(conn)
+        if fetchers.locate_job(p["url"], p["external_id"]) is not None
+    )
+    return stats
+
+
 def tag_pass(conn, max_calls=None, verbose=False) -> dict:
     """Pass two. Stage 0 intake tagging on what survived pass one."""
     untagged = [p for p in db.pending(conn) if not p["tagged_at"]]
@@ -188,6 +307,7 @@ def run(conn, max_calls=None, verbose=False) -> dict:
     """All three passes. Returns one stats block for the digest and the run log."""
     hard = hard_pass(conn, verbose)
     details = detail_pass(conn, verbose=verbose)
+    feed_details = feed_detail_pass(conn, verbose=verbose)
     tagged = tag_pass(conn, max_calls, verbose)
     timing = timing_pass(conn, verbose)
 
@@ -197,6 +317,7 @@ def run(conn, max_calls=None, verbose=False) -> dict:
     return {
         "hard": hard,
         "details": details,
+        "feed_details": feed_details,
         "tag": tagged,
         "timing": timing,
         "counts": counts,
@@ -230,6 +351,24 @@ def summary_lines(stats: dict) -> list[str]:
     if details.get("errors"):
         lines.append(f"{len(details['errors'])} description fetch(es) failed:")
         for company, title, err in details["errors"][:5]:
+            lines.append(f"  - {company}: {title}: {err}")
+    feed = stats.get("feed_details") or {}
+    if feed.get("fetched") or feed.get("unavailable"):
+        lines.append(
+            f"Fetched {feed.get('fetched', 0)} description(s) for feed postings, "
+            f"{feed.get('killed', 0)} killed once there was text to read, "
+            f"{feed.get('rescored', 0)} sent back to the ranker to be scored "
+            f"with their text, {feed.get('unavailable', 0)} no longer on their "
+            "board."
+        )
+    if feed.get("remaining"):
+        lines.append(
+            f"{feed['remaining']} feed posting(s) still wait on a description "
+            "and will be fetched on the next run."
+        )
+    if feed.get("errors"):
+        lines.append(f"{len(feed['errors'])} feed description fetch(es) failed:")
+        for company, title, err in feed["errors"][:5]:
             lines.append(f"  - {company}: {title}: {err}")
     if tag["tagged"]:
         lines.append(
