@@ -2,7 +2,7 @@
 // set (run with: node --env-file=.env node_modules/.bin/vitest run tests/postgres.test.ts).
 // Catches what the in-memory store cannot, like how the driver encodes jsonb.
 
-import { describe, expect, test } from "vitest";
+import { beforeAll, describe, expect, test } from "vitest";
 import { newId } from "../server/app";
 import { PostgresStore } from "../server/store-postgres";
 import { sampleTravelers } from "../server/sample-trip";
@@ -10,7 +10,11 @@ import { sampleTravelers } from "../server/sample-trip";
 const url = process.env.DATABASE_URL;
 
 describe.skipIf(!url)("PostgresStore", () => {
-  const store = new PostgresStore(url!);
+  // Built in beforeAll: a skipped describe still runs its body during collection.
+  let store: PostgresStore;
+  beforeAll(() => {
+    store = new PostgresStore(url!);
+  });
   // The trip expires in a minute and is swept (with its responses) by the next createTrip.
   const tripId = `test-${newId(6)}`;
   const cacheKey = `test:${newId(6)}`;
