@@ -37,10 +37,11 @@ label and of the errors an earlier version made.
 ## Evaluation
 
 `scripts/api_confidence_scorer.py` scores claims through the Claude API with a forced,
-machine-readable label. On a 50-claim eval set with reference labels, it was right 50% of the
-time when it saw only the claim text. Adding a one-line summary of each claim's source raised
-that to 79.6%, against 86% for the human scorer, which closed 83% of the gap. The eval set
-itself is not published because it quotes the real dossier.
+machine-readable label. On a 50-claim eval set with reference labels, it got 25 of 50 right
+when it saw only the claim text. Adding a one-line summary of each claim's source raised that
+to 39 of the 49 it scored (79.6%; one claim failed on an API overload), against 43 of 50 (86%)
+for the human scorer. That closed 82% of the gap to the human. Both figures come from a single
+run. The eval set itself is not published because it quotes the real dossier.
 
 ## Running it
 
