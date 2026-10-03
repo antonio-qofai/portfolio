@@ -1,154 +1,87 @@
-# Life Dashboard
+# life-dashboard
 
-A personal morning brief. One page that pulls news, weather, two inboxes, Google Calendar, chores, job search, and a separate QofAI work section, with a short ranked list of Pressing actions at the top. It runs locally on my laptop and is read-only.
+My morning brief. At 6 AM it builds one page from my calendars, inboxes, coursework, chores, job
+search, weather and news, with a short ranked list of what to do today at the top. At 7 it
+emails me a plain-text digest. It runs locally on my laptop, reads everything and changes
+nothing.
 
-PRD.md is the source of truth for scope and design.
+This is a sanitized copy. Calendar IDs and addresses are replaced, and the README is written for
+this public copy. The code is unchanged.
 
-## Status
+## How a build works
 
-Every connector returns real data: weather (Open-Meteo), Google Calendar (personal, UChicago, Family, Canvas and QofAI calendars), Gmail (personal and UChicago), chores and job search (agent report files), portfolio sync status, NYT and the AI Daily Brief. Email triage and Pressing actions call Claude, with rules as the fallback. M0 through M8 are built; M9 (actions) has not started.
-
-## Run locally
-
-Requires [uv](https://docs.astral.sh/uv/) (`brew install uv`). uv installs Python 3.12 and the dependencies on first run.
-
-```sh
-uv run run.py --serve     # build the page and serve it at http://127.0.0.1:8000
-uv run run.py             # build only: writes data/brief.json and web/index.html
-uv run pytest             # tests (no network)
+```
+connectors/  weather, 5 Google calendars (Canvas due dates among them), 2 Gmail
+             inboxes, recurring coursework rules, NYT, AI Daily Brief, and report
+             files from my chore and internship-search agents
+     │  each fails alone; a failed card shows its last good result and its age
+     ▼
+email triage       Claude Haiku 4.5, batches of 10, metadata only
+lead times         Claude Opus 5.5 rates how early each upcoming event needs attention
+Pressing actions   Claude Opus 5.5 ranks up to 7, each with a one-line reason
+     │  any failed model call falls back to rules, and the card says so
+     ▼
+web/index.html, served on localhost, reachable from my phone over Tailscale
+morning digest email
 ```
 
-Secrets go in `.env` (copy `.env.example`). Calendar and Gmail need `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+## Design decisions
 
-## Google Calendar
+Read-only by construction. `dashboard/google_auth.py` refuses any Google token carrying a scope
+beyond read-only Calendar and Gmail, both when authorizing and when loading a saved token.
 
-One read-only Google connection (`calendar.readonly`) to the personal account. UChicago, QofAI and Canvas are calendars subscribed into that account, so no third-party app touches the UChicago or QofAI accounts.
+The model sees as little as possible. Email triage gets sender, subject and Gmail's snippet,
+never message bodies. The calendar connector requests title, time, location and link, never
+descriptions. Source text goes into prompts wrapped in tags with an instruction not to follow
+anything inside it, and is HTML-escaped on the page.
 
-1. Create an OAuth client (Desktop app) in a Google Cloud project with the Calendar API enabled, and put its ID and secret in `.env`. Set the app's publishing status to "In production"; in "Testing", Google expires refresh tokens after 7 days.
-2. `uv run scripts/google_auth.py authorize` opens the browser for consent and saves the token to `data/tokens/google-personal.json` (gitignored, mode 600).
-3. `uv run scripts/google_auth.py calendars` lists calendar IDs. Copy them into `google_id` in config.yaml.
+Work stays separate. My QofAI calendar feeds the lead-time call, so work meetings get a
+prep note, but no work item enters the Pressing actions ranking or the digest email.
 
-The code refuses any Google token with a scope beyond read-only Calendar and Gmail.
+It learns from feedback. Every action has a check-off box, and every action and upcoming event
+has too early, too late and not needed buttons. The last few feedback entries go into both
+prompts on the next build, and a dismissed item stays out until it changes (a new due date, a
+new message in the thread).
 
-## Gmail
+One connector failing never breaks the page. The pipeline isolates each one, caches its last
+good result, and the card shows the error with the cached data's age. A build retries when any
+connector failed, up to a daily limit.
 
-The personal inbox uses the same token with `gmail.readonly` added. Enable the Gmail API in the same Cloud project, then re-run `uv run scripts/google_auth.py authorize` (the consent screen should list only read-only Calendar and Gmail access).
-
-Only inboxes with a `google_account` in config.yaml are read: personal (the Calendar token) and UChicago (`uv run scripts/google_auth.py authorize uchicago`, a Gmail-only token; pick the UChicago account in the chooser and click past Google's unverified-app warning). QofAI email is not read, since QofAI works in Slack.
-
-The connector reads Primary-tab inbox threads from the last `email.lookback_days` (at most `email.max_threads`) as metadata only (sender, subject, Gmail's snippet), never bodies. Promotions, Social, Updates and Forums are only counted, as one line.
-
-Every thread where you didn't send the last message (and that didn't come from one of your own addresses, like your agents' reports) goes to Claude, in batches of 10, (`email.model`, prompt in `prompts/email_triage.md`), which keeps only pressing school, work and internship email and says why, with any deadline. It needs `ANTHROPIC_API_KEY` in `.env`. If the call fails, rules stand in (last message from a real person, no mailing-list or auto-reply headers, no no-reply sender) and those items are marked "(AI filter unavailable)".
-
-## Pressing actions
-
-Each build makes two Claude calls (`actions.model`, Opus 5.5, at `actions.effort`). First, every calendar event in the next `calendar.lookahead_days` (title, calendar and start time only) is rated for importance and lead time (`prompts/lead_time.md`); personal events inside their lead time show under Coming up on the Calendar card, and QofAI events get a prep note on the QofAI card. Then today's personal events, pressing email, chores, job search and those upcoming events are ranked into at most `actions.cap` Pressing actions, each with a one-line why (`prompts/rank_actions.md`). QofAI events go to the lead-time call only (title and start time); no QofAI item enters the ranking. Chore descriptions are left out of the ranking prompt.
-
-Each action has a check-off box, and each action and Coming up event has "too early / too late / not needed" buttons. The serve job stores clicks in `data/checked.json` and `data/feedback.jsonl`; the last `actions.feedback_limit` feedback entries go into both prompts on the next build. A checked-off or not-needed item stays out of Pressing actions until it changes (new due date, new message in the thread). If a call fails, rules stand in (items with urgency hints, deadlines within 3 days) and the card says so.
-
-The buttons only work on the live page, since they post to the local server. It accepts JSON from its own origin only.
-
-## Morning digest
-
-A short plain-text email with Pressing actions and their why, today's calendar, chores, the weather line, and a link to the page (`DASHBOARD_URL`). QofAI items stay out. It goes from `GMAIL_ADDRESS` to itself over Gmail SMTP with an app password (`GMAIL_APP_PASSWORD`; needs 2FA, create it at myaccount.google.com/apppasswords), at `digest.hour`, or on wake until `digest.until_hour`. It sends once a day, only after the day's brief is built, and retries every 15 minutes on failure. `data/digests.log` records each attempt. The subject is always "Morning brief, <day>", so a Gmail filter can label it and skip the inbox.
-
-```sh
-uv run run.py --digest       # send now if it's due and not yet sent today
-uv run run.py --digest-test  # send the current brief now, marked [Test]; doesn't count as today's
-```
-
-## Phone access (Tailscale)
-
-`tailscale serve` proxies `https://<mac>.<tailnet>.ts.net` to the server on 127.0.0.1:8000, reachable only from devices signed into your tailnet, never the open internet. The server stays bound to localhost. Put that address in `.env` as `DASHBOARD_URL`: the digest links to it, and the server accepts check-offs and feedback from it. The page is reachable only while the Mac is awake and online.
-
-One-time setup: install the Tailscale app on the Mac and the phone and sign in with the same account; enable Serve for the tailnet when `tailscale serve` asks; then
-
-```sh
-/Applications/Tailscale.app/Contents/MacOS/Tailscale serve --bg --https=443 http://127.0.0.1:8000
-/Applications/Tailscale.app/Contents/MacOS/Tailscale serve status
-```
-
-The serve setting persists across restarts. Keep the Tailscale app set to open at login.
+Other agents plug in through files. My chore and internship agents write a JSON report in a
+shared contract (`dashboard/schema.py`), and a missing, stale or errored report shows as an
+error rather than an old list.
 
 ## Scheduling
 
-Three launchd jobs keep the brief fresh, the page up, and the digest sent.
+Three launchd jobs: the build (6 AM, on login, and on wake after a missed run), the digest (7 AM,
+sent once a day, only after that day's build), and an always-on local server for the page and its
+feedback endpoints. The server binds to 127.0.0.1 and accepts same-origin JSON only, for keys in
+the current brief.
 
-| Job | What it does |
-| --- | --- |
-| `...life-dashboard.build` | `run.py --catch-up` at 6:00 AM, at login, on wake after a missed 6:00, and every 30 min. Skips if today's brief already exists, unless some of its connectors failed; then it rebuilds, up to `schedule.retries` times a day. |
-| `...life-dashboard.digest` | `run.py --digest` at 7:00, at login, and every 15 min. Sends once a day in the window, after the build. |
-| `...life-dashboard.serve` | `run.py --serve --no-build`, always on, localhost only (Tailscale proxies to it). Serves `web/` and the check-off and feedback endpoints. Reinstall after changing server code or `DASHBOARD_URL`. |
+## Code
 
-```sh
-uv sync                                  # creates .venv, which launchd uses
-uv run scripts/launchd.py install        # (re)install all jobs after changing config.yaml
-uv run scripts/launchd.py status
-uv run scripts/launchd.py uninstall
-```
+    run.py                 entry point: build, catch-up build, serve, digest
+    connectors/            one module per source, each fetch(config) -> list[Item]
+    dashboard/pipeline.py  runs connectors, isolates failures, caches last good results
+    dashboard/triage.py    email triage
+    dashboard/actions.py   lead times and Pressing actions, with rule fallbacks
+    dashboard/digest.py    the morning email, the only code that sends
+    dashboard/render.py    the page
+    prompts/               the three prompts
+    config.yaml            sources, caps, models and schedule
 
-launchd only runs jobs while the Mac is awake. To wake it before the build, run this once (needs sudo, 5 minutes before `schedule` in config.yaml):
+126 tests. They never touch the network or the real data folder, and a fake Claude client
+covers the model paths:
 
-```sh
-sudo pmset repeat wakeorpoweron MTWRFSU 05:55:00
-pmset -g sched                           # confirm
-```
+    uv run pytest
 
-Every build appends a line to `data/runs.log` (time, trigger, status; trigger is `scheduled`, `retry`, `manual` or `refresh`); that log is how we check the "ready before 7:00 AM" metric. Job output goes to `data/logs/`.
+## Running it
 
-When a connector fails, its card shows the error plus its last good result from `data/cache/`, marked with its age.
+    uv run run.py --serve    # build the page and serve it at http://127.0.0.1:8000
 
-## Folder layout
+Weather and the AI Daily Brief work with no setup. NYT needs an API key, Calendar and Gmail need
+a Google OAuth client, and the model calls need `ANTHROPIC_API_KEY`, all in `.env` (see
+`.env.example`).
 
-```
-PRD.md              product requirements (source of truth)
-config.yaml         inboxes, calendars, location, news sections, caps, schedule
-run.py              entry point: build, catch-up build, serve
-scripts/launchd.py  install/uninstall/status for the launchd jobs
-scripts/google_auth.py  Google consent flow and calendar ID listing
-dashboard/
-  schema.py         shared Item shape + agent report contract
-  config.py         config and .env loader
-  google_auth.py    read-only Google OAuth tokens
-  pipeline.py       run connectors, isolate failures, cache last good results
-  actions.py        lead times and Pressing actions ranking (Claude, rule fallback)
-  store.py          check-offs and feedback in data/
-  api.py            the page's check-off and feedback endpoints
-  triage.py         LLM email triage
-  digest.py         morning email digest (the only code that sends)
-  render.py         HTML page in PRD layout order
-connectors/         one module per source, each `fetch(config) -> list[Item]`
-agent-reports/      report files written by my other agents (real ones gitignored)
-prompts/            LLM prompts: email triage, lead time, action ranking
-web/                page template; generated index.html is gitignored
-data/               local store, gitignored: brief.json, cache/, checked.json, digests.log, feedback.jsonl,
-                    logs/, runs.log, tokens/
-tests/
-```
-
-## Adding a source
-
-Write `connectors/<source>.py` with a `fetch(config)` that returns a list of `Item`, register it in `connectors/__init__.py`, and place its items in a card in `dashboard/render.py`.
-
-Agents that already exist plug in without a connector change by writing `agent-reports/<agent>.json` in the contract format (`generated_at`, `status`, `items[]` with `title`, `summary`, `due`, `urgency`, `link`). See `agent-reports/chores.sample.json`.
-
-The chore agent runs on GitHub Actions, so its exporter runs here instead: `~/agents/chores/src/report.py`, scheduled by `python3 scripts/report_launchd.py install --out ~/agents/life-dashboard/agent-reports/chores.json` in that repo (setup in its README, "Report exporter"). It runs at 05:45, before the 6:00 build.
-
-The internship agent runs on this Mac too. Its `tools/report.py` (in `~/agents/internship-search`) writes `agent-reports/internship.json` as the last step of each of its scheduled runs (08:10, 12:10, 18:10, 22:10). It reads the agent's local database only, so it makes no Airtable calls and needs no network. The same missing, stale and error rules apply. A missing report, one older than `agent_report_max_age_hours`, or one with `"status": "error"` shows as an error on the Chores card; the sample file is only used by tests.
-
-## Roadmap
-
-From PRD.md, one milestone at a time.
-
-| Milestone | Scope |
-| --- | --- |
-| M0 Skeleton | Scaffold, config, static page with placeholder cards (done) |
-| M1 Schedule + weather | Weather connector, 6:00 AM wake + catch-up run (in progress) |
-| M2 Calendar | Google Calendar, read-only; UChicago, QofAI, Canvas feeds (in progress) |
-| M3 Email | Personal Gmail and UChicago, then QofAI after policy check |
-| M4 Agent reports | Chore agent writes the report file |
-| M5 Pressing actions | LLM ranking, lead times, check-off and feedback buttons (built; week check pending) |
-| M6 Phone | 7:00 AM email digest and Tailscale access (built; morning check pending) |
-| M7 Job search | Internship agent's report file (built; check pending) |
-| M8 Reading | NYT (cap 5) and AI Daily Brief cards (AI Daily Brief live; NYT needs an API key) |
-| M9 Actions (v2) | Draft replies and add events, with approval each time |
+Python 3.12, uv, launchd, Gmail and Google Calendar APIs, Open-Meteo, NYT API, Claude API
+(Haiku 4.5, Opus 5.5), Tailscale.
