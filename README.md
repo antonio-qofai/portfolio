@@ -1,8 +1,7 @@
 # Antonio Rodriguez Diaz
 
-I build AI agents that pull from live systems, use Claude where judgment is needed, and check
-their own output with deterministic code before a person sees it. I study economics and
-physics at the University of Chicago (class of 2028). In summer 2026 I built production agents
+I love building AI agents. I study physics and
+economics at the University of Chicago (class of 2028). In summer 2026 I built production agents
 at QofAI, which sells AI agents to middle-market private equity firms.
 
 Every folder is a published copy of a working project. The deck generator is the largest.
