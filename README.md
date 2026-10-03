@@ -17,7 +17,7 @@ Every folder is a published copy of a working project. The deck generator is the
 #### [qofai-deck-generator](qofai-deck-generator/)
 
 Generates the proposal and status decks QofAI presents to clients, and gives reviewers a
-studio to finish them without touching HTML. Data comes from QofAI's internal platform over
+studio to finish them without touching HTML. Built so founders could have an in-house alternative to Claude Design. Data comes from QofAI's internal platform over
 MCP or from an uploaded PRD or research paper, and Claude Opus renders the deck from a typed
 slide spec. Seven deterministic guards check it first. Every value must be sourced or marked
 missing, no number or name may change during style passes, nothing may clip in headless
