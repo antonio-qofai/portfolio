@@ -4,7 +4,7 @@ I love building AI agents. I study physics and
 economics at the University of Chicago (class of 2028). In summer 2026 I built production agents
 at QofAI, which sells AI agents to middle-market private equity firms.
 
-Every folder is a published copy of a working project. The deck generator is the largest.
+Every folder is a published copy of a working project. 
 
 [LinkedIn](https://www.linkedin.com/in/antonio-rodriguez-diaz-76115632a)
 
