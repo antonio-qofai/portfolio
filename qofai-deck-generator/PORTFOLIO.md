@@ -2,8 +2,8 @@ Generates the proposal and status decks QofAI presents to clients, and gives rev
 studio to finish them without touching HTML. Data comes from QofAI's internal platform over
 MCP or from an uploaded PRD or research paper, and Claude Opus renders the deck from a typed
 slide spec. Seven deterministic guards check it first. Every value must be sourced or marked
-missing, no number or name may change during style passes, nothing may clip in headless Chrome, and commercial
-figures are rebuilt from source.
+missing, no number or name may change during style passes, nothing may clip in headless
+Chrome, and commercial figures are rebuilt from source.
 
 The review studio is the center of the project. A reviewer types an edit in plain language,
 Claude Opus translates it into exact text swaps on named slides, and deterministic code
