@@ -12,6 +12,7 @@ Docs.
 
 - PORTFOLIO.md rewritten from what runs today: live sources, where Claude is called and on which model, safeguards, and the test count.
 - README Status said every connector but weather and calendar was a stub; all are live now. The Pressing actions section said QofAI items enter neither Claude call; QofAI events do go to the lead-time call (title and start time), and only the ranking excludes them.
+- CLAUDE.md pointed to the portfolio sync tool at `~/portfolio/tools/`; it lives in `~/agents/portfolio/tools/`, where the post-commit hook runs it.
 
 
 Portfolio sync.

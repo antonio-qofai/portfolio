@@ -59,7 +59,7 @@ tests/
 
 ## Public portfolio
 
-This repo is published. A post-commit hook runs `~/portfolio/tools/sync.py`, which exports the
+This repo is published. A post-commit hook runs `~/agents/portfolio/tools/sync.py`, which exports the
 `main` branch, redacts personal details, and publishes the result to the public repo
 github.com/antonio-qofai/portfolio. Work on other branches is not published until it is merged
 into `main`.
@@ -68,10 +68,10 @@ into `main`.
   name, email, address or ID to a tracked file, also add a redaction for it to
   `~/.config/portfolio-sync/private.toml` in the same session, so the public copy is cleaned
   automatically instead of being blocked by the review. Never write the real value into any
-  public file, including `~/portfolio/tools/rules.toml`. Secrets such as API keys still belong
+  public file, including `~/agents/portfolio/tools/rules.toml`. Secrets such as API keys still belong
   in `.env`.
 - Two gates run before anything is published: a scanner, then a Claude review of exactly what
-  changed. A blocked sync publishes nothing. `uv run --script ~/portfolio/tools/sync.py --status`
+  changed. A blocked sync publishes nothing. `uv run --script ~/agents/portfolio/tools/sync.py --status`
   shows why. Do not work around a block. Fix the content, or tell the owner.
 - `PORTFOLIO.md` is this project's entry in the portfolio README. Keep it current: when a change
   adds, removes or materially changes a headline capability, update it in the same commit. One
