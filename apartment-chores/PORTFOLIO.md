@@ -1,8 +1,9 @@
-A rotation scheduler for a shared apartment. Every roommate does every chore the same number
-of times over a quarter. It emails a weekly digest and sends private nudges when a chore is
-overdue, and it reads the landlord's emails with an LLM to pick up cleaner visits. Proposed
-dates stay pending until a person confirms them. The whole setup (chores, people, rules) lives
-in Airtable rows, so pointing it at a different apartment means editing data, not code. It runs
-on GitHub Actions, with 389 tests.
+Assigns chores in a shared apartment on a rotation that balances every chore across roommates
+over a quarter, sends a weekly digest, and privately nudges anyone overdue. Claude Sonnet 5
+reads the landlord's emails into proposed cleaner visits through structured output, and plain
+code verifies each one. The quoted sentence must appear in the email, the date must fall in
+range, and any named weekday must match the date. A visit whose date fails a check becomes an
+undated request for a person to fill in, and nothing takes effect until a roommate confirms
+it. All configuration lives in Airtable. Runs on GitHub Actions, with over 400 tests.
 
 Python, Airtable API, Gmail SMTP/IMAP, Claude API, GitHub Actions.
