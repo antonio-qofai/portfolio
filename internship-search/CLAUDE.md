@@ -80,7 +80,7 @@ full spec; it is the single specification of record.
 
        tools.prefilter_report --dry-run     # read what the change would do
        tools.prefilter_report --reapply     # store it
-       tools.test_prefilter                 # 99 cases, all must pass
+       tools.test_prefilter                 # 127 cases, all must pass
        tools.sync_airtable                  # the prune removes the stranded rows
 
    `--reapply` is the step that gets skipped, and skipping it is silent. On 2026-08-14 four fall

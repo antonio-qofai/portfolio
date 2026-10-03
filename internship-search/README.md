@@ -290,7 +290,7 @@ After any edit to the filter, in this order:
 
     .venv/bin/python -m tools.prefilter_report --dry-run   # what would change, writes nothing
     .venv/bin/python -m tools.prefilter_report --reapply   # apply it
-    .venv/bin/python -m tools.test_prefilter               # 99 cases that must still pass
+    .venv/bin/python -m tools.test_prefilter               # 127 cases that must still pass
 
 The test suite is not optional. It has already caught a rule that looked right and did nothing.
 
