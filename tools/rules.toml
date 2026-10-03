@@ -30,6 +30,23 @@ pattern = '\b[A-Za-z0-9._-]{16,}@(group|import)\.calendar\.google\.com\b'
 replace = 'calendar-id@example.com'
 scan = false
 
+# Standing instructions written for a coding assistant, not for readers of this repo. These
+# sentences describe how to explain changes and say nothing about what the code does.
+[[redact]]
+pattern = ',\s+and\s+he\s+is\s+not\s+a\s+computer\s+science\s+major,\s+so\s+explanations\s+matter\s+as\s+much\s+as\s+code\.'
+replace = '.'
+scan = false
+
+[[redact]]
+pattern = 'the\s+owner\s+is\s+an\s+economics\s+and\s+physics\s+double\s+major,\s+not\s+a\s+software\s+engineer\.\s+'
+replace = ''
+scan = false
+
+[[redact]]
+pattern = '\s+Assume\s+the\s+reader\s+is\s+not\s+an\s+engineer\.'
+replace = ''
+scan = false
+
 [scan]
 secret_patterns = [
     'sk-ant-[A-Za-z0-9_-]{10,}',
@@ -83,10 +100,21 @@ email_allow = [
     "your.address@gmail.com",
 ]
 
+# Personal projects. Each source README is a working document for me; the public copy gets a
+# README written for readers of this repo instead.
+
 [projects.apartment-chores]
+
+[[projects.apartment-chores.overlay]]
+path = "README.md"
+from = "tools/overlays/apartment-chores/README.md"
 
 [projects.internship-search]
 exclude = ["MY_SEARCH.md", "NEXT_STEPS.md", "PRD.md", "CHANGELOG.md"]
+
+[[projects.internship-search.overlay]]
+path = "README.md"
+from = "tools/overlays/internship-search/README.md"
 
 [[projects.internship-search.overlay]]
 path = "sources/contacts.toml"
@@ -99,6 +127,10 @@ end = '^## Fit, 1 to 10$'
 with = "tools/overlays/internship-search/rubric-candidate.md"
 
 [projects.life-dashboard]
+
+[[projects.life-dashboard.overlay]]
+path = "README.md"
+from = "tools/overlays/life-dashboard/README.md"
 
 [projects.trip-planner]
 
