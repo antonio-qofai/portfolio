@@ -144,5 +144,6 @@ sync only by hand after I review each change, never on commit. Their description
 live in `tools/overlays/`, and anything built from real client or company material is replaced
 with synthetic stand-ins or left out.
 
-A few documents are left out for privacy, including the internship agent's PRD and changelog.
-Some links inside the project READMEs point to those files and will not resolve here.
+A few documents are left out for privacy, including the PRDs and changelogs of internship-search
+and the QofAI projects. Some links inside the project READMEs point to those files and will not
+resolve here.
