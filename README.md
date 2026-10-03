@@ -1,23 +1,13 @@
 # Antonio Rodriguez Diaz
 
-I build AI agents that do real work: they pull from live systems, call Claude where judgment is
-needed, and check their own output before a person sees it. I study economics and physics at
-the University of Chicago (class of 2028), and in 2026 I built agents at QofAI, an
-AI company for middle-market private equity.
+I build AI agents that pull from live systems, use Claude where judgment is needed, and check
+their own output with deterministic code before a person sees it. I study economics and
+physics at the University of Chicago (class of 2028). In summer 2026 I built production agents
+at QofAI, which sells AI agents to middle-market private equity firms.
 
-Every folder here is a published copy of a project that runs. Some are personal tools I use
-every day, and some are agents I built during the internship.
+Every folder is a published copy of a working project. The deck generator is the largest.
 
 [LinkedIn](https://www.linkedin.com/in/antonio-rodriguez-diaz-76115632a)
-
-## Start here
-
-[qofai-deck-generator](qofai-deck-generator/) is my largest project. It writes the proposal and status
-decks QofAI brings to a client, from the company's internal data or an uploaded PRD. Most of
-the code makes sure a deck never states something its sources do not, and about 2,400 tests
-hold it to that.
-
-![The deck generator's review studio, showing a generated status deck](qofai-deck-generator/docs/screenshots/review-studio.png)
 
 ## Projects
 
