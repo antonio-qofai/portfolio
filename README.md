@@ -17,19 +17,27 @@ Every folder is a published copy of a working project. The deck generator is the
 
 #### [qofai-deck-generator](qofai-deck-generator/)
 
-Built during my internship at QofAI, this agent writes the proposal and status check-in
-decks QofAI brings to a client engagement. It pulls a project's data from the company's
-internal platform over MCP, or parses an uploaded PRD or research paper, and maps it onto a
-typed slide spec. Then it renders an HTML deck through Claude and runs it through a stack of
-guards before a person sees it. The guards check that every needed value is either sourced
-or visibly marked missing, that no number, date or name changes during style edits, that
-nothing clips or overlaps on the slide, and that commercial figures come from the source and
-not from the model. Reviewers work in a hosted studio where they toggle bullets, request
-edits in plain language with undo, fill in missing values and export to PDF. It has about
-2,400 tests. This copy is sanitized: clients, people and deal figures are replaced with
-fictional ones.
+Generates the proposal and status decks QofAI presents to clients, and gives reviewers a
+studio to finish them without touching HTML. Data comes from QofAI's internal platform over
+MCP or from an uploaded PRD or research paper, and Claude Opus renders the deck from a typed
+slide spec. Seven deterministic guards check it first. Every value must be sourced or marked
+missing, no number or name may change during style passes, nothing may clip in headless Chrome, and commercial
+figures are rebuilt from source.
 
-Python, Claude API, MCP, Flask, Playwright, pypdf and python-docx, SQLite, Railway.
+The review studio is the center of the project. A reviewer types an edit in plain language,
+Claude Opus translates it into exact text swaps on named slides, and deterministic code
+applies them, so the rest of the deck stays byte-for-byte identical and a request the model
+cannot pin down changes nothing. One value typed into a missing-value card fills every place
+it belongs, such as a date repeated across six footers. Reviewers can switch individual
+bullets on or off, enter conservative, base and optimistic commercial terms in one form,
+confirm or send back flagged claims, and save formatting edits as standing preferences for
+future decks (content edits never carry over). Every change is a logged revision with
+one-click undo, and decks export to PDF. About 20,000 lines of application code and 2,447
+tests. Sanitized with fictional clients and figures.
+
+![The deck generator's review studio, showing a generated status deck](/qofai-deck-generator/docs/screenshots/review-studio.png)
+
+Python, Claude API, MCP, Flask, Playwright, SQLite, Railway.
 
 #### [qofai-content-calendar](qofai-content-calendar/)
 
