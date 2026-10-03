@@ -41,15 +41,16 @@ Python, Claude API, MCP, Flask, Playwright, SQLite, Railway.
 
 #### [qofai-content-calendar](qofai-content-calendar/)
 
-Built during my internship at QofAI, this agent plans the founders' LinkedIn calendar. It
-does not write posts. Each morning it reads what the company's other content agents produced,
-plus a weekly scan of AI and private equity news, and flags any source that has gone quiet.
-Once a month it asks Claude to sequence the available posts into a calendar for each founder
-under a policy kept entirely in configuration. It re-checks every calendar weekly and
-repairs any month that fails schema validation. Founders approve, decline, swap and
-reschedule posts on a served page. Every action goes through a single approval queue,
-declines need a reason that the agent reads next time, and the agent never posts anything
-itself. A teammate started it and I took it over and rebuilt most of it.
+Schedules the founders' LinkedIn posts from the output of QofAI's other content agents. A
+daily job ingests five sources (two upstream content agents, an Airtable conference tracker,
+an RSS news scan and post engagement from the internal portal) and flags any that go quiet or
+arrive late. Once a month a single Claude Opus 5 call at high effort sequences the posts into
+a calendar per founder, returning schema-constrained JSON under a policy defined entirely in
+YAML. Before saving, every slot's thread, form and lens tags are checked against the content
+taxonomy. Each calendar is re-checked weekly and repaired on failure. Founders approve,
+decline, swap and reschedule on a served page through one approval queue, and the reason
+required on every decline feeds the next run. The agent never posts. Taken over from a
+teammate and largely rebuilt, with 173 tests.
 
 Python, Claude API, Flask, Airtable REST API, RSS, PyYAML, GitHub Actions, Railway.
 
